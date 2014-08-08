@@ -11,12 +11,12 @@ describe 'spree/addresses/new' do
 
     rendered.should have_field('First Name', :type => 'text')
     rendered.should have_field('Last Name', :type => 'text')
-    rendered.should have_field(I18n.t('activerecord.attributes.spree/address.address1'), :type => 'text')
-    rendered.should have_field(I18n.t('activerecord.attributes.spree/address.address2'), :type => 'text')
+    rendered.should have_field(Spree.t(:address1), :type => 'text')
+    rendered.should have_field(Spree.t(:address2), :type => 'text')
     # Javascript can't be tested in views spec
-    rendered.should have_selector('select#address_country_id', :type => 'text')
+    rendered.should have_selector('select#address_country_id')
     # Javascript can't be tested in views spec
-    rendered.should have_selector('#address_state_name', :type => 'text')
+    rendered.should have_selector('input#address_state_name')
     rendered.should have_field('City', :type => 'text')
     rendered.should have_field('Zip', :type => 'text')
     rendered.should have_field('Phone', :type => 'text')
@@ -33,12 +33,12 @@ describe 'spree/addresses/edit' do
 
     rendered.should have_field('First Name', :with => address.firstname, :type => 'text')
     rendered.should have_field('Last Name', :with => address.lastname, :type => 'text')
-    rendered.should have_field(I18n.t('activerecord.attributes.spree/address.address1'), :with => address.address1, :type => 'text')
-    rendered.should have_field(I18n.t('activerecord.attributes.spree/address.address2'), :with => address.address2, :type => 'text')
+    rendered.should have_field(Spree.t(:address1), :with => address.address1, :type => 'text')
+    rendered.should have_field(Spree.t(:address2), :with => address.address2, :type => 'text')
     # Javascript can't be tested in views spec
-    rendered.should have_selector('select#address_country_id', :type => 'text')
+    rendered.should have_selector('select#address_country_id')
     # Javascript can't be tested in views spec
-    rendered.should have_selector('#address_state_name', :type => 'text')
+    rendered.should have_selector('input#address_state_name')
     rendered.should have_field('City', :with => address.city, :type => 'text')
     rendered.should have_field('Zip', :with => address.zipcode, :type => 'text')
     rendered.should have_field('Phone', :with => address.phone, :type => 'text')
