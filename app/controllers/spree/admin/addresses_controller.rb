@@ -4,40 +4,21 @@ module Spree
       def index
         @order = Spree::Order.find_by_number(params[:order_id])
         @user = @order.user
+        @previous_order = Spree::Order.where(user_id: @user.id).order(:created_at).last
 
-        @default_user_addresses_hash = {}
+        @user_addresses = {}
 
-        if @user
-          if @user.bill_address
-            @default_user_addresses_hash[I18n.t(:billing_address, scope: :address_book)] = @user.bill_address
-          end
+        @user_addresses[I18n.t(:billing_address_type, scope: :address_book)] = [
+          @user.try(:bill_address),
+          @order.try(:bill_address),
+          @previous_order.try(:bill_address)
+        ].uniq.compact
 
-          if @user.ship_address
-            @default_user_addresses_hash[I18n.t(:shipping_address, scope: :address_book)] = @user.ship_address
-          end
-
-          @current_order_addresses_hash = {}
-          if @order.bill_address
-            @current_order_addresses_hash[I18n.t(:billing_address, scope: :address_book)] = @order.bill_address
-          end
-
-          if @order.ship_address
-            @current_order_addresses_hash[I18n.t(:shipping_address, scope: :address_book)] = @order.ship_address
-          end
-
-          previous_order = Spree::Order.where(user_id: @user.id).order(:created_at).last
-
-          if previous_order != @order
-            @previous_order_addresses_hash= {}
-            if previous_order.bill_address
-              @previous_order_addresses_hash[I18n.t(:billing_address, scope: :address_book)] = previous_order.bill_address
-            end
-
-            if previous_order.ship_address
-              @previous_order_addresses_hash[I18n.t(:shipping_address, scope: :address_book)] = previous_order.ship_address
-            end
-          end
-        end
+        @user_addresses[I18n.t(:shipping_address_type, scope: :address_book)] = [
+          @user.try(:ship_address),
+          @order.try(:ship_address),
+          @previous_order.try(:ship_address)
+        ].uniq.compact
       end
 
       def new
