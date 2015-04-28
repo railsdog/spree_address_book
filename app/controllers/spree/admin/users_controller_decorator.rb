@@ -16,10 +16,14 @@ Spree::Admin::UsersController.class_eval do
 
   # Update with Spree 2-3-stable
   def edit_address
-    @user = model_class.find(params[:user_id])
     @address = @user.addresses.find(params[:address_id])
     redirect_to admin_users_addresses_path unless @address
     if request.put?
+      @user.save_default_addresses(
+        params[:address_default_bill],
+        params[:address_default_ship],
+        @address
+      )
       if @user.update_attributes(user_params)
         flash.now[:success] = Spree.t(:account_updated)
       end
@@ -33,16 +37,6 @@ Spree::Admin::UsersController.class_eval do
       @user ||= model_class.find(params[:user_id])
       @order = @user.orders.last
 
-      @user_addresses = {}
-
-      @user_addresses[I18n.t(:billing_address_type, scope: :address_book)] = [
-        @user.try(:bill_address),
-        @order.try(:bill_address)
-      ].uniq.compact
-
-      @user_addresses[I18n.t(:shipping_address_type, scope: :address_book)] = [
-        @user.try(:ship_address),
-        @order.try(:ship_address)
-      ].uniq.compact
+      @user_addresses = @user.addresses
     end
 end

@@ -5,10 +5,11 @@
 
   <div data-hook="admin_user_address_edit_form">
     <%= form_for [:admin, @user], as: :user, url: admin_user_edit_address_put_url(@user, @address), method: :put do |f| %>
+      <%= render partial: 'address_options' %>
       <div data-hook="address_wrapper" class="alpha twelve columns">
         <fieldset class="no-border-bottom">
           <legend align="center">
-            <% billing = (@user_addresses.select {|type, addresses| addresses.include?(@address) }.keys.first == "Billing") %>
+            <% billing = @address == @user.bill_address %>
             <% if billing %>
               <%= Spree.t(:billing_address) %>
             <% else %>
