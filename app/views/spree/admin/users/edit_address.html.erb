@@ -23,9 +23,10 @@
               Address
             <% end %>
           </legend>
-          <%= f.fields_for (billing ? :bill_address : :ship_address), (@address) do |ba_form| %>
+          <%= f.fields_for :address, (@address) do |ba_form| %>
             <% ba_form.object ||= Spree::Address.new(country: Spree::Country.new) %>
-            <%= render :partial => 'spree/admin/shared/address_form', :locals => { :f => ba_form, :type => (billing ? "billing" : "shipping") } %>
+            <%= ba_form.hidden_field :id %>
+            <%= render :partial => 'spree/admin/shared/address_form', :locals => { :f => ba_form, :type => 'address' } %>
           <% end %>
         </fieldset>
       </div>

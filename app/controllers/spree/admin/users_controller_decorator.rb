@@ -16,7 +16,8 @@ Spree::Admin::UsersController.class_eval do
     @address = @user.addresses.find(params[:address_id])
     redirect_to admin_users_addresses_path unless @address
     if request.put?
-      if @user.update_attributes(user_params)
+      params[:user].permit!
+      if @user.addresses.find(params[:user][:address][:id]).update_attributes(params[:user][:address])
         flash.now[:success] = Spree.t(:account_updated)
       end
 
@@ -36,6 +37,6 @@ Spree::Admin::UsersController.class_eval do
       @user ||= model_class.find(params[:user_id])
       @order = @user.orders.last
 
-      @user_addresses = @user.addresses
+      @user_addresses = @user.addresses.order('created_at DESC')
     end
 end
