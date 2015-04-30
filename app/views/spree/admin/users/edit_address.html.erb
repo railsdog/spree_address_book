@@ -11,15 +11,16 @@
 
   <div data-hook="admin_user_address_edit_form">
     <%= form_for [:admin, @user], as: :user, url: admin_user_edit_address_put_url(@user, @address), method: :put do |f| %>
-      <%= render partial: 'address_options' %>
       <div data-hook="address_wrapper" class="alpha twelve columns">
         <fieldset class="no-border-bottom">
           <legend align="center">
             <% billing = @address == @user.bill_address %>
             <% if billing %>
               <%= Spree.t(:billing_address) %>
-            <% else %>
+            <% elsif  @address == @user.ship_address %>
               <%= Spree.t(:shipping_address) %>
+            <% else %>
+              Address
             <% end %>
           </legend>
           <%= f.fields_for (billing ? :bill_address : :ship_address), (@address) do |ba_form| %>
