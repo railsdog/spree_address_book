@@ -1,10 +1,10 @@
 module Spree
   module Admin
     class AddressesController < ResourceController
-      before_filter :set_user, only: [:index, :new, :create, :edit, :update, :update_addresses]
+      before_filter :set_user_or_order
 
       def index
-        @user_addresses = @user.addresses.order('created_at DESC')
+        @addresses = @user.addresses.order('created_at DESC')
       end
 
       def new
@@ -17,6 +17,7 @@ module Spree
         if @address.save
           flash.now[:success] = Spree.t(:account_updated)
         end
+        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
 
       def edit
@@ -28,6 +29,7 @@ module Spree
         if @address.update_attributes(address_params)
           flash.now[:success] = Spree.t(:account_updated)
         end
+        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
 
       def destroy
@@ -35,12 +37,19 @@ module Spree
         if @address.destroy
           flash.now[:success] = Spree.t(:account_updated)
         end
+        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
 
       def update_addresses
         @user.update_attributes(params[:user].permit(:bill_address_id, :ship_address_id))
+        @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id)) if params[:order]
         flash[:success] = Spree.t(:default_addresses_updated)
-        redirect_to admin_addresses_path(user_id: @user)
+        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+      end
+
+      def redirect_back
+        redirect_to edit_admin_order_path(Spree::Order.find(params[:order_id])) if params[:order_id]
+        redirect_to edit_admin_user_path(Spree.user_class.find(params[:user_id])) if params[:user_id]
       end
 
       private
@@ -48,8 +57,10 @@ module Spree
           params.require(:address).permit(PermittedAttributes.address_attributes)
         end
 
-        def set_user
-          @user ||= Spree::User.find(params[:user_id])
+        def set_user_or_order
+          @user ||= Spree::User.find(params[:user_id]) if params[:user_id]
+          @order ||= Spree::Order.find(params[:order_id]) if params[:order_id]
+          @user ||= @order.user if @order
         end
     end
   end

@@ -1,12 +1,18 @@
-<%#= render :partial => 'spree/admin/shared/order_tabs', :locals => { :current => 'Addresses' } %>
+<% @parent_collection = (@order.class.name.split('::').last.humanize if @order) || (@user.class.name.split('::').last.humanize if @user) %>
+<% if @order %>
+  <%= render :partial => 'spree/admin/shared/order_tabs', :locals => { :current => 'Addresses' } %>
+<% end %>
 
 <% content_for :page_title do %>
-  <%= link_to "#{Spree.t(:editing_user)} #{@user.email}", edit_admin_user_url(@user) %>
+  <% unless @order %>
+    <%= link_to "#{Spree.t(:editing_user)} #{@user.email}", edit_admin_user_url(@user) %>
+  <% end %>
 <% end %>
 
 <% content_for :page_actions do %>
   <li><%= button_link_to Spree.t(:new_address), new_admin_address_path(user_id: @user.id), :icon => 'plus' %></li>
-  <li><%= button_link_to Spree.t(:back_to_addresses_list), admin_addresses_url(user_id: @user.id), :icon => 'arrow-left' %></li>
+  <li><%= button_link_to "Back to Addresses", admin_addresses_url(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'arrow-left' %></li>
+  <li><%= button_link_to "Back to #{@parent_collection}", redirect_back_admin_addresses_url(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'arrow-left' %></li>
 <% end %>
 
 <div data-hook="admin_user_edit_form_header">
@@ -23,7 +29,7 @@
           <%= render :partial => 'address_form', :locals => { :f => f } %>
 
           <div data-hook="admin_user_edit_form_button">
-            <%= render :partial => 'spree/admin/shared/edit_resource_links', :locals => { :collection_url => admin_addresses_url(user_id: @user.id) } %>
+            <%= render :partial => 'spree/admin/shared/edit_resource_links', :locals => { :collection_url => admin_addresses_url(user_id: @user.try(:id), order_id: @order.try(:id)) } %>
           </div>
         </fieldset>
       </div>
