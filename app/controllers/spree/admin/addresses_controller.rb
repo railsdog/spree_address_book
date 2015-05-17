@@ -1,92 +1,71 @@
 module Spree
   module Admin
     class AddressesController < ResourceController
+      before_filter :set_user_or_order
+
       def index
-        @order = Spree::Order.find_by_number(params[:order_id])
-        @user = @order.user
-        @previous_order = Spree::Order.where(user_id: @user.id).order(:created_at).last
-
-        @user_addresses = {}
-
-        @user_addresses[I18n.t(:billing_address_type, scope: :address_book)] = [
-          @user.try(:bill_address),
-          @order.try(:bill_address),
-          @previous_order.try(:bill_address)
-        ].uniq.compact
-
-        @user_addresses[I18n.t(:shipping_address_type, scope: :address_book)] = [
-          @user.try(:ship_address),
-          @order.try(:ship_address),
-          @previous_order.try(:ship_address)
-        ].uniq.compact
+        if @order
+          @addresses = @user.user_and_order_addresses(@order).sort_by(&:'created_at')
+        else
+          @addresses = @user.addresses.order('created_at DESC')
+        end
       end
 
       def new
-        @order = Spree::Order.find_by_number(params[:order_id])
         country_id = Spree::Address.default.country.id
-        @user = @order.user
         @address = @user.addresses.new(:country_id => country_id)
       end
 
       def create
-        @order = Spree::Order.find_by_number(params[:order_id])
-        @user = @order.user
         @address = @user.addresses.new(address_params)
         if @address.save
-          @user.save_default_addresses(
-            params[:address_default_bill],
-            params[:address_default_ship],
-            @address
-          )
-
-          @order = Spree::Order.find_by_number(params[:order_id])
-
-          @order.save_current_order_addresses(
-            params[:address_current_order_bill],
-            params[:address_current_order_ship],
-            @address
-          )
-
           flash.now[:success] = Spree.t(:account_updated)
         end
-
-        redirect_to admin_order_addresses_url @order
+        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
 
       def edit
-        @order = Spree::Order.find_by_number(params[:order_id])
-        @user = @order.user
+        @address = @user.addresses.find(params[:id])
       end
 
       def update
         @address = Spree::Address.find(params[:id])
-
         if @address.update_attributes(address_params)
-          @address.user.save_default_addresses(
-            params[:address_billing],
-            params[:address_shipping],
-            @address
-          )
-
-          @order = Spree::Order.find_by_number(params[:order_id])
-          @order.save_current_order_addresses(
-            params[:address_current_order_bill],
-            params[:address_current_order_ship],
-            @address
-          )
-
-          flash[:success] = "Address updated successfully"
+          flash.now[:success] = Spree.t(:account_updated)
         end
+        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+      end
 
-        redirect_to admin_order_addresses_url @order
+      def destroy
+        @address = Spree::Address.find(params[:id])
+        if @address.destroy
+          flash.now[:success] = Spree.t(:account_updated)
+        end
+        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+      end
+
+      def update_addresses
+        @user.update_attributes(params[:user].permit(:bill_address_id, :ship_address_id))
+        @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id)) if params[:order]
+        flash[:success] = Spree.t(:default_addresses_updated)
+        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+      end
+
+      def redirect_back
+        redirect_to edit_admin_order_path(Spree::Order.find(params[:order_id])) if params[:order_id]
+        redirect_to edit_admin_user_path(Spree.user_class.find(params[:user_id])) if params[:user_id]
       end
 
       private
+        def address_params
+          params.require(:address).permit(PermittedAttributes.address_attributes)
+        end
 
-      def address_params
-        params.require(:address)
-          .permit(PermittedAttributes.address_attributes)
-      end
+        def set_user_or_order
+          @user ||= Spree::User.find(params[:user_id]) if params[:user_id]
+          @order ||= Spree::Order.find(params[:order_id]) if params[:order_id]
+          @user ||= @order.user if @order
+        end
     end
   end
 end
