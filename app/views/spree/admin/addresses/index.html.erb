@@ -22,14 +22,13 @@
       <thead>
         <tr class="<%= cycle('even', 'odd') %>">
           <th><%= I18n.t(:address, scope: :address_book) %></th>
-          <th class="align-center"><%= I18n.t(:type, scope: :address_book) %></th>
           <% if @user %>
             <th class="align-center"><%= I18n.t(:def_bill, scope: :address_book) %></th>
             <th class="align-center"><%= I18n.t(:def_ship, scope: :address_book) %></th>
           <% end %>
           <% if @order %>
-            <th class="align-center"><%= I18n.t(:order_ship, scope: :address_book) %></th>
             <th class="align-center"><%= I18n.t(:order_bill, scope: :address_book) %></th>
+            <th class="align-center"><%= I18n.t(:order_ship, scope: :address_book) %></th>
           <% end %>
           <th class="actions"></th>
         </tr>
@@ -39,15 +38,6 @@
         <% @addresses.each do |address| %>
           <tr class="<%= cycle('even', 'odd') %>">
             <td><%= address %></td>
-            <td class="align-center">
-              <% if address == @user.bill_address %>
-                Billing
-              <% elsif address == @user.ship_address %>
-                Shipping
-              <% else %>
-                N/A
-              <% end %>
-            </td>
             <% if @user %>
               <td class="align-center">
                 <%= radio_button_tag 'user[bill_address_id]', address.id, address == @user.bill_address %>
@@ -58,10 +48,10 @@
             <% end %>
             <% if @order %>
               <td class="align-center">
-                <%= radio_button_tag 'order[bill_address_id]', address.id, address == @order.bill_address %>
+                <%= radio_button_tag 'order[bill_address_id]', address.id, compare_addresses(address, @order.bill_address) %>
               </td>
               <td class="align-center">
-                <%= radio_button_tag 'order[ship_address_id]', address.id, address == @order.ship_address %>
+                <%= radio_button_tag 'order[ship_address_id]', address.id, compare_addresses(address, @order.ship_address) %>
               </td>
             <% end %>
             <td class="actions">

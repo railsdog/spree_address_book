@@ -4,7 +4,11 @@ module Spree
       before_filter :set_user_or_order
 
       def index
-        @addresses = @user.addresses.order('created_at DESC')
+        if @order
+          @addresses = @user.user_and_order_addresses(@order).sort_by(&:'created_at')
+        else
+          @addresses = @user.addresses.order('created_at DESC')
+        end
       end
 
       def new
