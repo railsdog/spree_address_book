@@ -3,6 +3,14 @@ Spree.user_class.class_eval do
 
   has_many :addresses, -> { where(:deleted_at => nil).order("updated_at DESC") }, :class_name => 'Spree::Address'
 
+  # This method merges the addresses related to the user
+  # plus order's bill and ship addresses returning a unique
+  # array of addresses based on attributes.
+  def user_and_order_addresses(order)
+    addresses = [self.addresses, order.bill_address, order.ship_address].flatten.compact
+    addresses.uniq! { |a| a.dup.attributes.merge("user_id" => nil) }
+  end
+
   def link_address
     bill_address.update_attributes(user_id: id) if bill_address_id_changed? && bill_address
     ship_address.update_attributes(user_id: id) if ship_address_id_changed? && ship_address
