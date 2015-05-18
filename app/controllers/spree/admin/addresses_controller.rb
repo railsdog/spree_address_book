@@ -46,7 +46,7 @@ module Spree
 
       def update_addresses
         @user.update_attributes(params[:user].permit(:bill_address_id, :ship_address_id))
-        @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id)) if params[:order]
+        update_order_addresses
         flash[:success] = Spree.t(:default_addresses_updated)
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
@@ -65,6 +65,21 @@ module Spree
           @user ||= Spree::User.find(params[:user_id]) if params[:user_id]
           @order ||= Spree::Order.find(params[:order_id]) if params[:order_id]
           @user ||= @order.user if @order
+        end
+
+        def update_order_addresses
+          if params[:order]
+            params[:order].permit(:bill_address_id, :ship_address_id)
+            bill_address = Spree::Address.find(params[:order][:bill_address_id])
+            ship_address = Spree::Address.find(params[:order][:ship_address_id])
+            if bill_address
+              @order.bill_address_attributes = bill_address.dup.attributes
+            end
+            if ship_address
+              @order.ship_address_attributes = ship_address.dup.attributes
+            end
+            @order.save
+          end
         end
     end
   end
