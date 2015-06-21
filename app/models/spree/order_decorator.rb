@@ -86,6 +86,11 @@ Spree::Order.class_eval do
   end
   state_machine.after_transition to: :complete, do: :delink_addresses
 
+  def addresses
+    addresses = [self.bill_address, self.ship_address].flatten.compact
+    addresses.uniq { |a| a.to_s }
+  end
+
   private
 
   # Updates an existing address or creates a new one

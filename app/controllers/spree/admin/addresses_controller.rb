@@ -4,28 +4,44 @@ module Spree
       before_filter :set_user_or_order
 
       def index
-        if @order
+        if @order and @user
           @addresses = @user.user_and_order_addresses(@order).sort_by(&:'created_at')
-        else
+        elsif @user
           @addresses = @user.addresses.order('created_at DESC')
+        else
+          @addresses = @order.addresses.sort_by(&:'created_at')
         end
       end
 
       def new
         country_id = Spree::Address.default.country.id
-        @address = @user.addresses.new(:country_id => country_id)
+        @address = Spree::Address.new(:country_id => country_id, user: @user)
       end
 
       def create
-        @address = @user.addresses.new(address_params)
+        country_id = Spree::Address.default.country.id
+        @address = Spree::Address.new({:country_id => country_id, user: @user}.merge(params[:address]))
         if @address.save
+          if @order and !@user
+            case params[:address][:address_type]
+            when "bill_address"
+              @order.bill_address = @address
+            when "ship_address"
+              @order.ship_address = @address
+            end
+            @order.save!
+          end
           flash.now[:success] = Spree.t(:account_updated)
         end
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
 
       def edit
-        @address = @user.addresses.find(params[:id])
+        if @order and !@user
+          @address = @order.addresses.select{|r| r.id == params[:id].to_i }.first
+        else
+          @address = @user.addresses.find(params[:id])
+        end
       end
 
       def update
@@ -45,8 +61,12 @@ module Spree
       end
 
       def update_addresses
-        @user.update_attributes(params[:user].permit(:bill_address_id, :ship_address_id))
-        update_order_addresses
+        if @order and !@user
+          @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id))
+        elsif @user
+          @user.update_attributes(params[:user].permit(:bill_address_id, :ship_address_id))
+          update_order_addresses
+        end
         flash[:success] = Spree.t(:default_addresses_updated)
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end

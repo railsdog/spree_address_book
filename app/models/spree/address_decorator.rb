@@ -1,4 +1,6 @@
 Spree::Address.class_eval do
+  attr_accessor :address_type
+
   belongs_to :user, :class_name => Spree.user_class.to_s
 
   def self.required_fields
