@@ -1,4 +1,19 @@
 <div id="address" data-hook="address_fields">
+  <% if @order and !@user %>
+    <div class="field address-row">
+      <%= f.label :address_type, Spree.t(:address_type) %>
+      <% 
+        selected_type = case @address.id
+        when @order.bill_address_id
+          "bill_address"
+        when @order.ship_address_id
+          "ship_address"
+        end
+      %>
+      <%= f.select :address_type, options_for_select([['Billing Address','bill_address'], ['Shipping Address','ship_address']], selected: selected_type), {}, :class => 'select2 fullwidth' %>
+    </div>
+  <% end %>
+  
   <div class="field address-row">
     <%= f.label :firstname, Spree.t(:first_name) %>
     <%= f.text_field :firstname, :class => 'fullwidth' %>

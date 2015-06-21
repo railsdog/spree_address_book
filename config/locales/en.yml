@@ -45,3 +45,4 @@ en:
     order_ship: "Order Shipping"
   spree:
     save_my_address: "Make these addresses my default"
+    editing_order: Editing Order
