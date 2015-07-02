@@ -29,6 +29,7 @@ module Spree
             when "ship_address"
               @order.ship_address = @address
             end
+            @order.delink_addresses
             @order.save!
           end
           flash.now[:success] = Spree.t(:account_updated)
