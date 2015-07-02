@@ -64,6 +64,7 @@ module Spree
       def update_addresses
         if @order and !@user
           @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id))
+          @order.delink_addresses
         elsif @user
           @user.update_attributes(params[:user].permit(:bill_address_id, :ship_address_id))
           update_order_addresses
