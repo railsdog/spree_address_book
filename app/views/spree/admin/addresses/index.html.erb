@@ -17,7 +17,12 @@
 <fieldset data-hook="admin_addresses" id="admin_user_edit_addresses" class="alpha twelve columns">
   <legend><%= Spree.t('addresses', :scope => 'admin.user') %></legend>
 
-  <% unless @addresses.blank? %>
+  <% if @addresses.blank? %>
+    <div class="alpha twelve columns no-objects-found">
+      No Addresses found,
+      <%= link_to "Add one", new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)) %>!
+    </div>
+  <% else %>
     <table id="addresses">
       <thead>
         <tr class="<%= cycle('even', 'odd') %>">
