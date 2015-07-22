@@ -24,6 +24,7 @@ module Spree
         country_id = Spree::Address.default.country.id
         @address = Spree::Address.new({:country_id => country_id, user: @user}.merge(params[:address]))
         if @address.save
+          # TODO: There might be a better way to figure out where to assign the address
           if @order and !@user
             case params[:address][:address_type]
             when "bill_address"
@@ -35,7 +36,10 @@ module Spree
             @order.save!
           end
           flash.now[:success] = Spree.t(:account_updated)
+        else
+          flash.now[:error] = @address.errors.full_messages.to_sentence
         end
+
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
 
