@@ -1,9 +1,11 @@
 module Spree
   module Admin
     class AddressesController < ResourceController
+      before_filter :find_address, only: [:edit, :update, :destroy]
       before_filter :set_user_or_order
 
       def index
+        # TODO: Guest orders?
         if @order and @user
           @addresses = @user.user_and_order_addresses(@order).sort_by(&:'created_at')
         elsif @user
@@ -39,14 +41,12 @@ module Spree
 
       def edit
         if @order and !@user
+          # TODO: Is it necessary to limit this to the order's addresses?
           @address = @order.addresses.select{|r| r.id == params[:id].to_i }.first
-        else
-          @address = @user.addresses.find(params[:id])
         end
       end
 
       def update
-        @address = Spree::Address.find(params[:id])
         if @address.update_attributes(address_params)
           flash.now[:success] = Spree.t(:account_updated)
         end
@@ -54,7 +54,6 @@ module Spree
       end
 
       def destroy
-        @address = Spree::Address.find(params[:id])
         if @address.destroy
           flash.now[:success] = Spree.t(:account_updated)
         end
@@ -81,6 +80,10 @@ module Spree
       private
         def address_params
           params.require(:address).permit(PermittedAttributes.address_attributes)
+        end
+
+        def find_address
+          @address ||= Spree::Address.find(params[:id]) if params[:id]
         end
 
         def set_user_or_order
