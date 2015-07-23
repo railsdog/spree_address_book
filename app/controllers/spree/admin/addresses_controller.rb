@@ -11,7 +11,7 @@ module Spree
         elsif @user
           @addresses = @user.addresses.order('created_at DESC')
         else
-          @addresses = @order.addresses.sort_by(&:'created_at')
+          @addresses = @order.try(:addresses).try(:sort_by, &:created_at)
         end
       end
 
@@ -105,6 +105,10 @@ module Spree
           @user ||= Spree::User.find(params[:user_id]) if params[:user_id]
           @order ||= Spree::Order.find(params[:order_id]) if params[:order_id]
           @user ||= @order.user if @order
+
+          if @order.user && @user && @user != @order.user
+            raise "User ID does not match order's user ID!"
+          end
         end
 
         def update_order_addresses
