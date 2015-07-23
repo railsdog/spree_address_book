@@ -38,6 +38,7 @@
           <th class="actions"></th>
         </tr>
       </thead>
+
       <tbody>
       <%= form_for @user || @order, url: update_addresses_admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id)), method: :put do |f| %>
         <% @addresses.each do |address| %>
@@ -46,17 +47,21 @@
             <% if @user %>
               <td class="align-center">
                 <%= radio_button_tag 'user[bill_address_id]', address.id, address == @user.bill_address %>
+                <%= label_tag "user_bill_address_id_#{address.id}", '' %>
               </td>
               <td class="align-center">
                 <%= radio_button_tag 'user[ship_address_id]', address.id, address == @user.ship_address %>
+                <%= label_tag "user_ship_address_id_#{address.id}", '' %>
               </td>
             <% end %>
             <% if @order %>
               <td class="align-center">
                 <%= radio_button_tag 'order[bill_address_id]', address.id, compare_addresses(address, @order.bill_address) %>
+                <%= label_tag "order_bill_address_id_#{address.id}", '' %>
               </td>
               <td class="align-center">
                 <%= radio_button_tag 'order[ship_address_id]', address.id, compare_addresses(address, @order.ship_address) %>
+                <%= label_tag "order_ship_address_id_#{address.id}", '' %>
               </td>
             <% end %>
             <td class="actions">
