@@ -44,6 +44,9 @@ Capybara.javascript_driver = :poltergeist
 # Capybara.default_wait_time = 20
 
 RSpec.configure do |config|
+  # Hide RSpec 3 deprecation warning
+  config.infer_spec_type_from_file_location!
+
   config.color = true
   config.mock_with :rspec
 
