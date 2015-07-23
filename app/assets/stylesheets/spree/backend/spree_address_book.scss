@@ -4,22 +4,23 @@ table#addresses {
     position: relative;
 
     label {
+      display: block;
       position: absolute;
+      z-index: 0;
       top: 0;
       bottom: 0;
       left: 0;
       right: 0;
       margin: 0;
-      display: block;
     }
 
     input[type="radio"]:checked {
+      position: relative;
       z-index: 1;
 
       & + label {
-        background: rgba(200, 200, 255, 0.3);
+        background: desaturate(lighten(#5498da, 20), 20); // based on $color-tbl-even from Spree 2.3
       }
     }
   }
-
 }
