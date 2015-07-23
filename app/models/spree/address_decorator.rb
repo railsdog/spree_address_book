@@ -18,6 +18,9 @@ Spree::Address.class_eval do
   # Returns a subset of attributes for use by #same_as?
   def comparison_attributes
     a = attributes.except('id', 'updated_at', 'created_at', 'alternative_phone')
+    a.each{|k, v|
+      a[k] = v.downcase if v.is_a?(String)
+    }
     a['state_name'] = nil if a['state_name'].blank?
     a
   end
