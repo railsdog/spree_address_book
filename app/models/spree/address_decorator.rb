@@ -12,7 +12,14 @@ Spree::Address.class_eval do
   def same_as?(other)
     return false unless other.is_a?(Spree::Address)
 
-    attributes.except('id', 'updated_at', 'created_at', 'alternative_phone') == other.attributes.except('id', 'updated_at', 'created_at', 'alternative_phone')
+    comparison_attributes == other.comparison_attributes
+  end
+
+  # Returns a subset of attributes for use by #same_as?
+  def comparison_attributes
+    a = attributes.except('id', 'updated_at', 'created_at', 'alternative_phone')
+    a['state_name'] = nil if a['state_name'].blank?
+    a
   end
 
   # can modify an address if it's not been used in an completed order
