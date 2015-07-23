@@ -20,7 +20,7 @@
 </div>
 
 <div data-hook="admin_user_address_edit_form">
-  <%= form_for @address, url: admin_address_path(@address, user_id: @user), method: :put do |f| %>
+  <%= form_for @address, url: admin_address_path(@address, order_id: @order.try(:id), user_id: @user.try(:id)), method: :put do |f| %>
     <div class="row">
       <div class="alpha twelve columns">
         <fieldset data-hook="admin_user_addresses" id="admin_user_edit_addresses" class="alpha twelve columns">
