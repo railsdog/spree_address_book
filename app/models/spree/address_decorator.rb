@@ -10,7 +10,8 @@ Spree::Address.class_eval do
   end
 
   def same_as?(other)
-    return false if other.nil?
+    return false unless other.is_a?(Spree::Address)
+
     attributes.except('id', 'updated_at', 'created_at', 'alternative_phone') == other.attributes.except('id', 'updated_at', 'created_at', 'alternative_phone')
   end
 
