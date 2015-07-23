@@ -5,13 +5,15 @@ module Spree
       before_filter :set_user_or_order
 
       def index
-        # TODO: Guest orders?
         if @order and @user
-          @addresses = @user.user_and_order_addresses(@order).sort_by(&:'created_at')
+          # Non-guest order
+          @addresses = @user.user_and_order_addresses(@order).sort_by(&:updated_at).reverse
         elsif @user
-          @addresses = @user.addresses.order('created_at DESC')
+          # User account
+          @addresses = @user.addresses.order('updated_at DESC')
         else
-          @addresses = @order.try(:addresses).try(:sort_by, &:created_at)
+          # Guest order
+          @addresses = [@order.try(:bill_address), @order.try(:ship_address)].compact.sort_by(&:updated_at).reverse
         end
       end
 
@@ -48,7 +50,7 @@ module Spree
 
       def edit
         if @order and !@user
-          # TODO: Is it necessary to limit this to the order's addresses?
+          # Guest order; limit to the order's addresses
           @address = @order.addresses.select{|r| r.id == params[:id].to_i }.first
         end
       end
