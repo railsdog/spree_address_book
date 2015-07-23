@@ -6,4 +6,7 @@ gem 'spree_auth_devise', :git => 'git://github.com/spree/spree_auth_devise', :br
 gem 'coffee-rails', '~> 4.0.0'
 gem 'pry-rails'
 
+gem 'therubyracer', platforms: :ruby, groups: [:test, :development]
+gem 'libv8', '<= 3.16.14.3', groups: [:test, :development]
+
 gemspec
