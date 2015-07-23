@@ -49,6 +49,54 @@ describe Spree::Address do
       address2.destroy
       Spree::Address.where(["id = (?)", address2.id]).should_not be_empty
     end
-  end
 
+    describe '#same_as?' do
+      let(:address) { a = FactoryGirl.create(:address); a.state_name = nil; a }
+      let(:address2) { FactoryGirl.create(:address) }
+      let(:address_copy) { a = address.clone; a.save!; a }
+      let(:address_upper) {
+        Spree::Address.create!(Hash[*address.attributes.map{|k, v| [k, v.is_a?(String) ? v.upcase : v]}.flatten].merge(id: nil))
+      }
+      let(:address_lower) {
+        Spree::Address.create!(Hash[*address.attributes.map{|k, v| [k, v.is_a?(String) ? v.downcase : v]}.flatten].merge(id: nil))
+      }
+      let(:address_blank_state) {
+        a = address.clone
+        a.save!
+        a.state_name = ''
+        a
+      }
+
+      it 'returns true for the same address' do
+        expect(address.same_as?(address)).to eq(true)
+      end
+
+      it 'returns false for different addresses' do
+        expect(address.same_as?(address2)).to eq(false)
+        expect(address2.same_as?(address)).to eq(false)
+      end
+
+      it 'returns true for a copy of the address' do
+        expect(address.id).not_to eq(address_copy.id)
+        expect(address.same_as?(address_copy)).to eq(true)
+        expect(address_copy.same_as?(address)).to eq(true)
+      end
+
+      it 'returns true for a nil vs. blank state name' do
+        expect(address == address_blank_state).to eq(false)
+        expect(address.same_as?(address_blank_state)).to eq(true)
+        expect(address_blank_state.same_as?(address)).to eq(true)
+      end
+
+      it 'returns true regardless of uppercase/lowercase' do
+        expect(address.firstname == address_upper.firstname).to eq(false)
+        expect(address.same_as?(address_upper)).to eq(true)
+        expect(address_upper.same_as?(address)).to eq(true)
+        expect(address.same_as?(address_lower)).to eq(true)
+        expect(address_lower.same_as?(address)).to eq(true)
+        expect(address_lower.same_as?(address_upper)).to eq(true)
+        expect(address_upper.same_as?(address_lower)).to eq(true)
+      end
+    end
+  end
 end
