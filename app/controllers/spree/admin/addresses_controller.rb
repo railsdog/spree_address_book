@@ -23,6 +23,7 @@ module Spree
       def create
         country_id = Spree::Address.default.country.id
         @address = Spree::Address.new({:country_id => country_id, user: @user}.merge(params[:address]))
+
         if @address.save
           # TODO: There might be a better way to figure out where to assign the address
           if @order and !@user
@@ -35,12 +36,14 @@ module Spree
             @order.delink_addresses
             @order.save!
           end
-          flash.now[:success] = Spree.t(:account_updated)
-        else
-          flash.now[:error] = @address.errors.full_messages.to_sentence
-        end
 
-        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+          flash[:success] = Spree.t(:account_updated)
+
+          redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+        else
+          flash[:error] = @address.errors.full_messages.to_sentence
+          render :new
+        end
       end
 
       def edit
@@ -52,33 +55,41 @@ module Spree
 
       def update
         if @address.update_attributes(address_params)
-          flash.now[:success] = Spree.t(:account_updated)
+          flash[:success] = Spree.t(:account_updated)
+          redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+        else
+          flash[:error] = @address.errors.full_messages.to_sentence
+          render :edit
         end
-        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
 
       def destroy
         if @address.destroy
-          flash.now[:success] = Spree.t(:account_updated)
+          flash[:success] = Spree.t(:account_updated)
+        else
+          flash[:error] = @address.errors.full_messages.to_sentence
         end
+
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
 
       def update_addresses
         if @order and !@user
-          @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id))
-          @order.delink_addresses
+          if @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id))
+            @order.delink_addresses
+          else
+            flash[:error] = @order.errors.full_messages.to_sentence
+          end
         elsif @user
-          @user.update_attributes(params[:user].permit(:bill_address_id, :ship_address_id))
-          update_order_addresses
+          if @user.update_attributes(params[:user].permit(:bill_address_id, :ship_address_id))
+            update_order_addresses
+          else
+            flash[:error] = @order.errors.full_messages.to_sentence
+          end
         end
+
         flash[:success] = Spree.t(:default_addresses_updated)
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
-      end
-
-      def redirect_back
-        redirect_to edit_admin_order_path(Spree::Order.find(params[:order_id])) if params[:order_id]
-        redirect_to edit_admin_user_path(Spree.user_class.find(params[:user_id])) if params[:user_id]
       end
 
       private
