@@ -108,7 +108,7 @@ module Spree
           @order ||= Spree::Order.find(params[:order_id]) if params[:order_id]
           @user ||= @order.user if @order
 
-          if @order.user && @user && @user != @order.user
+          if @order && @user && @user != @order.user
             raise "User ID does not match order's user ID!"
           end
         end
