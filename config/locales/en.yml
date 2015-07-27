@@ -36,6 +36,7 @@ en:
     type: "Type"
     unsuccessfully_saved: "There was an error while trying to save your address."
     unsuccessfully_updated: "There was an update while trying to update your address."
+    update_default_addresses: "Update Default Addresses"
     use_current_order: "Use for Current Order"
     use_billing_address: "Use as Billing Address"
     use_shipping_address: "Use as Shipping Address"
