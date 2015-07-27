@@ -92,9 +92,10 @@ Spree::Order.class_eval do
     save!
   end
 
+  # Returns unique addresses on the order, using Spree::Address#comparison_attributes
   def addresses
     addresses = [self.bill_address, self.ship_address].flatten.compact
-    addresses.uniq { |a| a.to_s }
+    addresses.uniq { |a| a.comparison_attributes }
   end
 
   private
