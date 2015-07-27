@@ -46,6 +46,29 @@ describe Spree::CheckoutController do
     end
   end
 
+  describe "on completion" do
+    before(:each) do
+      @order.state = 'confirm'
+      @order.save!
+    end
+
+    it "clones the addresses for the order" do
+      put :update, {use_route: :spree, state: 'confirm'}
+
+      @order.reload
+
+      expect(@order.state).to eq('complete')
+      expect(@order.ship_address.user_id).to be_nil
+      expect(@order.bill_address.user_id).to be_nil
+
+      expect(@order.user.bill_address_id).not_to eq(@order.bill_address_id)
+      expect(@order.user.ship_address_id).not_to eq(@order.ship_address_id)
+
+      expect(@order.user.bill_address.user_id).to eq(@order.user_id)
+      expect(@order.user.ship_address.user_id).to eq(@order.user_id)
+    end
+  end
+
   private
 
   def put_address_to_order(params)
