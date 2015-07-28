@@ -9,4 +9,6 @@ gem 'pry-rails'
 gem 'therubyracer', platforms: :ruby, groups: [:test, :development]
 gem 'libv8', '<= 3.16.14.3', groups: [:test, :development]
 
+gem 'byebug', groups: [:test, :development]
+
 gemspec
