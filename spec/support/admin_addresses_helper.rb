@@ -50,12 +50,13 @@ module AdminAddresses
   #   user_or_order - :user or :order
   #   bill_or_ship - :bill or :ship
   def expect_selected(address, user_or_order, bill_or_ship)
-    group_selector = %Q{input[type="radio"][name=#{user_or_order}[#{bill_or_ship}_address_id]]:checked]}
+    group_selector = "//input[@type='radio' and @name='#{user_or_order}[#{bill_or_ship}_address_id]' and @checked]"
     item_selector = "##{user_or_order}_#{bill_or_ship}_address_id_#{address.try(:id)}"
 
     if address.nil?
-      expect{page.find(group_selector)}.to raise_error(/find.*CSS/i)
+      expect{page.find(:xpath, group_selector)}.to raise_error(/Unable to find xpath/i)
     else
+      expect{page.find(:xpath, group_selector)}.not_to raise_error
       expect(page.find(item_selector)).to be_checked
     end
   end
