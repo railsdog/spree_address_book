@@ -4,7 +4,9 @@ feature 'Admin UI address management' do
   stub_authorization!
 
   let(:user) { create(:user) }
-  let(:order) { create(:order_with_line_items) }
+  let(:order) { create(:order_with_line_items, user: user) }
+  let(:completed_order) { create(:completed_order_with_pending_payment, user: user) }
+  let(:shipped_order) { create(:shipped_order, user: user) }
   let(:guest_order) {
     o = create(:order_with_line_items)
     o.update_attributes!(user: nil)
@@ -42,6 +44,15 @@ feature 'Admin UI address management' do
 
       visit_user_addresses user
       expect_address_count 10
+    end
+
+    scenario 'does not show order addresses in user address list' do
+      visit_order_addresses completed_order
+
+      # FIXME: completed_order and shipped_order raise a stack level too deep error here
+      visit_user_addresses user
+
+      expect_address_count 0
     end
 
     scenario 'shows only two columns for default address selection' do
