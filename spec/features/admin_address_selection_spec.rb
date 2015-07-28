@@ -7,12 +7,7 @@ feature 'Admin UI address management' do
   let(:order) { create(:order_with_line_items, user: user) }
   let(:completed_order) { create(:completed_order_with_pending_payment, user: user) }
   let(:shipped_order) { create(:shipped_order, user: user) }
-  let(:guest_order) {
-    o = create(:order_with_line_items)
-    o.update_attributes!(user: nil)
-    o
-  }
-
+  let(:guest_order) { o = create(:order_with_line_items, user: nil, email: 'guest@example.com') }
 
   describe 'User account address list' do
     scenario 'lists no addresses for a user with no addresses' do
@@ -90,6 +85,10 @@ feature 'Admin UI address management' do
       visit_user_addresses user
 
       expect(page.all('#addresses thead tr:first-child th').count).to eq(4)
+    end
+
+    context 'with duplicate addresses' do
+      pending # TODO
     end
   end
 
@@ -256,6 +255,26 @@ feature 'Admin UI address management' do
             expect_address_count(t + 3)
           end
         end
+      end
+    end
+
+    context 'with duplicate addresses' do
+      scenario 'shows one item for an order with two identical addresses' do
+        order.update_attributes!(bill_address: order.ship_address.clone)
+        expect(order.ship_address_id).not_to eq(order.bill_address_id)
+        expect(order.ship_address).to be_same_as(order.bill_address)
+
+        visit_order_addresses(order)
+        expect_address_count(1)
+      end
+
+      scenario 'shows one item for a guest order with two identical addresses' do
+        guest_order.update_attributes!(bill_address: guest_order.ship_address.clone)
+        expect(guest_order.ship_address_id).not_to eq(guest_order.bill_address_id)
+        expect(guest_order.ship_address).to be_same_as(guest_order.bill_address)
+
+        visit_order_addresses(guest_order)
+        expect_address_count(1)
       end
     end
   end
