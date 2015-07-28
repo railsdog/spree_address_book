@@ -90,7 +90,7 @@ module Spree
           end
         end
 
-        flash[:success] = Spree.t(:default_addresses_updated)
+        flash[:success] = I18n.t(:default_addresses_updated, scope: :address_book) unless flash[:error]
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
 

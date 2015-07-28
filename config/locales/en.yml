@@ -14,6 +14,7 @@ en:
     current_order_addresses: "Current Order Addresses"
     billing_address_type: "Billing"
     default_addresses: "Default Addresses"
+    default_addresses_updated: "Default Addresses Updated Successfully"
     default_billing_address: "Use as Default Billing Address"
     default_shipping_address: "Use as Default Shipping Address"
     user_addresses: "User Addresses"
