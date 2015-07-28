@@ -5,6 +5,7 @@ gem 'spree', github: 'spree/spree', :branch => spree_branch
 gem 'spree_auth_devise', :git => 'git://github.com/spree/spree_auth_devise', :branch => spree_branch
 gem 'coffee-rails', '~> 4.0.0'
 gem 'pry-rails', group: :development
+gem 'rspec-rails', group: :test
 
 gem 'therubyracer', platforms: :ruby, groups: [:test, :development]
 gem 'libv8', '<= 3.16.14.3', groups: [:test, :development]
