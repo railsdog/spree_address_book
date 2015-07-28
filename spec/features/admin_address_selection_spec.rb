@@ -130,34 +130,10 @@ feature 'Admin UI address management' do
       end
     end
 
-    context 'with a logged-in order with no user addresses' do
+    context 'with a logged-in order' do
       scenario 'shows four columns for logged-in user order address selection' do
         visit_order_addresses(order)
         expect(page.all('#addresses thead tr:first-child th').count).to eq(6)
-      end
-
-      scenario 'lists no addresses for an order with no addresses' do
-        order.update_attributes!(bill_address: nil, ship_address: nil)
-
-        visit_order_addresses(order)
-        expect_address_count 0
-      end
-
-      scenario 'lists one address for an order with only one address' do
-        order.update_attributes!(ship_address: nil)
-
-        visit_order_addresses(order)
-        expect_address_count 1
-
-        order.update_attributes!(ship_address: order.bill_address, bill_address: nil)
-
-        visit_order_addresses(order)
-        expect_address_count 1
-      end
-
-      scenario 'lists two addresses for an order with two addresses' do
-        visit_order_addresses(order)
-        expect_address_count 2
       end
 
       scenario 'does not show addresses from other orders' do
@@ -173,6 +149,63 @@ feature 'Admin UI address management' do
 
         visit_order_addresses(shipped_order)
         expect_address_count 2
+      end
+
+      context 'with no user addresses' do
+        scenario 'lists no addresses for an order with no addresses' do
+          order.update_attributes!(bill_address: nil, ship_address: nil)
+
+          visit_order_addresses(order)
+          expect_address_count 0
+        end
+
+        scenario 'lists one address for an order with only one address' do
+          order.update_attributes!(ship_address: nil)
+
+          visit_order_addresses(order)
+          expect_address_count 1
+
+          order.update_attributes!(ship_address: order.bill_address, bill_address: nil)
+
+          visit_order_addresses(order)
+          expect_address_count 1
+        end
+
+        scenario 'lists two addresses for an order with two addresses' do
+          visit_order_addresses(order)
+          expect_address_count 2
+        end
+      end
+
+      context 'with one or more user addresses' do
+        scenario 'lists one address for an order with no addresses and one user address' do
+          user.update_attributes!(bill_address: create(:address, user: user))
+          order.update_attributes!(bill_address: nil, ship_address: nil)
+
+          visit_order_addresses(order)
+          expect_address_count 1
+        end
+
+        scenario 'lists correct number of addresses for user with many addresses and no order addresses' do
+          order.update_attributes!(bill_address: nil, ship_address: nil)
+
+          5.times do |t|
+            create(:address, user: user)
+            visit_order_addresses(order)
+            expect_address_count(t + 1)
+          end
+        end
+
+        scenario 'lists correct number of addresses for user with many addresses with order addresses' do
+          5.times do |t|
+            a = create(:address, user: user)
+            user.update_attributes!(ship_address: a) if t == 2
+            user.update_attributes!(bill_address: a) if t == 3
+
+            visit_order_addresses(order)
+            expect_address_count(t + 3)
+          end
+        end
       end
     end
   end
