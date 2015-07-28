@@ -110,16 +110,35 @@ feature 'Admin UI address management' do
         expect_address_count 0
       end
 
-      scenario 'lists one address for a guest order with only one address' do
-        guest_order.update_attributes!(ship_address: nil)
+      context 'with only one address' do
+        before(:each) do
+          guest_order.update_attributes!(ship_address: nil)
+        end
 
-        visit_order_addresses(guest_order)
-        expect_address_count 1
+        scenario 'lists one address' do
+          visit_order_addresses(guest_order)
+          expect_address_count 1
 
-        guest_order.update_attributes!(ship_address: guest_order.bill_address, bill_address: nil)
+          guest_order.update_attributes!(ship_address: guest_order.bill_address, bill_address: nil)
 
-        visit_order_addresses(guest_order)
-        expect_address_count 1
+          visit_order_addresses(guest_order)
+          expect_address_count 1
+        end
+
+        scenario 'can assign one address to the other type' do
+          visit_order_addresses(guest_order)
+          select_address(guest_order.bill_address, :order, :ship)
+          submit_addresses
+          expect(guest_order.reload.ship_address.same_as?(guest_order.bill_address)).to eq(true)
+
+          guest_order.update_attributes!(bill_address: nil)
+          visit_order_addresses(guest_order)
+          select_address(guest_order.ship_address, :order, :bill)
+          submit_addresses
+          expect(guest_order.reload.bill_address.same_as?(guest_order.ship_address)).to eq(true)
+
+          # TODO: Expected IDs of addresses?  Should they be separate objects or the same?
+        end
       end
 
       scenario 'lists two addresses for a guest order with two addresses' do
