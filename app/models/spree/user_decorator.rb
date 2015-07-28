@@ -9,6 +9,7 @@ Spree.user_class.class_eval do
   def user_and_order_addresses(order)
     addresses = [self.addresses, order.bill_address, order.ship_address].flatten.compact
     addresses.uniq! { |a| a.dup.attributes.merge("user_id" => nil) }
+    addresses
   end
 
   def link_address
