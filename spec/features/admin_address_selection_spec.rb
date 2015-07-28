@@ -18,16 +18,20 @@ feature 'Admin UI address management' do
     scenario 'lists no addresses for a user with no addresses' do
       visit_user_addresses user
       expect_address_count 0
+      expect_selected(nil, :user, :bill)
+      expect_selected(nil, :user, :ship)
     end
 
-    scenario 'lists one address for a user with one address' do
+    scenario 'lists one unselected address for a user with one address' do
       create(:address, user: user)
 
       visit_user_addresses user
       expect_address_count 1
+      expect_selected(nil, :user, :bill)
+      expect_selected(nil, :user, :ship)
     end
 
-    scenario 'lists two addresses for a user with two unique addresses' do
+    scenario 'lists two unselected addresses for a user with two unique addresses' do
       a1 = create(:address, user: user)
       a2 = create(:address, user: user)
 
@@ -35,6 +39,20 @@ feature 'Admin UI address management' do
 
       visit_user_addresses user
       expect_address_count 2
+      expect_selected(nil, :user, :bill)
+      expect_selected(nil, :user, :ship)
+    end
+
+    scenario 'lists and selects addresses for a user with default addresses' do
+      user.update_attributes!(
+        bill_address: create(:address, user: user),
+        ship_address: create(:address, user: user)
+      )
+
+      visit_user_addresses user
+      expect_address_count 2
+      expect_selected(user.bill_address, :user, :bill)
+      expect_selected(user.ship_address, :user, :ship)
     end
 
     scenario 'lists many addresses for a user with many addresses' do
@@ -46,9 +64,23 @@ feature 'Admin UI address management' do
       expect_address_count 10
     end
 
-    scenario 'does not show order addresses in user address list' do
+    scenario 'does not show addresses of one order in user address list' do
       visit_order_addresses completed_order
       visit_user_addresses user
+      expect_address_count 0
+    end
+
+    scenario 'does not show addresses of many orders in user address list' do
+      5.times do
+        create(:order, user: user)
+        create(:order_with_line_items, user: user)
+        create(:completed_order_with_pending_payment, user: user)
+        create(:shipped_order, user: user)
+      end
+
+      expect(user.orders.count).to eq(20)
+
+      visit_user_addresses(user)
       expect_address_count 0
     end
 
@@ -125,6 +157,21 @@ feature 'Admin UI address management' do
 
       scenario 'lists two addresses for an order with two addresses' do
         visit_order_addresses(order)
+        expect_address_count 2
+      end
+
+      scenario 'does not show addresses from other orders' do
+        order
+        completed_order
+        shipped_order
+
+        visit_order_addresses(order)
+        expect_address_count 2
+
+        visit_order_addresses(completed_order)
+        expect_address_count 2
+
+        visit_order_addresses(shipped_order)
         expect_address_count 2
       end
     end
