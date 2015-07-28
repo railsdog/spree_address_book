@@ -4,6 +4,11 @@ module AdminAddresses
     expect(page).to have_content(I18n.t(:new_address, scope: :address_book))
   end
 
+  def visit_order_addresses(order)
+    visit spree.admin_addresses_path(order_id: order.id)
+    expect(page).to have_content(I18n.t(:new_address, scope: :address_book))
+  end
+
   def expect_address_count(count)
     if count == 0
       expect{page.find('#addresses tbody tr')}.to raise_error(/CSS/i)
