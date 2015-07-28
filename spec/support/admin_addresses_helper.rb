@@ -11,6 +11,7 @@ module AdminAddresses
     expect(page).to have_content(I18n.t(:new_address, scope: :address_book))
 
     expect_order_selection(order)
+    expect_user_selection(order.user) if order.user
   end
 
   def expect_address_count(count)
