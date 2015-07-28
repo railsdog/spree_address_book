@@ -89,5 +89,36 @@ feature 'Admin UI address management' do
         expect_address_count 2
       end
     end
+
+    context 'with a logged-in order with no user addresses' do
+      scenario 'shows four columns for logged-in user order address selection' do
+        visit_order_addresses(order)
+        expect(page.all('#addresses thead tr:first-child th').count).to eq(6)
+      end
+
+      scenario 'lists no addresses for an order with no addresses' do
+        order.update_attributes!(bill_address: nil, ship_address: nil)
+
+        visit_order_addresses(order)
+        expect_address_count 0
+      end
+
+      scenario 'lists one address for an order with only one address' do
+        order.update_attributes!(ship_address: nil)
+
+        visit_order_addresses(order)
+        expect_address_count 1
+
+        order.update_attributes!(ship_address: order.bill_address, bill_address: nil)
+
+        visit_order_addresses(order)
+        expect_address_count 1
+      end
+
+      scenario 'lists two addresses for an order with two addresses' do
+        visit_order_addresses(order)
+        expect_address_count 2
+      end
+    end
   end
 end
