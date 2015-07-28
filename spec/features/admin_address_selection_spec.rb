@@ -197,11 +197,18 @@ feature 'Admin UI address management' do
         end
 
         scenario 'lists correct number of addresses for user with many addresses with order addresses' do
+          bill = order.bill_address
+
           5.times do |t|
             a = create(:address, user: user)
             user.update_attributes!(ship_address: a) if t == 2
             user.update_attributes!(bill_address: a) if t == 3
 
+            order.update_attributes!(bill_address: nil)
+            visit_order_addresses(order)
+            expect_address_count(t + 2)
+
+            order.update_attributes!(bill_address: bill)
             visit_order_addresses(order)
             expect_address_count(t + 3)
           end
