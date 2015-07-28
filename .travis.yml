@@ -6,7 +6,6 @@ cache:
 rvm:
   - "1.9.3"
   - "2.1"
-  - jruby-19mode
 
 before_script:
   - sh -c '[ -r spec/dummy/config/database.yml ] || yes | bundle exec rake test_app'
