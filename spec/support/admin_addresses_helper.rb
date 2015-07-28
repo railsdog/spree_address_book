@@ -23,25 +23,15 @@ module AdminAddresses
 
   # Expects the +user+ addresses to be selected on the page.
   def expect_user_selection(user)
-    if user.bill_address
-      expect_selected(user.bill_address, :user, :bill)
-    end
-
-    if user.ship_address
-      expect_selected(user.ship_address, :user, :ship)
-    end
+    expect_selected(user.bill_address, :user, :bill)
+    expect_selected(user.ship_address, :user, :ship)
   end
 
   # Expects the +order+ addresses to be selected on the page.
   # FIXME: Deduplicated addresses?  The address ID will be different.
   def expect_order_selection(order)
-    if order.bill_address
-      expect_selected(order.bill_address, :order, :bill)
-    end
-
-    if order.ship_address
-      expect_selected(order.ship_address, :order, :ship)
-    end
+    expect_selected(order.bill_address, :order, :bill)
+    expect_selected(order.ship_address, :order, :ship)
   end
 
   # Expects the +address+ to be selected on the page for the user or order
