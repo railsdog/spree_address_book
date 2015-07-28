@@ -6,7 +6,7 @@ Spree::Order.class_eval do
   before_validation :clone_shipping_address, :if => "Spree::AddressBook::Config[:disable_bill_address]"
 
   state_machine.after_transition to: :complete, do: :delink_addresses
-  before_validation :delink_addresses, if: :complete?
+  before_validation :delink_addresses_validation, if: :complete?
 
 
   def clone_shipping_address
@@ -75,6 +75,13 @@ Spree::Order.class_eval do
   # have their own copy. This preserves the historical data should the addresses
   # in the address book be changed or removed.
   def delink_addresses
+    delink_addresses_validation
+    save!
+  end
+
+  # Delinks addresses without validating, for use in a before_validation
+  # callback.
+  def delink_addresses_validation
     if bill_address.try(:user_id)
       bill_copy = bill_address.clone
       bill_copy.user_id = nil
@@ -89,7 +96,6 @@ Spree::Order.class_eval do
       self.ship_address = ship_copy
       shipments.update_all address_id: ship_address_id
     end
-    save!
   end
 
   # Returns unique addresses on the order, using Spree::Address#comparison_attributes

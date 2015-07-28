@@ -48,10 +48,7 @@ feature 'Admin UI address management' do
 
     scenario 'does not show order addresses in user address list' do
       visit_order_addresses completed_order
-
-      # FIXME: completed_order and shipped_order raise a stack level too deep error here
       visit_user_addresses user
-
       expect_address_count 0
     end
 
