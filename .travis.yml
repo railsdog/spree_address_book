@@ -1,0 +1,13 @@
+language: ruby
+cache:
+  bundler: true
+  directories:
+    - spec/dummy
+bundler_args: --without production development
+rvm:
+  - "1.9.3"
+  - "2.1"
+  - jruby-19mode
+
+before_script:
+  - sh -c '[ -d spec/dummy ] || bundle exec rake test_app'
