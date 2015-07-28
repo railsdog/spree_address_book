@@ -29,10 +29,15 @@ module AdminAddresses
   end
 
   # Expects the +order+ addresses to be selected on the page.
-  # FIXME: Deduplicated addresses?  The address ID will be different.
   def expect_order_selection(order)
-    expect_selected(order.bill_address, :order, :bill)
-    expect_selected(order.ship_address, :order, :ship)
+    if order.bill_address.try(:same_as?, order.ship_address)
+      expect_selected(order.addresses.first, :order, :bill)
+      expect_selected(order.addresses.first, :order, :ship)
+      expect(order.addresses.count).to eq(1)
+    else
+      expect_selected(order.bill_address, :order, :bill)
+      expect_selected(order.ship_address, :order, :ship)
+    end
   end
 
   # Expects the +address+ to be selected on the page for the user or order
