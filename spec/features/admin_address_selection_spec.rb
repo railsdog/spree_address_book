@@ -137,11 +137,20 @@ feature 'Admin UI address management' do
         expect_selected(bill, :order, :bill)
         select_address(bill, :order, :ship)
         select_address(ship, :order, :bill)
+        expect_selected(ship, :order, :bill)
+        expect_selected(bill, :order, :ship)
 
         submit_addresses
 
+        guest_order.reload
+        expect(bill.same_as?(guest_order.ship_address)).to eq(true)
+        expect(ship.same_as?(guest_order.bill_address)).to eq(true)
+        expect(ship.same_as?(guest_order.ship_address)).to eq(false)
+
         expect_selected(bill, :order, :ship)
         expect_selected(ship, :order, :bill)
+        expect(bill.id).to eq(guest_order.ship_address_id)
+        expect(ship.id).to eq(guest_order.bill_address_id)
       end
     end
 

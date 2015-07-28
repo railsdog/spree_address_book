@@ -57,7 +57,7 @@ module AdminAddresses
   #   bill_or_ship - :bill or :ship
   def select_address(address, user_or_order, bill_or_ship)
     item_selector = address_radio_selector(address, user_or_order, bill_or_ship)
-    page.find(item_selector).click
+    choose(item_selector[1..-1]) # Skip '#'
   end
 
   # Returns a CSS selector to find the given address's radio button.
