@@ -96,8 +96,6 @@ feature 'Admin UI address management' do
 
   describe 'Order address list' do
     context 'with a guest order' do
-      # TODO: Maybe force guest orders to use the Customer Details page instead of the Addresses page
-
       scenario 'shows only two columns for guest order address selection' do
         expect(guest_order.user).to be_nil
 
@@ -127,6 +125,23 @@ feature 'Admin UI address management' do
       scenario 'lists two addresses for a guest order with two addresses' do
         visit_order_addresses(guest_order)
         expect_address_count 2
+      end
+
+      scenario 'can reassign addresses' do
+        bill = guest_order.bill_address
+        ship = guest_order.ship_address
+
+        visit_order_addresses(guest_order)
+
+        expect_selected(ship, :order, :ship)
+        expect_selected(bill, :order, :bill)
+        select_address(bill, :order, :ship)
+        select_address(ship, :order, :bill)
+
+        submit_addresses
+
+        expect_selected(bill, :order, :ship)
+        expect_selected(ship, :order, :bill)
       end
     end
 

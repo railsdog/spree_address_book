@@ -42,7 +42,7 @@ module AdminAddresses
   #   bill_or_ship - :bill or :ship
   def expect_selected(address, user_or_order, bill_or_ship)
     group_selector = "//input[@type='radio' and @name='#{user_or_order}[#{bill_or_ship}_address_id]' and @checked]"
-    item_selector = "##{user_or_order}_#{bill_or_ship}_address_id_#{address.try(:id)}"
+    item_selector = address_radio_selector(address, user_or_order, bill_or_ship)
 
     if address.nil?
       expect{page.find(:xpath, group_selector)}.to raise_error(/Unable to find xpath/i)
@@ -50,6 +50,24 @@ module AdminAddresses
       expect{page.find(:xpath, group_selector)}.not_to raise_error
       expect(page.find(item_selector)).to be_checked
     end
+  end
+
+  # Clicks on the given address's radio button for the given address type.
+  #   user_or_order - :user or :order
+  #   bill_or_ship - :bill or :ship
+  def select_address(address, user_or_order, bill_or_ship)
+    item_selector = address_radio_selector(address, user_or_order, bill_or_ship)
+    page.find(item_selector).click
+  end
+
+  # Returns a CSS selector to find the given address's radio button.
+  def address_radio_selector(address, user_or_order, bill_or_ship)
+    "##{user_or_order}_#{bill_or_ship}_address_id_#{address.try(:id)}"
+  end
+
+  # Clicks on the address page's submit button.
+  def submit_addresses
+    click_button I18n.t(:update_default_addresses, scope: :address_book)
   end
 end
 
