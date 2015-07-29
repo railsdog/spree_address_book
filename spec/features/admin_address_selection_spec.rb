@@ -293,6 +293,14 @@ feature 'Admin UI address management' do
         expect_address_count(2)
       end
 
+      scenario 'shows two items for an order with different addresses and a user with one matching address' do
+        user.bill_address = order.ship_address.clone
+        user.save!
+
+        visit_order_addresses(order)
+        expect_address_count(2)
+      end
+
       scenario 'shows two items for an order and user with matching different addresses' do
         user.update_attributes!(ship_address: order.bill_address.clone, bill_address: order.ship_address.clone)
         expect(user.user_and_order_addresses(order).count).to eq(2)
