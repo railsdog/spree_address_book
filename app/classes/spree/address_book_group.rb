@@ -3,17 +3,21 @@ class Spree::AddressBookGroup
   # All unique addresses on the request, user, and order.
   attr_reader :addresses, :user_addresses, :order_addresses
 
-  # Specifically assigned addresses.
+  # Specifically assigned addresses.  TODO: consider methods that return @primary_address as backup?
   attr_reader :user_ship, :user_bill, :order_ship, :order_bill
 
   # The address object to use to represent all grouped addresses.
   attr_reader :primary_address
 
+  delegate :id, :updated_at, :to_s, to: :primary_address, allow_nil: true
+
 
   # Initializes an address group for the given +addresses+.  The +assignments+
   # parameter may be a Hash containing :order_bill, :order_ship, :user_bill,
-  # and/or :user_ship.  The +addresses+ parameter should be an Array containing
-  # addresses.  All addresses passed here should have an ID in the database.
+  # and/or :user_ship, if any of the deduplicated addresses happen to be
+  # assigned to their user or order's default addresses.  The +addresses+
+  # parameter should be an Array containing addresses.  All addresses passed
+  # here should have an ID in the database.
   def initialize(addresses, assignments=nil)
     raise 'Addresses must be an Array' unless addresses.is_a?(Array) # TODO: Accept ActiveRecord query?  Use multiple params?
 
@@ -44,11 +48,11 @@ class Spree::AddressBookGroup
       raise "Found addresses from multiple different users!"
     end
 
-    if @order_addresses.count > 2
-      raise 'Found more than two userless (order) addresses'
-    end
-
     @addresses = @user_addresses + @order_addresses
+
+    if @addresses.any?{|a| !a.same_as?(@addresses.first) }
+      raise 'Not all addresses are the same; only pass identical addresses (by #same_as?)'
+    end
 
     [@user_addresses, @order_addresses, @addresses].each do |l|
       l.uniq!(&:id)
@@ -56,6 +60,10 @@ class Spree::AddressBookGroup
       l.reverse!
     end
 
-    @primary_address = @addresses.first
+    if @order_addresses.count > 2
+      raise 'Found more than two userless (order) addresses'
+    end
+
+    @primary_address = @user_addresses.first || @addresses.first
   end
 end
