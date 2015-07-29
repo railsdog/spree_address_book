@@ -97,6 +97,26 @@ describe Spree::Address do
         expect(address_lower.same_as?(address_upper)).to eq(true)
         expect(address_upper.same_as?(address_lower)).to eq(true)
       end
+
+      it 'returns false for two different users' do
+        address.update_attributes!(user: create(:user))
+        address_copy.update_attributes!(user: create(:user))
+        expect(address.same_as?(address_copy)).to eq(false)
+        expect(address_copy.same_as?(address)).to eq(false)
+      end
+
+      it 'returns true for same users' do
+        address.update_attributes!(user: create(:user))
+        address_copy.update_attributes!(user: address.user)
+        expect(address.same_as?(address_copy)).to eq(true)
+        expect(address_copy.same_as?(address)).to eq(true)
+      end
+
+      it 'returns true if one user is nil' do
+        address.update_attributes!(user: create(:user))
+        expect(address.same_as?(address_copy)).to eq(true)
+        expect(address_copy.same_as?(address)).to eq(true)
+      end
     end
   end
 end

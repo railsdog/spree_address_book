@@ -7,9 +7,11 @@ Spree.user_class.class_eval do
   # plus order's bill and ship addresses returning a unique
   # array of addresses based on attributes.
   def user_and_order_addresses(order)
+    raise 'Order is not owned by this user!' unless order.user_id == self.id
+
     addresses = [self.addresses, order.bill_address, order.ship_address].flatten.compact
-    addresses.uniq! { |a| a.comparison_attributes }
-    addresses
+    addresses.uniq! { |a| a.comparison_attributes.except('user_id') }
+    addresses.sort_by(&:updated_at).reverse
   end
 
   def link_address

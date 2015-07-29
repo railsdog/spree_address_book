@@ -9,10 +9,16 @@ Spree::Address.class_eval do
     end.flatten
   end
 
+  # Returns true if the other address's core data matches this address.
+  # Ignores user_id if one of the addresses has a nil user ID.
   def same_as?(other)
     return false unless other.is_a?(Spree::Address)
 
-    comparison_attributes == other.comparison_attributes
+    if user_id.nil? != other.user_id.nil?
+      comparison_attributes.except('user_id') == other.comparison_attributes.except('user_id')
+    else
+      comparison_attributes == other.comparison_attributes
+    end
   end
 
   # Returns a subset of attributes for use by #same_as?

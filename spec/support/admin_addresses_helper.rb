@@ -1,4 +1,6 @@
 module AdminAddresses
+  # Visits the address listing page for the given user and performs basic
+  # verification of selected addresses.
   def visit_user_addresses(user)
     visit spree.admin_addresses_path(user_id: user.id)
     expect(page).to have_content(I18n.t(:new_address, scope: :address_book))
@@ -6,6 +8,8 @@ module AdminAddresses
     expect_user_selection(user)
   end
 
+  # Visits the address listing page for the given order and performs basic
+  # verification of selected addresses.
   def visit_order_addresses(order)
     visit spree.admin_addresses_path(order_id: order.id)
     expect(page).to have_content(I18n.t(:new_address, scope: :address_book))
@@ -14,6 +18,7 @@ module AdminAddresses
     expect_user_selection(order.user) if order.user
   end
 
+  # Expects +count+ addresses on the address listing page.
   def expect_address_count(count)
     if count == 0
       expect{page.find('#addresses tbody tr')}.to raise_error(/CSS/i)
