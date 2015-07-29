@@ -263,7 +263,7 @@ feature 'Admin UI address management' do
         order.update_attributes!(bill_address: order.ship_address.clone)
         expect(order.ship_address_id).not_to eq(order.bill_address_id)
         expect(order.ship_address).to be_same_as(order.bill_address)
-        expect(order.addresses.count).to eq(1)
+        expect(Spree::AddressBookList.new(order).count).to eq(1)
 
         visit_order_addresses(order)
         expect_address_count(1)
@@ -273,7 +273,7 @@ feature 'Admin UI address management' do
         guest_order.update_attributes!(bill_address: guest_order.ship_address.clone)
         expect(guest_order.ship_address_id).not_to eq(guest_order.bill_address_id)
         expect(guest_order.ship_address).to be_same_as(guest_order.bill_address)
-        expect(guest_order.addresses.count).to eq(1)
+        expect(Spree::AddressBookList.new(guest_order).count).to eq(1)
 
         visit_order_addresses(guest_order)
         expect_address_count(1)
@@ -288,7 +288,7 @@ feature 'Admin UI address management' do
         expect_address_count(3)
 
         order.update_attributes!(bill_address: order.ship_address.clone)
-        expect(order.addresses.count).to eq(1)
+        expect(Spree::AddressBookList.new(order).count).to eq(1)
         visit_order_addresses(order)
         expect_address_count(2)
       end
@@ -303,7 +303,7 @@ feature 'Admin UI address management' do
 
       scenario 'shows two items for an order and user with matching different addresses' do
         user.update_attributes!(ship_address: order.bill_address.clone, bill_address: order.ship_address.clone)
-        expect(user.user_and_order_addresses(order).count).to eq(2)
+        expect(Spree::AddressBookList.new(order, user).count).to eq(2)
 
         visit_order_addresses(order)
         expect_address_count(2)

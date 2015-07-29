@@ -7,13 +7,13 @@ module Spree
       def index
         if @order and @user
           # Non-guest order
-          @addresses = @user.user_and_order_addresses(@order).sort_by(&:updated_at).reverse
-        elsif @user
-          # User account
-          @addresses = @user.addresses.order('updated_at DESC') # TODO: deduplicate addresses
-        else
+          @addresses = Spree::AddressBookList.new(@user, @order)
+        elsif @order
           # Guest order
-          @addresses = @order.addresses.sort_by(&:updated_at).reverse
+          @addresses = Spree::AddressBookList.new(@order)
+        else
+          # User account
+          @addresses = Spree::AddressBookList.new(@user)
         end
       end
 
