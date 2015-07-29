@@ -263,6 +263,7 @@ feature 'Admin UI address management' do
         order.update_attributes!(bill_address: order.ship_address.clone)
         expect(order.ship_address_id).not_to eq(order.bill_address_id)
         expect(order.ship_address).to be_same_as(order.bill_address)
+        expect(order.addresses.count).to eq(1)
 
         visit_order_addresses(order)
         expect_address_count(1)
@@ -272,6 +273,7 @@ feature 'Admin UI address management' do
         guest_order.update_attributes!(bill_address: guest_order.ship_address.clone)
         expect(guest_order.ship_address_id).not_to eq(guest_order.bill_address_id)
         expect(guest_order.ship_address).to be_same_as(guest_order.bill_address)
+        expect(guest_order.addresses.count).to eq(1)
 
         visit_order_addresses(guest_order)
         expect_address_count(1)

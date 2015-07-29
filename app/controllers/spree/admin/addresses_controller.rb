@@ -10,10 +10,10 @@ module Spree
           @addresses = @user.user_and_order_addresses(@order).sort_by(&:updated_at).reverse
         elsif @user
           # User account
-          @addresses = @user.addresses.order('updated_at DESC')
+          @addresses = @user.addresses.order('updated_at DESC') # TODO: deduplicate addresses
         else
           # Guest order
-          @addresses = [@order.try(:bill_address), @order.try(:ship_address)].compact.sort_by(&:updated_at).reverse
+          @addresses = @order.addresses.sort_by(&:updated_at).reverse
         end
       end
 

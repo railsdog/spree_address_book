@@ -8,11 +8,12 @@ Spree.user_class.class_eval do
   # array of addresses based on attributes.
   def user_and_order_addresses(order)
     addresses = [self.addresses, order.bill_address, order.ship_address].flatten.compact
-    addresses.uniq! { |a| a.dup.attributes.merge("user_id" => nil) }
+    addresses.uniq! { |a| a.comparison_attributes }
     addresses
   end
 
   def link_address
+    # TODO: Handle assignment of order-specific address if the order is complete (where is this called?)
     bill_address.update_attributes(user_id: id) if bill_address_id_changed? && bill_address
     ship_address.update_attributes(user_id: id) if ship_address_id_changed? && ship_address
   end
