@@ -10,6 +10,7 @@ class Spree::AddressBookGroup
   attr_reader :primary_address
 
   delegate :id, :updated_at, :to_s, to: :primary_address, allow_nil: true
+  delegate :count, to: :addresses
 
 
   # Initializes an address group for the given +addresses+.  The +assignments+

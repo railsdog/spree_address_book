@@ -58,7 +58,7 @@ describe Spree::AddressBookGroup do
       expect(g.primary_address).to eq(many_addresses[3])
     end
 
-    # TODO: non-happy-path tests?
+    # TODO: non-happy-path tests?  Test excess userless addresses, address user reassignment
   end
 
   describe '#id' do
