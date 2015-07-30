@@ -46,21 +46,29 @@
             <td><%= address %></td>
             <% if @user %>
               <td class="align-center">
-                <%= radio_button_tag 'user[bill_address_id]', address.id, address == @user.bill_address %>
+                <%= radio_button_tag 'user[bill_address_id]',
+                  address.user_bill.try(:id) || address.id,
+                  address.user_bill.present? %>
                 <%= label_tag "user_bill_address_id_#{address.id}", '' %>
               </td>
               <td class="align-center">
-                <%= radio_button_tag 'user[ship_address_id]', address.id, address == @user.ship_address %>
+                <%= radio_button_tag 'user[ship_address_id]',
+                  address.user_ship.try(:id) || address.id,
+                  address.user_ship.present? %>
                 <%= label_tag "user_ship_address_id_#{address.id}", '' %>
               </td>
             <% end %>
             <% if @order %>
               <td class="align-center">
-                <%= radio_button_tag 'order[bill_address_id]', address.id, compare_addresses(address, @order.bill_address) %>
+                <%= radio_button_tag 'order[bill_address_id]',
+                  address.order_bill.try(:id) || address.id,
+                  address.order_bill.present? %>
                 <%= label_tag "order_bill_address_id_#{address.id}", '' %>
               </td>
               <td class="align-center">
-                <%= radio_button_tag 'order[ship_address_id]', address.id, compare_addresses(address, @order.ship_address) %>
+                <%= radio_button_tag 'order[ship_address_id]',
+                  address.order_ship.try(:id) || address.id,
+                  address.order_ship.present? %>
                 <%= label_tag "order_ship_address_id_#{address.id}", '' %>
               </td>
             <% end %>
