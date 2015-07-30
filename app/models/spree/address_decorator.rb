@@ -12,6 +12,7 @@ Spree::Address.class_eval do
   # Returns true if the other address's core data matches this address.
   # Ignores user_id if one of the addresses has a nil user ID.
   def same_as?(other)
+    other = other.primary_address if other.is_a?(Spree::AddressBookGroup)
     return false unless other.is_a?(Spree::Address)
 
     if user_id.nil? != other.user_id.nil?

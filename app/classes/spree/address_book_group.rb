@@ -9,7 +9,7 @@ class Spree::AddressBookGroup
   # The address object to use to represent all grouped addresses.
   attr_reader :primary_address
 
-  delegate :id, :updated_at, :to_s, to: :primary_address, allow_nil: true
+  delegate :id, :updated_at, :to_s, :same_as?, to: :primary_address, allow_nil: true
   delegate :count, to: :addresses
 
 
@@ -66,5 +66,19 @@ class Spree::AddressBookGroup
     end
 
     @primary_address = @user_addresses.first || @addresses.first
+  end
+
+  # Returns true if the +other+ address group has the same exact addresses as
+  # this group.
+  def ==(other)
+    return false unless other.is_a?(Spree::AddressBookGroup)
+
+    @addresses == other.addresses &&
+      @order_addresses == other.order_addresses &&
+      @user_addresses == other.user_addresses &&
+      @user_ship == other.user_ship &&
+      @user_bill == other.user_bill &&
+      @order_ship == other.order_ship &&
+      @order_bill == other.order_bill
   end
 end

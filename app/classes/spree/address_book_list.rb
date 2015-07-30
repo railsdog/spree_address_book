@@ -50,17 +50,13 @@ class Spree::AddressBookList
     addresses.uniq!(&:id)
 
     @addresses = addresses.uniq(&:id).group_by{|a| a.comparison_attributes.except('user_id') }.map{|k, v|
-      if v.count > 1
-        assignments = {}
-        assignments[:user_ship] = @user_ship if v.include?(@user_ship)
-        assignments[:user_bill] = @user_bill if v.include?(@user_bill)
-        assignments[:order_ship] = @order_ship if v.include?(@order_ship)
-        assignments[:order_bill] = @order_bill if v.include?(@order_bill)
+      assignments = {}
+      assignments[:user_ship] = @user_ship if v.include?(@user_ship)
+      assignments[:user_bill] = @user_bill if v.include?(@user_bill)
+      assignments[:order_ship] = @order_ship if v.include?(@order_ship)
+      assignments[:order_bill] = @order_bill if v.include?(@order_bill)
 
-        Spree::AddressBookGroup.new(v, assignments)
-      else
-        v.first
-      end
+      Spree::AddressBookGroup.new(v, assignments)
     }.compact.sort_by(&:updated_at).reverse
   end
 

@@ -87,13 +87,13 @@ describe Spree::AddressBookList do
       it 'returns one address group for an order with two identical addresses' do
         l = Spree::AddressBookList.new(order)
         expect(l.count).to eq(1)
-        expect(l.first).to be_a(Spree::AddressBookGroup)
+        expect(l.first.addresses.count).to be > 1
       end
 
       it 'returns three addresses (one group) for a duplicate-address order and a two-address user' do
         l = Spree::AddressBookList.new(user, order)
         expect(l.count).to eq(3)
-        expect(l.count{|a| a.is_a?(Spree::AddressBookGroup)}).to eq(1)
+        expect(l.count{|a| a.addresses.count > 1 }).to eq(1)
       end
     end
 
@@ -104,7 +104,7 @@ describe Spree::AddressBookList do
         l = Spree::AddressBookList.new(order, user)
         expect(l.count).to eq(3)
 
-        group = l.addresses.detect{|a| a.is_a?(Spree::AddressBookGroup)}
+        group = l.addresses.detect{|a| a.addresses.count > 1 }
         expect(group.count).to eq(2)
         expect(group.user_ship.id).to eq(user.ship_address.id)
         expect(group.order_bill.id).to eq(order.bill_address.id)
@@ -116,7 +116,7 @@ describe Spree::AddressBookList do
 
         l = Spree::AddressBookList.new(order, user)
         expect(l.count).to eq(2)
-        expect(l.addresses.all?{|a| a.is_a?(Spree::AddressBookGroup)}).to eq(true)
+        expect(l.addresses.all?{|a| a.addresses.count > 1 }).to eq(true)
       end
     end
 
@@ -136,7 +136,7 @@ describe Spree::AddressBookList do
 
         l = Spree::AddressBookList.new(order, user)
         expect(l.count).to eq(5)
-        expect(l.count{|a| a.is_a?(Spree::AddressBookGroup)}).to eq(2)
+        expect(l.count{|a| a.addresses.count > 1 }).to eq(2)
       end
 
       it 'returns the correct count for a same-address order, two shared, with a user with many duplicates' do
@@ -162,7 +162,7 @@ describe Spree::AddressBookList do
         # Final count should be (2 + 2 + 2 + 5 - 4 - 2 - 1 - 1) = 3
         l = Spree::AddressBookList.new(order, user)
         expect(l.count).to eq(3)
-        expect(l.addresses.all?{|a| a.is_a?(Spree::AddressBookGroup)}).to eq(true)
+        expect(l.addresses.all?{|a| a.addresses.count > 1 }).to eq(true)
 
         # First address should be most recently updated
         expect(l.first.user_bill).to eq(user.bill_address)

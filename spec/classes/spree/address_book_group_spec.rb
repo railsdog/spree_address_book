@@ -81,4 +81,11 @@ describe Spree::AddressBookGroup do
       expect(empty_address_group.to_s).to be_blank
     end
   end
+
+  describe '#same_as?' do
+    it 'delegates to #primary_address' do
+      expect(many_address_group).to be_same_as(many_address_group.addresses.last)
+      expect(many_address_group.addresses.last).to be_same_as(many_address_group)
+    end
+  end
 end
