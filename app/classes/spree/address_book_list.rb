@@ -49,6 +49,9 @@ class Spree::AddressBookList
 
     addresses.uniq!(&:id)
 
+    # Maps comparison_attributes.except('user_id') => address
+    @mapped_addresses = {}
+
     @addresses = addresses.uniq(&:id).group_by{|a| a.comparison_attributes.except('user_id') }.map{|k, v|
       assignments = {}
       assignments[:user_ship] = @user_ship if v.include?(@user_ship)
@@ -56,8 +59,16 @@ class Spree::AddressBookList
       assignments[:order_ship] = @order_ship if v.include?(@order_ship)
       assignments[:order_bill] = @order_bill if v.include?(@order_bill)
 
-      Spree::AddressBookGroup.new(v, assignments)
+      g = Spree::AddressBookGroup.new(v, assignments)
+      @mapped_addresses[k] = g
+      g
     }.compact.sort_by(&:updated_at).reverse
+  end
+
+  # Returns a Spree::AddressBookGroup from this list that matches the given
+  # +address+ using #comparison_attributes.  Returns nil if no match is found.
+  def find(address)
+    @mapped_addresses[address.comparison_attributes.except('user_id')]
   end
 
   private

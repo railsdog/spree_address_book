@@ -26,6 +26,46 @@ describe Spree::AddressBookList do
     end
   end
 
+  describe '#find' do
+    before(:each) do
+      a = create(:address, user: user)
+      4.times do
+        a.clone.save!
+      end
+
+      a = order.bill_address.clone
+      a.user = user
+      a.save!
+    end
+
+    let(:list) { Spree::AddressBookList.new(user, order) }
+
+    it "returns the same group for each group's primary address" do
+      list.addresses.each do |a|
+        expect(list.find(a)).to eq(a)
+        expect(list.find(a.primary_address)).to eq(a)
+      end
+    end
+
+    it 'returns the expected group for a newly constructed matching address' do
+      list.addresses.each do |a|
+        a = Spree::Address.new(a.primary_address.comparison_attributes.except('user_id'))
+        expect(list.find(a)).to be_same_as(a)
+      end
+    end
+
+    it 'returns a matching group for each address on the order and user' do
+      user.addresses.flatten.each do |a|
+        expect(list.find(a).primary_address).to be_same_as a
+      end
+
+      expect(list.find(user.ship_address).user_ship).to eq(user.ship_address)
+      expect(list.find(user.bill_address).user_bill).to eq(user.bill_address)
+      expect(list.find(order.ship_address).order_ship).to eq(order.ship_address)
+      expect(list.find(order.bill_address).order_bill).to eq(order.bill_address)
+    end
+  end
+
   describe '#addresses' do
     it 'receives delegated calls to #count' do
       l = Spree::AddressBookList.new(order, user)
