@@ -88,7 +88,51 @@ feature 'Admin UI address management' do
     end
 
     context 'with duplicate addresses' do
-      pending # TODO
+      before(:each) do
+        user.update_attributes!(
+          ship_address: create(:address, user: user),
+          bill_address: create(:address, user: user)
+        )
+
+        # Set up duplicate addresses
+        3.times do
+          a = create(:address, user: user)
+          a.clone.save!
+        end
+      end
+
+      scenario 'shows the correct number of addresses when addresses are duplicated but bill/ship are unique' do
+        expect(user.bill_address).not_to be_same_as(user.ship_address)
+        expect(user.ship_address).not_to be_same_as(user.bill_address)
+        expect(user.addresses.count).to eq(8)
+
+        visit_user_addresses user
+        expect_address_count 5
+      end
+
+      scenario 'shows the correct number of addresses when bill/ship are the same address' do
+        user.ship_address.delete
+        user.update_attributes!(ship_address_id: user.bill_address_id)
+        expect(user.bill_address.id).to eq(user.ship_address.id)
+
+        visit_user_addresses user
+        expect_address_count 4
+      end
+
+      scenario 'shows the correct number of addresses when bill/ship are duplicated addresses' do
+        user.ship_address.delete
+        user.update_attributes!(ship_address: user.bill_address.clone)
+        expect(user.bill_address.id).not_to eq(user.ship_address.id)
+
+        visit_user_addresses user
+        expect_address_count 4
+      end
+
+      scenario 'shows the correct number of addresses when bill/ship are blank' do
+        user.update_attributes!(bill_address_id: nil, ship_address_id: nil)
+        visit_user_addresses user
+        expect_address_count 5
+      end
     end
   end
 
