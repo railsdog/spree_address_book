@@ -11,7 +11,7 @@ class Spree::AddressBookList
   # A list of deduplicated Spree::Address or Spree::AddressBookGroup objects.
   attr_reader :addresses
 
-  delegate :count, :size, :length, :[], :first, :last, :each, :map, :select, :reject, to: :addresses
+  delegate :count, :size, :length, :[], :first, :last, :each, :each_with_index, :map, :select, :reject, to: :addresses
 
 
   # Initializes an address list with the addresses from the given user and/or

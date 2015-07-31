@@ -2,9 +2,14 @@ Spree::CheckoutController.class_eval do
   helper Spree::AddressesHelper
 
   after_filter :normalize_addresses, :only => :update
+  before_filter :get_address_list
   before_filter :set_addresses, :only => :update
 
   protected
+
+  def get_address_list
+    @addresses = spree_current_user && Spree::AddressBookList.new(spree_current_user)
+  end
 
   def set_addresses
     return unless params[:order] && params[:state] == "address"
@@ -30,7 +35,7 @@ Spree::CheckoutController.class_eval do
     else
       params[:order].delete(id_name)
 
-      # Check for an existing matching address
+      # Check for an existing matching address, replace form data with its id if found
       if spree_current_user && params[:order][attr_name]
         addr = Spree::Address.new(
           params[:order][attr_name].permit(permitted_address_attributes).merge(
@@ -38,11 +43,12 @@ Spree::CheckoutController.class_eval do
             user_id: spree_current_user.id
           )
         )
-        spree_current_user.addresses.each do |a|
-          if a.same_as?(addr)
+
+        if @addresses.is_a?(Spree::AddressBookList)
+          a = @addresses.find(addr)
+          if a
             params[:order][id_name] = a.id
             params[:order].delete(attr_name)
-            break
           end
         end
       end

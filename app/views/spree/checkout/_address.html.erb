@@ -1,5 +1,3 @@
-<% @addresses = spree_current_user ? spree_current_user.addresses : [] %>
-
 <% ['billing', 'shipping'].each do |address_type|
   next if address_type == 'billing' && Spree::AddressBook::Config[:disable_bill_address]
   address_name = "#{address_type[0...4]}_address" %>
@@ -20,8 +18,10 @@
         <div class="select_address">
           <p class="field">
             <% @addresses.each_with_index do |address, idx| %>
-              <span id="<%= [address_type, dom_id(address)].join('_') %>">
-                <label><%= form.radio_button "#{address_name}_id", address.id, :checked => address_is_checked(@order, address, address_type) %> <%= address %></label> <%= link_to Spree.t(:edit), edit_address_path(address) %><br />
+              <% a = address.primary_address %>
+              <span id="<%= "#{address_type}_#{dom_id(a)}" %>">
+                <%# TODO: Use Spree::AddressBookGroup to replace address_is_checked? %>
+                <label><%= form.radio_button "#{address_name}_id", a.id, :checked => address_is_checked(@order, a, address_type) %> <%= a %></label> <%= link_to Spree.t(:edit), edit_address_path(a) %><br />
               </span>
             <% end %>
             <label><%= form.radio_button "#{address_name}_id", 0 %> <%= I18n.t(:other_address, :scope => :address_book) %></label>
