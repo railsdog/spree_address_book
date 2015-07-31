@@ -352,6 +352,17 @@ feature 'Admin UI address management' do
         visit_order_addresses(order)
         expect_address_count(2)
       end
+
+      scenario 'shows two items for a one-address order and two-address user with one address shared' do
+        create(:address, spree_user: user)
+        order.update_attributes!(bill_address: order.ship_address.clone)
+        a = order.ship_address.clone
+        a.user = user
+        a.save!
+
+        visit_order_addresses(order)
+        expect_address_count(2)
+      end
     end
   end
 end
