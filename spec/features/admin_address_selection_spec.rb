@@ -363,6 +363,32 @@ feature 'Admin UI address management' do
         visit_order_addresses(order)
         expect_address_count(2)
       end
+
+      scenario 'shows expected number of items for an order and user with many duplicated/shared addresses' do
+        4.times do
+          # 8 addresses, 4 unique (testing case insensitivity)
+          a = create(:address, user: user)
+          b = a.clone
+          a.firstname = a.firstname.downcase
+          a.save!
+          b.save!
+
+          # Make sure downcased address is older, so it's not the primary_address
+          expect(b.updated_at).to be > a.updated_at
+        end
+
+        user.update_attributes!(bill_address: user.addresses.first, ship_address: order.ship_address.clone)
+        expect(user.ship_address.user).to eq(user)
+
+        # User should have five unique addresses, the order two, with one shared, for six total.
+        visit_order_addresses(order)
+        expect_address_count(6)
+
+        # Check again with a duplicated order address
+        order.bill_address.update_attributes!(order.ship_address.comparison_attributes.except('user_id'))
+        visit_order_addresses(order)
+        expect_address_count(5)
+      end
     end
   end
 end
