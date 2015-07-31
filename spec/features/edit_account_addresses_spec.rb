@@ -18,7 +18,20 @@ describe "User editing addresses for his account" do
 
   it "should be able to add address" do
 
+  it "should be able to add address" do
+    expect {
+      click_link I18n.t(:add_new_shipping_address, :scope => :address_book)
+      fill_in Spree.t(:first_name), with: 'First'
+      fill_in Spree.t(:last_name), with: 'Last'
+      fill_in Spree.t(:address1), with: '123 Fake'
+      fill_in Spree.t(:city), with: 'Somewhere'
+      fill_in Spree.t(:zipcode), with: '12345'
+      fill_in Spree.t(:phone), with: '555-555-5555'
+      click_button 'Save'
+    }.to change{user.addresses.count}.by(1)
   end
+
+  pending 'adding an existing address should not create a new address object'
 
   it "should be able to edit address", :js => true do
     page.evaluate_script('window.confirm = function() { return true; }')
