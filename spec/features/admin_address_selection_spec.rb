@@ -354,7 +354,7 @@ feature 'Admin UI address management' do
       end
 
       scenario 'shows two items for a one-address order and two-address user with one address shared' do
-        create(:address, spree_user: user)
+        create(:address, user: user)
         order.update_attributes!(bill_address: order.ship_address.clone)
         a = order.ship_address.clone
         a.user = user
