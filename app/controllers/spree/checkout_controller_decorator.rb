@@ -57,11 +57,12 @@ Spree::CheckoutController.class_eval do
 
   # Finds the given address and makes sure it's owned by the current user.
   def find_address(id)
+    raise 'Guests should not be able to choose checkout addresses by ID' unless spree_current_user
+
     addr = Spree::Address.find(id)
 
-    # FIXME: What about guests?  Can guests use non-user address IDs from other orders?
-    if addr.user_id != spree_current_user.id
-      raise "Frontend address forging: address user #{addr.user_id} != current user #{spree_current_user.id}"
+    if addr.user_id != spree_current_user.try(:id)
+      raise "Frontend address forging: address user #{addr.user_id.inspect} != current user #{spree_current_user.try(:id).inspect}"
     end
 
     addr
