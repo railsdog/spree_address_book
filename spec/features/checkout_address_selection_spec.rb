@@ -206,6 +206,30 @@ describe "Address selection during checkout" do
           complete_checkout
         end.to_not change{ user.addresses.count }
       end
+
+      it 'should select the user default addresses' do
+        user.update_attributes!(
+          bill_address_id: user.addresses.first.id,
+          ship_address_id: create(:address, user: user)
+        )
+
+        visit '/checkout/address'
+        expect_selected(user.bill_address, :order, :bill)
+        expect_selected(user.bill_address, :order, :ship)
+      end
+
+      it 'should deduplicate listed addresess, only showing the newest' do
+        user.addresses.delete_all
+        5.times do
+          create(:address, user: user).clone.save!
+        end
+        expect(user.addresses.count).to eq(10)
+
+        # Expect 6 radio buttons (5 addresses, 1 'Other address')
+        visit '/checkout/address'
+        expect(page.all(:xpath, "//input[@type='radio' and @name='order[ship_address_id]']").count).to eq(6)
+        expect(page.all(:xpath, "//input[@type='radio' and @name='order[bill_address_id]']").count).to eq(6)
+      end
     end
 
     describe "using saved address for ship and new bill address" do

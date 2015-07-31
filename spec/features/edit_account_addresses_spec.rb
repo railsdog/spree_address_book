@@ -16,7 +16,14 @@ describe "User editing addresses for his account" do
     page.should have_selector("#user_addresses > tbody > tr", :count => user.addresses.count)
   end
 
-  it "should be able to add address" do
+  it 'should deduplicate addresses shown in the account list' do
+    5.times do
+      create(:address, user: user).clone.save!
+    end
+
+    visit '/account'
+    expect(page).to have_selector('#user_addresses > tbody > tr', count: user.addresses.count - 5)
+  end
 
   it "should be able to add address" do
     expect {
