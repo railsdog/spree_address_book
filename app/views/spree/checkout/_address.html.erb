@@ -14,7 +14,7 @@
         </p>
       <% end %>
 
-      <% if @addresses.present? %>
+      <% if @addresses && @addresses.count > 0 %>
         <div class="select_address">
           <p class="field">
             <% @addresses.each_with_index do |address, idx| %>
