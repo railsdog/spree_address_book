@@ -61,7 +61,7 @@ class Spree::AddressBookList
       g = Spree::AddressBookGroup.new(v, assignments)
       @mapped_addresses[k] = g
       g
-    }.compact.sort_by(&:updated_at).reverse
+    }.compact.sort_by{|a| a.updated_at || a.created_at || Time.now }.reverse
   end
 
   # Returns a Spree::AddressBookGroup from this list that matches the given
