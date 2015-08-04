@@ -4,7 +4,7 @@ class Spree::AddressesController < Spree::StoreController
   load_and_authorize_resource :class => Spree::Address
 
   def index
-    @addresses = Spree::AddressBookList.new(spree_current_user.addresses)
+    @addresses = Spree::AddressBookList.new(spree_current_user)
   end
 
   def create

@@ -2,7 +2,7 @@
 <% if spree_current_user.addresses.present? %>
 <table id="user_addresses">
   <tbody>
-    <% spree_current_user.addresses.each do |address| %>
+    <% Spree::AddressBookList.new(spree_current_user).each do |address| %>
     <tr class="<%= cycle('even', 'odd') %>">
       <td><%= address %></td>
       <td>
