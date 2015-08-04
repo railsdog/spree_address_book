@@ -7,8 +7,7 @@ describe "Address selection during checkout" do
   describe "as guest user" do
     include_context "checkout with product"
     before(:each) do
-      visit "/cart"
-      click_button "Checkout"
+      restart_checkout
       fill_in "order_email", :with => "guest@example.com"
       click_button "Continue"
     end

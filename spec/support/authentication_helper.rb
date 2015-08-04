@@ -10,8 +10,12 @@ module Authentication
     fill_in "Email", :with => user.email
     fill_in "Password", :with => "secret"
     click_button "Login"
-    visit "/cart"
-    click_button "Checkout"
+    restart_checkout
+  end
+
+  def restart_checkout
+    visit '/cart'
+    click_button 'Checkout'
   end
 end
 
