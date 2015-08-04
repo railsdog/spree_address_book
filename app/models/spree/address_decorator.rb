@@ -22,9 +22,14 @@ Spree::Address.class_eval do
     end
   end
 
-  # Returns a subset of attributes for use by #same_as?
+  # Returns a subset of attributes for use by #same_as?, converted to lowercase
+  # for case insensitive comparison.
   def comparison_attributes
-    a = attributes.except('id', 'updated_at', 'created_at', 'alternative_phone')
+    except_list = ['id', 'updated_at', 'created_at']
+    except_list << 'alternative_phone' unless Spree::Config[:alternative_shipping_phone]
+    except_list << 'company' unless Spree::Config[:company]
+
+    a = attributes.except(*except_list)
     a.each{|k, v|
       a[k] = v.downcase if v.is_a?(String)
     }
