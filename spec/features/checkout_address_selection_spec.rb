@@ -212,9 +212,12 @@ describe "Address selection during checkout" do
           ship_address_id: create(:address, user: user)
         )
 
-        visit '/checkout/address'
+        restart_checkout
+        expect(user.orders.reload.last.bill_address_id).to eq(user.bill_address_id)
+        expect(user.orders.last.ship_address_id).to eq(user.ship_address_id)
+
         expect_selected(user.bill_address, :order, :bill)
-        expect_selected(user.bill_address, :order, :ship)
+        expect_selected(user.ship_address, :order, :ship)
       end
 
       it 'should deduplicate listed addresess, only showing the newest' do
