@@ -9,8 +9,9 @@ class Spree::AddressBookGroup
   # The address object to use to represent all grouped addresses.
   attr_reader :primary_address
 
-  delegate :id, :updated_at, :to_s, :same_as?, :comparison_attributes, to: :primary_address, allow_nil: true
   delegate :count, to: :addresses
+  delegate :id, :user_id, :created_at, :updated_at, :to_s, :same_as?, :comparison_attributes,
+    to: :primary_address, allow_nil: true
 
 
   # Initializes an address group for the given +addresses+.  The +assignments+
@@ -22,10 +23,12 @@ class Spree::AddressBookGroup
   def initialize(addresses, assignments=nil)
     raise 'Addresses must be an Array' unless addresses.is_a?(Array) # TODO: Accept ActiveRecord query?  Use multiple params?
 
-    @user_addresses = addresses.select{|a| a.user.present?}
-    @order_addresses = addresses.select{|a| a.user.nil?}
+    @user_addresses = addresses.select{|a| a.id && a.address1 && a.user.present? }
+    @order_addresses = addresses.select{|a| a.id && a.address1 && a.user.nil? }
 
     if assignments.is_a?(Hash)
+      assignments = assignments.select{|k, v| v.id && v.address1 }
+
       if @user_ship = assignments[:user_ship]
         raise 'User shipping address should belong to a user' if @user_ship.user.nil?
         @user_addresses << @user_ship

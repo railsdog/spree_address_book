@@ -52,7 +52,7 @@ class Spree::AddressBookList
     # Maps comparison_attributes.except('user_id') => address
     @mapped_addresses = {}
 
-    @addresses = addresses.uniq(&:id).group_by{|a| a.comparison_attributes.except('user_id') }.map{|k, v|
+    @addresses = addresses.uniq(&:id).select(&:id).select(&:address1).group_by{|a| a.comparison_attributes.except('user_id') }.map{|k, v|
       assignments = {}
       assignments[:user_ship] = @user_ship if v.include?(@user_ship)
       assignments[:user_bill] = @user_bill if v.include?(@user_bill)
