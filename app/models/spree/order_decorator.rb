@@ -1,6 +1,4 @@
-(Spree::PermittedAttributes.class_variable_get("@@checkout_attributes") << [
-  :bill_address_id, :ship_address_id
-]).flatten!
+Spree::PermittedAttributes.class_variable_get("@@checkout_attributes").concat [:bill_address_id, :ship_address_id]
 
 Spree::Order.class_eval do
   before_validation :clone_shipping_address, :if => "Spree::AddressBook::Config[:disable_bill_address]"
