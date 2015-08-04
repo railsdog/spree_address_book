@@ -38,7 +38,21 @@ describe "User editing addresses for his account" do
     }.to change{user.addresses.count}.by(1)
   end
 
-  pending 'adding an existing address should not create a new address object'
+  it 'should not create a new address when it matches an existing address' do
+    address = create(:address, user: user)
+
+    expect {
+      click_link I18n.t(:add_new_shipping_address, :scope => :address_book)
+      fill_in Spree.t(:first_name), with: address.firstname
+      fill_in Spree.t(:last_name), with: address.lastname
+      fill_in Spree.t(:address1), with: address.address1
+      fill_in Spree.t(:address2), with: address.address2
+      fill_in Spree.t(:city), with: address.city
+      fill_in Spree.t(:zipcode), with: address.zipcode
+      fill_in Spree.t(:phone), with: address.phone
+      click_button 'Save'
+    }.not_to change{user.addresses.count}
+  end
 
   it "should be able to edit address", :js => true do
     page.evaluate_script('window.confirm = function() { return true; }')
