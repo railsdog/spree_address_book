@@ -62,12 +62,17 @@ class Spree::AddressBookList
       @mapped_addresses[k] = g
       g
     }.compact.sort_by{|a| a.updated_at || a.created_at || Time.now }.reverse
+
+    @user_ship = find(@user_ship)
+    @user_bill = find(@user_bill)
+    @order_ship = find(@order_ship)
+    @order_bill = find(@order_bill)
   end
 
   # Returns a Spree::AddressBookGroup from this list that matches the given
   # +address+ using #comparison_attributes.  Returns nil if no match is found.
   def find(address)
-    @mapped_addresses[address.comparison_attributes.except('user_id')]
+    address && @mapped_addresses[address.comparison_attributes.except('user_id')]
   end
 
   private
