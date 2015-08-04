@@ -12,8 +12,8 @@ describe Spree::AddressBookList do
   let(:order) { create(:order_with_line_items, user: user) }
 
   describe '#initialize' do
-    it 'fails if no user or order was given' do
-      expect{Spree::AddressBookList.new(nil)}.to raise_error(/given/)
+    it 'creates an empty list if no user or order was given' do
+      expect(Spree::AddressBookList.new(nil, nil).count).to eq(0)
     end
 
     it 'accepts user and order in any order' do

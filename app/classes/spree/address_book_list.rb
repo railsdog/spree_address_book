@@ -25,7 +25,6 @@ class Spree::AddressBookList
       @order = user_or_order
     end
 
-    raise 'No user or order was given' if user_or_order.nil? && order_or_user.nil?
     raise 'User must be nil or a Spree::User' unless user.nil? || user.is_a?(Spree::User)
     raise 'Order must be nil or a Spree::Order' unless order.nil? || order.is_a?(Spree::Order)
 
