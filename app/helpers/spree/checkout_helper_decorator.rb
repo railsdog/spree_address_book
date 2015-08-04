@@ -1,11 +1,4 @@
 Spree::CheckoutHelper.module_eval do
-
-  def address_is_checked(order, address, address_type)
-    field = address_type == 'shipping' ? :ship_address_id : :bill_address_id
-    selected = order.public_send(field) if order.public_send(field).present?
-    return address.id == selected
-  end
-
   # Outputs a checkbox to allow a user to indicate if we should save the address
   # as their default address.
   def save_default_address_check_box
