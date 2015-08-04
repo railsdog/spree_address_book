@@ -209,10 +209,13 @@ describe "Address selection during checkout" do
       it 'should select the user default addresses' do
         user.update_attributes!(
           bill_address_id: user.addresses.first.id,
-          ship_address_id: create(:address, user: user)
+          ship_address_id: create(:address, user: user).id
         )
 
+        user.orders.delete_all
+        add_mug_to_cart
         restart_checkout
+
         expect(user.orders.reload.last.bill_address_id).to eq(user.bill_address_id)
         expect(user.orders.last.ship_address_id).to eq(user.ship_address_id)
 
@@ -220,7 +223,7 @@ describe "Address selection during checkout" do
         expect_selected(user.ship_address, :order, :ship)
       end
 
-      it 'should deduplicate listed addresess, only showing the newest' do
+      it 'should deduplicate listed addresses, only showing the newest' do
         user.addresses.delete_all
         5.times do
           create(:address, user: user).clone.save!
