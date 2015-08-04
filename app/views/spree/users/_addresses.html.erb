@@ -3,13 +3,14 @@
 <table id="user_addresses">
   <tbody>
     <% Spree::AddressBookList.new(spree_current_user).each do |address| %>
-    <tr class="<%= cycle('even', 'odd') %>">
-      <td><%= address %></td>
-      <td>
-        <%= link_to Spree.t(:edit), edit_address_path(address) %>&nbsp;
-        <%= link_to Spree.t(:remove), address_path(address), { :method => :delete, data: {:confirm => Spree.t(:are_you_sure)} } %>
-      </td>
-    </tr>
+      <% a = address.primary_address %>
+      <tr class="<%= cycle('even', 'odd') %>">
+        <td><%= a %></td>
+        <td>
+          <%= link_to Spree.t(:edit), edit_address_path(a) %>&nbsp;
+          <%= link_to Spree.t(:remove), address_path(a), { :method => :delete, data: {:confirm => Spree.t(:are_you_sure)} } %>
+        </td>
+      </tr>
     <% end %>
   </tbody>
 </table>
