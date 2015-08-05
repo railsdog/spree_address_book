@@ -32,21 +32,29 @@ class Spree::AddressesController < Spree::StoreController
   end
 
   def update
+    new_address = @address.clone
+    new_address.attributes = address_params
+    match = @addresses.find(new_address)
+    old_match = @addresses.find(@address)
+
+    # TODO: This could probably be condensed (DRY) and made more readable
     if @address.editable?
-      if @address.update_attributes(address_params)
+      # Delete if address matches another address set, otherwise update
+      if (match && match != old_match && @address.delete) || @address.update_attributes(address_params)
         flash[:notice] = Spree.t(:successfully_updated, :resource => Spree.t(:address1))
         redirect_back_or_default(account_path)
       else
         render :action => "edit"
       end
     else
-      new_address = @address.clone
-      new_address.attributes = address_params
       @address.update_attribute(:deleted_at, Time.now)
-      if new_address.save
+
+      # Save new address only if it doesn't match an existing address
+      if (match && match != old_match) || new_address.save
         flash[:notice] = Spree.t(:successfully_updated, :resource => Spree.t(:address1))
         redirect_back_or_default(account_path)
       else
+        flash[:error] = @address.errors.full_messages.to_sentence
         render :action => "edit"
       end
     end

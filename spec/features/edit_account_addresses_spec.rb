@@ -100,6 +100,37 @@ describe "User editing addresses for his account" do
     expect{address2.reload}.to raise_error
   end
 
+  it 'should remove a non-editable address if it is altered to match an existing address' do
+    # There should never be a completed order with a user address, but test it
+    # anyway in case the store has old orders with misassigned addresses.
+
+    address2 = address.clone
+    address2.address2 = 'Unique'
+    address2.save!
+
+    o = create(:shipped_order)
+    o.update_columns(bill_address_id: address2.id, ship_address_id: address2.id)
+
+    expect(address2).not_to be_editable
+
+    visit spree.account_path
+
+    within("#user_addresses > tbody > tr:first-child") do
+      click_link Spree.t(:edit)
+    end
+    expect(current_path).to eq(spree.edit_address_path(address2))
+
+    expect {
+      fill_in Spree.t(:address2), :with => address.address2
+      click_button "Update"
+    }.to change{ user.addresses.count }.by(-1)
+
+    expect(address2.reload.deleted_at).not_to be_nil
+
+    expect(current_path).to eq(spree.account_path)
+    expect(page).to have_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))
+  end
+
   it "should be able to remove address", :js => true do
     bypass_js_confirm
 
