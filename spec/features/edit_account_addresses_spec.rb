@@ -38,18 +38,20 @@ describe "User editing addresses for his account" do
     }.to change{user.addresses.count}.by(1)
   end
 
-  it 'should not create a new address when it matches an existing address' do
+  it 'should not create a new address when it matches an existing address', js: true do
     address = create(:address, user: user)
 
     expect {
       click_link I18n.t(:add_new_shipping_address, :scope => :address_book)
       fill_in Spree.t(:first_name), with: address.firstname
       fill_in Spree.t(:last_name), with: address.lastname
+      fill_in Spree.t(:company), with: address.company
       fill_in Spree.t(:address1), with: address.address1
       fill_in Spree.t(:address2), with: address.address2
       fill_in Spree.t(:city), with: address.city
       fill_in Spree.t(:zipcode), with: address.zipcode
       fill_in Spree.t(:phone), with: address.phone
+      select address.state.try(:name) || address.state_name, from: Spree.t(:state)
       click_button 'Save'
     }.not_to change{user.addresses.count}
   end

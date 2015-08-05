@@ -104,8 +104,7 @@ RSpec.configure do |config|
     DatabaseCleaner.start
     reset_spree_preferences
 
-    # not sure exactly what is happening here, but i think it takes an iteration for the country data to load
-    # Spree::Config[:default_country_id] = Spree::Country.find_by_iso3('USA').id if Spree::Country.count > 0
+    Spree::Config[:company] = true # Test with the company field visible
   end
 
   config.after(:each) do
