@@ -98,6 +98,15 @@ describe Spree::Address do
         expect(address_upper.same_as?(address_lower)).to eq(true)
       end
 
+      it 'returns true regardless of spacing' do
+        a1 = address.clone
+        a2 = address_copy.clone
+        a1.update_attributes!(firstname: " First\n\tName Here\r\n")
+        a2.update_attributes!(firstname: "First Name\tHere")
+        expect(a1).to be_same_as(a2)
+        expect(a2).to be_same_as(a1)
+      end
+
       it 'returns false for two different users' do
         address.update_attributes!(user: create(:user))
         address_copy.update_attributes!(user: create(:user))
