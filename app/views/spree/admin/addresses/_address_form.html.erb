@@ -72,6 +72,13 @@
     <%= f.label :phone, Spree.t(:phone) %>
     <%= f.phone_field :phone, :class => 'fullwidth' %>
   </div>
+
+  <% if Spree::Config[:alternative_shipping_phone] %>
+    <div class="field address-row">
+      <%= f.label :alternative_phone, Spree.t(:alternative_phone) %>
+      <%= f.phone_field :alternative_phone, class: 'fullwidth' %>
+    </div>
+  <% end %>
 </div>
 
 <% content_for :head do %>

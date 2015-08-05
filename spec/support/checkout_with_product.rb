@@ -74,7 +74,7 @@ shared_context "checkout with product" do
     fill_in Spree.t(:city), :with => address.city
     fill_in Spree.t(:zip), :with => address.zipcode
     fill_in Spree.t(:phone), :with => address.phone
-    fill_in Spree.t(:alternative_phone), :with => address.alternative_phone if (Spree::Config[:alternative_shipping_phone] && type == :ship)
+    fill_in Spree.t(:alternative_phone), :with => address.alternative_phone if Spree::Config[:alternative_shipping_phone]
   end
 
   def expected_address_format(address)

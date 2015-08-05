@@ -15,7 +15,7 @@
     <%= address_field(address_form, field.to_sym, address_id) %>
   <% end %>
 <% end %>
-<% if Spree::Config[:alternative_shipping_phone] && address_type == 'shipping' %>
+<% if Spree::Config[:alternative_shipping_phone] %>
   <p class="field" id=<%="#{address_id}altphone" %>>
     <%= address_form.label :alternative_phone, Spree.t(:alternative_phone) %><br />
     <%= address_form.phone_field :alternative_phone %>
