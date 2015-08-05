@@ -297,7 +297,7 @@ describe "Address selection during checkout" do
     #TODO: This spec is failing because the same address can be saved multiple times
     describe "entering address that is already saved" do
       it "should not save address for user" do
-        expect do
+        expect{
           address = user.addresses.first
           choose "order_ship_address_id_#{address.id}"
           within("#billing") do
@@ -305,8 +305,9 @@ describe "Address selection during checkout" do
             fill_in_address(address)
           end
           check "Use Billing Address"
+          uaddrcount(user, 'RSPEC') # XXX
           complete_checkout
-        end.to_not change { user.addresses.count }
+        }.not_to change { user.addresses.count }
       end
     end
   end

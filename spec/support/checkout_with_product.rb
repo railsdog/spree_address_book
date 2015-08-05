@@ -57,11 +57,15 @@ shared_context "checkout with product" do
   end
 
   def complete_checkout
+    uaddrcount(user, "Ck1") # XXX
     click_button Spree.t(:save_and_continue)
+    uaddrcount(user, 'Ck2') # XXX
     choose "UPS Ground"
     click_button Spree.t(:save_and_continue)
+    uaddrcount(user, 'Ck3') # XXX
     choose "Check"
     click_button Spree.t(:save_and_continue)
+    uaddrcount(user, 'Ck4') # XXX
   end
 
   def fill_in_address(address, type = :bill)

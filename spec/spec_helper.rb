@@ -124,3 +124,9 @@ RSpec.configure do |config|
 
   config.fail_fast = ENV['FAIL_FAST'] || false
 end
+
+
+# XXX
+def uaddrcount(user, str=nil)
+  puts "\n\nUser #{user.id} has #{user.reload.addresses.reload.count} addresses at #{str} #{caller(1,1)[0]}\n\n"
+end
