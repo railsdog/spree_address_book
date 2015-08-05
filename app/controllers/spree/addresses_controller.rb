@@ -3,17 +3,18 @@ class Spree::AddressesController < Spree::StoreController
   rescue_from ActiveRecord::RecordNotFound, :with => :render_404
   load_and_authorize_resource :class => Spree::Address
 
-  def index
-    @addresses = Spree::AddressBookList.new(spree_current_user)
-  end
+  before_filter :load_addresses, only: [:index, :create, :update]
 
   def create
     @address = spree_current_user.addresses.build(address_params)
     @address.user = spree_current_user
-    if @address.save
+
+    # Only save the address if it doesn't match an existing address
+    if @address.valid? && (@addresses.find(@address) || @address.save)
       flash[:notice] = Spree.t(:successfully_created, :resource => Spree.t(:address1))
       redirect_to account_path
     else
+      flash[:error] = @address.errors.full_messages.to_sentence
       render :action => "new"
     end
   end
@@ -62,5 +63,10 @@ class Spree::AddressesController < Spree::StoreController
 
   def address_params
     params.require(:address).permit(:firstname, :lastname, :company, :address1, :address2, :city, :state_id, :state_name, :zipcode, :country_id, :phone, :alternative_phone)
+  end
+
+  # Loads a deduplicated address list (Spree::AddressBookList) into @addresses.
+  def load_addresses
+    @addresses = Spree::AddressBookList.new(spree_current_user)
   end
 end

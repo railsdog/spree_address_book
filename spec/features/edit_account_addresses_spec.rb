@@ -57,7 +57,8 @@ describe "User editing addresses for his account" do
   end
 
   it "should be able to edit address", :js => true do
-    page.evaluate_script('window.confirm = function() { return true; }')
+    bypass_js_confirm
+
     within("#user_addresses > tbody > tr:first-child") do
       click_link Spree.t(:edit)
     end
@@ -74,13 +75,40 @@ describe "User editing addresses for his account" do
     end
   end
 
-  it "should be able to remove address", :js => true do
-    # bypass confirm dialog
-    page.evaluate_script('window.confirm = function() { return true; }')
+  it 'should remove an editable address if it is altered to match an existing address' do
+    address2 = address.clone
+    address2.address2 = 'Unique'
+    address2.save!
+
+    expect(address2).to be_editable
+
+    visit spree.account_path
+
     within("#user_addresses > tbody > tr:first-child") do
-      click_link Spree.t(:remove)
+      click_link Spree.t(:edit)
     end
-    current_path.should == spree.account_path
+    expect(current_path).to eq(spree.edit_address_path(address2))
+
+    expect {
+      fill_in Spree.t(:address2), :with => address.address2
+      click_button "Update"
+    }.to change{ user.addresses.count }.by(-1)
+
+    expect(current_path).to eq(spree.account_path)
+    expect(page).to have_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))
+
+    expect{address2.reload}.to raise_error
+  end
+
+  it "should be able to remove address", :js => true do
+    bypass_js_confirm
+
+    expect{
+      within("#user_addresses > tbody > tr:first-child") do
+        click_link Spree.t(:remove)
+      end
+      current_path.should == spree.account_path
+    }.to change{ user.addresses.count }.by(-1)
 
     # flash message
     page.should have_content("removed")
