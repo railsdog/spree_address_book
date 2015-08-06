@@ -298,6 +298,10 @@ describe "Address selection during checkout" do
     describe "entering address that is already saved" do
       it "should not save address for user" do
         expect{
+          require 'byebug'
+          # byebug # XXX
+          $show_addr_creation = true
+
           address = user.addresses.first
           choose "order_ship_address_id_#{address.id}"
           within("#billing") do
@@ -305,7 +309,7 @@ describe "Address selection during checkout" do
             fill_in_address(address)
           end
           check "Use Billing Address"
-          uaddrcount(user, 'RSPEC') # XXX
+          uaddrcount(user, 'RSPEC b4 checkout') # XXX
           complete_checkout
         }.not_to change { user.addresses.count }
       end

@@ -128,5 +128,5 @@ end
 
 # XXX
 def uaddrcount(user, str=nil)
-  puts "\n\nUser #{user.id} has #{user.reload.addresses.reload.count} addresses at #{str} #{caller(1,1)[0]}\n\n"
+  puts "\e[1;30m-->U#{user.id} has #{user.reload.addresses.reload.count} addrs (#{user.address_ids}) at \e[0;1m#{str}\e[0;36m #{caller(1,1)[0][/dbook.*/]}\e[0m\n"
 end

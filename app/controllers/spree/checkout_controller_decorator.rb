@@ -68,21 +68,35 @@ Spree::CheckoutController.class_eval do
     addr
   end
 
+  # TODO: Move this to the order decorator?  Or write a helper for use by admin controllers too?
   def normalize_addresses
+    uaddrcount spree_current_user, "COcD:b4" # XXX
     return unless params[:state] == "address" && @order.bill_address_id && @order.ship_address_id
+
+    uaddrcount spree_current_user, "COcD:A" # XXX
 
     # ensure that there is no validation errors and addresses were saved
     return unless @order.bill_address && @order.ship_address
 
+    uaddrcount spree_current_user, "COcD:B" # XXX
+
     bill_address = @order.bill_address
     ship_address = @order.ship_address
     if @order.bill_address_id != @order.ship_address_id && bill_address.same_as?(ship_address)
+      uaddrcount spree_current_user, "COcD:C:1" # XXX
+
       @order.update_column(:bill_address_id, ship_address.id)
       bill_address.destroy
     else
+      uaddrcount spree_current_user, "COcD:C:2" # XXX
+
       bill_address.update_attribute(:user_id, spree_current_user.try(:id))
     end
 
+    uaddrcount spree_current_user, "COcD:D:2" # XXX
+
     ship_address.update_attribute(:user_id, spree_current_user.try(:id))
+
+    uaddrcount spree_current_user, "COcD:aft" # XXX
   end
 end

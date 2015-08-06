@@ -1,6 +1,33 @@
 Spree::Address.class_eval do
   attr_accessor :address_type
 
+  # XXX
+  before_validation ->{debug_addr(:before_validation)}
+  before_save ->{debug_addr(:before_save)}
+  # Too verbose XXX after_initialize ->{debug_addr(:after_initialize)}
+  after_create ->{debug_addr(:after_create)}
+
+  # XXX
+  def debug_addr(step)
+    $show_addr_creation ||= false
+    if self.user && $show_addr_creation
+      puts "\e[32m==|#{step} address #{id.inspect} for user #{user_id.inspect}\e[0m"
+
+      bt = caller.reject{|l|
+        l =~ %r{(gems/(act|rack|rail|state|warden|capybara|rspec)|webrick)}
+      }.map{|l|
+        l = l[/(dbook|rubies|gems).*/] || l
+        l = l[%r{/gems.*}] || l
+        "\t\e[36m" + l.sub(
+          %r{/([^:/]+):(\d+):in `([^']*)'},
+          "/\e[1;33m\\1\e[0m:\e[34m\\2\e[0m:in `\e[1;35m\\3\e[0m'"
+        )
+      }
+
+      puts bt
+    end
+  end
+
   belongs_to :user, :class_name => Spree.user_class.to_s
 
   def self.required_fields
