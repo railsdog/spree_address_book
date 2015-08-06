@@ -8,7 +8,7 @@ Spree.user_class.class_eval do
     # TODO: Handle assignment of order-specific address if the order is complete (where is this called?)
     r = bill_address.update_attributes(user_id: id) if bill_address_id_changed? && bill_address
     r &= ship_address.update_attributes(user_id: id) if ship_address_id_changed? && ship_address
-    uaddrcount self, "U:aft(#{r})" # XXX
+    uaddrcount self, "U:aft(#{r.inspect})" # XXX
     r
   end
 
@@ -17,7 +17,7 @@ Spree.user_class.class_eval do
     # TODO: is this supposed to set both to the same address ID?
     r = update_attributes(bill_address_id: address.id) if billing.present?
     r &= update_attributes(ship_address_id: address.id) if shipping.present?
-    uaddrcount self, "U:aft(#{r})" # XXX
+    uaddrcount self, "U:aft(#{r.inspect})" # XXX
     r
   end
 
@@ -30,7 +30,7 @@ Spree.user_class.class_eval do
 
     # May not be present if delivery step has been removed
     r &= update_attributes ship_address_id: order.ship_address_id if order.ship_address
-    uaddrcount self, "U:aft(#{r})" # XXX
+    uaddrcount self, "U:aft(#{r.inspect})" # XXX
     r
   end
 end

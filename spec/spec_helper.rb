@@ -128,5 +128,5 @@ end
 
 # XXX
 def uaddrcount(user, str=nil)
-  puts "\e[1;30m-->U#{user.id} has #{user.reload.addresses.reload.count} addrs (#{user.address_ids}) at \e[0;1m#{str}\e[0;36m #{caller(1,1)[0][/dbook.*/]}\e[0m\n"
+  puts "\e[1;30m-->U#{user.try(:id).inspect} has #{user.reload.addresses.reload.count rescue 0} addrs (#{user.try :address_ids}) at \e[0;1m#{str}\e[0;36m #{caller(1,1)[0][/dbook.*/]}\e[0m\n" rescue (puts $!, *caller; raise 'foo')
 end

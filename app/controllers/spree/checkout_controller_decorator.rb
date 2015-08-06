@@ -80,23 +80,27 @@ Spree::CheckoutController.class_eval do
 
     uaddrcount spree_current_user, "COcD:B" # XXX
 
+    result = true
+
     bill_address = @order.bill_address
     ship_address = @order.ship_address
     if @order.bill_address_id != @order.ship_address_id && bill_address.same_as?(ship_address)
       uaddrcount spree_current_user, "COcD:C:1" # XXX
 
-      @order.update_column(:bill_address_id, ship_address.id)
+      r &= @order.update_column(:bill_address_id, ship_address.id)
       bill_address.destroy
     else
       uaddrcount spree_current_user, "COcD:C:2" # XXX
 
-      bill_address.update_attribute(:user_id, spree_current_user.try(:id))
+      r &= bill_address.update_attribute(:user_id, spree_current_user.try(:id))
     end
 
-    uaddrcount spree_current_user, "COcD:D:2" # XXX
+    uaddrcount spree_current_user, "COcD:D" # XXX
 
-    ship_address.update_attribute(:user_id, spree_current_user.try(:id))
+    r &= ship_address.update_attribute(:user_id, spree_current_user.try(:id))
 
-    uaddrcount spree_current_user, "COcD:aft" # XXX
+    uaddrcount spree_current_user, "COcD:aft(#{r.inspect})" # XXX
+
+    r
   end
 end

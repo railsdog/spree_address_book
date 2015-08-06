@@ -21,7 +21,6 @@ Spree::Order.class_eval do
   def clone_billing_address
     puts "O: Clone billing on #{id} change #{ship_address_id.inspect} to #{bill_address_id.inspect}" # XXX
     uaddrcount(user, "O:b4") # XXX
-    byebug if user.addresses.count == 2 # XXX
 
     if self.bill_address
       self.ship_address = self.bill_address
@@ -77,7 +76,7 @@ Spree::Order.class_eval do
     uaddrcount(user, "O:b4") # XXX
     res = self.update_attributes(bill_address_id: address.id) if billing.present?
     res &= self.update_attributes(ship_address_id: address.id) if shipping.present?
-    uaddrcount(user, "O:aft(#{res})") # XXX
+    uaddrcount(user, "O:aft(#{res.inspect})") # XXX
 
     res
   end
