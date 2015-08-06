@@ -1,7 +1,7 @@
 Spree::CheckoutController.class_eval do
   helper Spree::AddressesHelper
 
-  after_filter :normalize_addresses, :only => :update
+  # TODO: Delete; moved into order decorator after_filter :normalize_addresses, :only => :update
   before_filter :get_address_list
   before_filter :set_addresses, :only => :update
 

@@ -5,8 +5,7 @@ Spree::Order.class_eval do
 
   state_machine.after_transition to: :complete, do: :delink_addresses
   before_validation :delink_addresses_validation, if: :complete?
-
-  require 'byebug' # XXX
+  before_validation :merge_user_addresses, unless: :complete?
 
   def clone_shipping_address
     if self.ship_address
@@ -91,6 +90,8 @@ Spree::Order.class_eval do
     end
   end
 
+  private
+
   # While an order is in progress it refers to the same object as is in the
   # address book (i.e. it is a reference). This makes the UI code easier. Once a
   # order is complete we want to copy clone the address so the order/shipments
@@ -122,8 +123,53 @@ Spree::Order.class_eval do
     uaddrcount(user, "O:aft") # XXX
   end
 
+  # Copies new addresses from incomplete orders to users, switches order
+  # addresses to user addresses if matching addresses exist.
+  def merge_user_addresses
+    uaddrcount(user, "O:sa:b4")
 
-  private
+    result = true
+
+    if user
+      l = Spree::AddressBookList.new(user)
+
+      if self.bill_address
+        bill = l.find(self.bill_address)
+        if bill
+          if self.bill_address_id != bill.id
+            oldbill = self.bill_address
+            self.bill_address_id = bill.primary_address.id
+            oldbill.destroy
+          end
+        elsif self.bill_address.user_id.nil?
+          result &= self.bill_address.update_attributes(user_id: self.user_id)
+        end
+      end
+
+      if self.ship_address
+        if self.ship_address.same_as?(self.bill_address)
+          self.ship_address_id = self.bill_address_id
+        else
+          ship = l.find(self.ship_address)
+          if ship
+            if self.ship_address_id != ship.id
+              oldship = self.ship_address
+              self.ship_address_id = ship.primary_address.id
+              oldship.destroy
+            end
+          elsif self.ship_address.user_id.nil?
+            result &= self.ship_address.update_attributes(user_id: self.user_id) # TODO: just use =?
+          end
+        end
+      end
+
+      user.addresses.reload
+    end
+
+    uaddrcount(user, "O:sa:aft(#{result.inspect})")
+
+    result
+  end
 
   # Updates an existing address or creates a new one
   # if the address already exists it will only update its attributes
