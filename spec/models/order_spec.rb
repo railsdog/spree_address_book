@@ -54,6 +54,41 @@ describe Spree::Order do
       expect( order.ship_address_id ).to eq user.ship_address_id
     end
 
+    context :deduplication do
+      let(:bill) {
+        a = user.bill_address.clone
+        a.update_attributes!(user: nil)
+        a
+      }
+      let(:ship) {
+        a = user.ship_address.clone
+        a.update_attributes!(user: nil)
+        a
+      }
+
+      it 'finds an existing user address if assigned a matching copy' do
+        order.update_attributes!(bill_address: bill, ship_address: ship)
+
+        # Order should have found and used the user addresses instead
+        expect(order.bill_address_id).to eq(user.bill_address_id)
+        expect(order.ship_address_id).to eq(user.ship_address_id)
+
+        # Duplicate addresses should be deleted
+        expect{bill.reload}.to raise_error
+        expect{ship.reload}.to raise_error
+      end
+
+      it 'does not try to find an existing user address if complete' do
+        order.update_attributes!(state: 'complete')
+        order.update_attributes!(bill_address: bill, ship_address: ship)
+
+        expect(order.bill_address_id).not_to eq(user.bill_address_id)
+        expect(order.ship_address_id).not_to eq(user.ship_address_id)
+        expect{bill.reload}.not_to raise_error
+        expect{ship.reload}.not_to raise_error
+      end
+    end
+
     it 'should clone addresses on complete' do
       expect( order.state ).to eq 'cart'
       until order.complete?
