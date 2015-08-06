@@ -56,7 +56,11 @@ describe Spree::Order do
 
     it 'should clone addresses on complete' do
       expect( order.state ).to eq 'cart'
-      expect( order.next ).to eq true until order.complete?
+      until order.complete?
+        result = order.next
+        puts order.errors.full_messages.to_sentence unless result
+        expect(result).to eq(true)
+      end
       order.reload
 
       # One complete the order address are no longer the user addresses
