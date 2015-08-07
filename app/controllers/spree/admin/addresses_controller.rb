@@ -55,9 +55,16 @@ module Spree
       end
 
       def update
-        if @address.update_attributes(address_params)
+        list_path = admin_addresses_path(
+          user_id: @user.try(:id) || @address.user_id || @order.try(:user_id), order_id: @order.try(:id)
+        )
+
+        if !@address.editable?
+          flash[:error] = I18n.t(:address_not_editable, scope: [:address_book])
+          redirect_to list_path
+        elsif @address.update_attributes(address_params)
           flash[:success] = Spree.t(:account_updated)
-          redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+          redirect_to list_path
         else
           flash[:error] = @address.errors.full_messages.to_sentence
           render :edit
