@@ -7,9 +7,15 @@ describe Spree::AddressBookList do
       ship_address: create(:address, user: u),
       bill_address: create(:address, user: u)
     )
-    u
+    u.reload
   }
-  let(:order) { create(:order_with_line_items, user: user) }
+  let(:order) {
+    o = create(:order_with_line_items, user: user, bill_address: nil, ship_address: nil)
+    o.update_columns(bill_address_id: create(:address).id, ship_address_id: create(:address).id)
+    expect(o.bill_address.user).to be_nil
+    expect(o.ship_address.user).to be_nil
+    o
+  }
 
   describe '#initialize' do
     it 'creates an empty list if no user or order was given' do
@@ -121,7 +127,9 @@ describe Spree::AddressBookList do
 
     context 'with duplicate order addresses' do
       before(:each) do
-        order.update_attributes!(bill_address: order.ship_address.clone)
+        bill = order.ship_address.clone
+        bill.save!
+        order.update_columns(bill_address_id: bill.id)
       end
 
       it 'returns one address group for an order with two identical addresses' do
@@ -164,7 +172,6 @@ describe Spree::AddressBookList do
       it 'returns five addresses for two-address order, one shared, with user with a duplicate address' do
         # One shared address
         a = order.bill_address.clone
-        a.save!
         a.update_attributes!(user: user)
 
         # One unshared, unassigned address
@@ -174,6 +181,7 @@ describe Spree::AddressBookList do
         a = a.clone
         a.save!
 
+        expect(user.reload.addresses.count).to eq(5)
         l = Spree::AddressBookList.new(order, user)
         expect(l.count).to eq(5)
         expect(l.count{|a| a.addresses.count > 1 }).to eq(2)
@@ -181,7 +189,9 @@ describe Spree::AddressBookList do
 
       it 'returns the correct count for a same-address order, two shared, with a user with many duplicates' do
         # Order has duplicate addresses (minus 1)
-        order.update_attributes!(ship_address: order.bill_address.clone)
+        ship = order.bill_address.clone
+        ship.save!
+        order.update_columns(ship_address_id: ship.id)
 
         order.ship_address.update_columns(updated_at: Time.at(0))
         order.bill_address.update_columns(updated_at: Time.at(0))
@@ -200,6 +210,7 @@ describe Spree::AddressBookList do
         user.ship_address.update_attributes!(user.bill_address.comparison_attributes)
 
         # Final count should be (2 + 2 + 2 + 5 - 4 - 2 - 1 - 1) = 3
+        expect(user.reload.addresses.count).to eq(9)
         l = Spree::AddressBookList.new(order, user)
         expect(l.count).to eq(3)
         expect(l.addresses.all?{|a| a.addresses.count > 1 }).to eq(true)
