@@ -112,6 +112,40 @@ module AdminAddresses
     uri = URI.parse(page.current_url)
     "#{uri.path}?#{uri.query}"
   end
+
+  # Visits the appropriate addresses page based on whether +target+ is a user
+  # or an order, clicks the edit link for the given +address_id+, updates the
+  # form with the given +values+ (a Hash passed iteratively to Capybara's
+  # #fill_in method), then submits the form.  If +expect_success+ is true, then
+  # the operation is expected to succeed.  Otherwise, it is expected to fail.
+  def edit_address(order_or_user, address_id, expect_success, values)
+    if order_or_user.is_a?(Spree::Order)
+      user_id = order_or_user.user_id
+      order_id = order_or_user.id
+      visit_order_addresses order_or_user
+    else
+      user_id = order_or_user.id
+      order_id = nil
+      visit_user_addresses order_or_user
+    end
+
+    click_link "edit-address-#{address_id}"
+    expect(current_path).to eq(spree.edit_admin_address_path(address_id))
+
+    values.each do |k, v|
+      fill_in k, with: v
+    end
+
+    click_button Spree.t('actions.update')
+
+    if expect_success
+      expect(path_with_query).to eq(spree.admin_addresses_path(user_id: user_id, order_id: order_id))
+      expect(page).to have_content(Spree.t(:account_updated))
+    else
+      # TODO/FIXME - untested
+      expect(path_with_query).to eq(spree.update_admin_address_path(address_id, user_id: user_id, order_id: order_id))
+    end
+  end
 end
 
 RSpec.configure do |c|

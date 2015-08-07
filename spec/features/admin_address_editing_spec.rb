@@ -13,15 +13,13 @@ feature 'Admin UI address editing' do
     scenario 'can edit a single address' do
       a = create(:address, user: user)
 
-      visit_user_addresses user
-      click_link "edit-address-#{a.id}"
-      expect(current_path).to eq(spree.edit_admin_address_path(a))
-
       expect {
-        fill_in Spree.t(:street_address_2), with: 'new_address_two'
-        click_button Spree.t('actions.update')
-        expect(path_with_query).to eq(spree.admin_addresses_path(user_id: user.id))
-        expect(page).to have_content(Spree.t(:account_updated))
+        edit_address(
+          user,
+          a.id,
+          true,
+          Spree.t(:street_address_2) => 'new_address_two'
+        )
       }.not_to change{user.reload.addresses.count}
 
       expect(a.reload.address2).to eq('new_address_two')
