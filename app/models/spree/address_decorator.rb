@@ -71,7 +71,7 @@ Spree::Address.class_eval do
   end
 
   def can_be_deleted?
-    shipments.empty? && Spree::Order.where("bill_address_id = ? OR ship_address_id = ?", self.id, self.id).count == 0
+    shipments.empty? && !Spree::Order.where("bill_address_id = ? OR ship_address_id = ?", self.id, self.id).any?
   end
 
   def to_s
