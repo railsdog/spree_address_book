@@ -76,6 +76,8 @@ feature 'Admin UI address management' do
       expect(user.orders.count).to eq(20)
 
       visit_user_addresses(user)
+      require 'byebug' # XXX
+      #byebug # XXX
       expect_address_count 0
     end
 
@@ -320,7 +322,12 @@ feature 'Admin UI address management' do
       scenario 'shows one item for a guest order with two identical addresses' do
         guest_order.update_columns(bill_address_id: cloned_address_id(guest_order.ship_address))
         expect(guest_order.ship_address_id).not_to eq(guest_order.bill_address_id)
-        expect(guest_order.ship_address).to be_same_as(guest_order.bill_address)
+        begin # XXX
+          expect(guest_order.ship_address).to be_same_as(guest_order.bill_address)
+        rescue => e
+          addrmatrix(guest_order.ship_address, guest_order.bill_address) # XXX
+          raise
+        end
         expect(Spree::AddressBookList.new(guest_order).count).to eq(1)
 
         visit_order_addresses(guest_order)
@@ -367,7 +374,7 @@ feature 'Admin UI address management' do
         visit_order_addresses(order)
         addrmatrix(order.bill_address, order.ship_address, user.addresses) # XXX
         require 'byebug' # XXX
-        byebug # XXX - find out why three unique addresses in addrmatrix instead of two
+        # byebug # XXX - find out why three unique addresses in addrmatrix instead of two
         expect_address_count(2)
       end
 
