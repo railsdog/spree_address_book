@@ -296,17 +296,21 @@ feature 'Admin UI address management' do
           bill = order.bill_address
 
           5.times do |t|
-            a = create(:address, user: user)
-            user.update_attributes!(ship_address: a) if t == 2
-            user.update_attributes!(bill_address: a) if t == 3
+            begin
+              a = create(:address, user: user)
+              user.update_attributes!(ship_address: a) if t == 2
+              user.update_attributes!(bill_address: a) if t == 3
 
-            order.update_attributes!(bill_address: nil)
-            visit_order_addresses(order)
-            expect_address_count(t + 2)
+              order.update_columns(bill_address_id: nil)
+              visit_order_addresses(order)
+              expect_address_count(t + 2)
 
-            order.update_attributes!(bill_address: bill)
-            visit_order_addresses(order)
-            expect_address_count(t + 3)
+              order.update_columns(bill_address_id: bill.id)
+              visit_order_addresses(order)
+              expect_address_count(t + 3)
+            rescue => e
+              raise "#{e.message} on loop #{t}"
+            end
           end
         end
       end
