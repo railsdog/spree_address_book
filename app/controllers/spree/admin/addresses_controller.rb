@@ -35,7 +35,6 @@ module Spree
             when "ship_address"
               @order.ship_address = @address
             end
-            @order.delink_addresses
             @order.save!
           end
 
@@ -77,9 +76,7 @@ module Spree
 
       def update_addresses
         if @order and !@user
-          if @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id))
-            @order.delink_addresses
-          else
+          unless @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id))
             flash[:error] = @order.errors.full_messages.to_sentence
           end
         elsif @user
