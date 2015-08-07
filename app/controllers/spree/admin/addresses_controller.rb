@@ -55,6 +55,8 @@ module Spree
       end
 
       def update
+        uaddrcount(@user, "AAC:u:b4")
+
         list_path = admin_addresses_path(
           user_id: @user.try(:id) || @address.user_id || @order.try(:user_id), order_id: @order.try(:id)
         )
@@ -69,6 +71,8 @@ module Spree
           flash[:error] = @address.errors.full_messages.to_sentence
           render :edit
         end
+
+        uaddrcount(@user, "AAC:u:aft(#{flash})")
       end
 
       def destroy
@@ -82,6 +86,8 @@ module Spree
       end
 
       def update_addresses
+        uaddrcount(@user, "AAC:ua:b4")
+
         if @order and !@user
           unless @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id))
             flash[:error] = @order.errors.full_messages.to_sentence
@@ -93,6 +99,8 @@ module Spree
             flash[:error] = @order.errors.full_messages.to_sentence
           end
         end
+
+        uaddrcount(@user, "AAC:ua:aft(#{flash})")
 
         flash[:success] = I18n.t(:default_addresses_updated, scope: :address_book) unless flash[:error]
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))

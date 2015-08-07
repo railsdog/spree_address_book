@@ -87,6 +87,7 @@ Spree::Address.class_eval do
 
   # UPGRADE_CHECK if future versions of spree have a custom destroy function, this will break
   def destroy
+    puts "\n\nDestroying address #{id}: #{caller(4).join("\n\t")}" # XXX
     if can_be_deleted?
       super
     else
