@@ -42,7 +42,7 @@
       <tbody>
       <%= form_for @user || @order, url: update_addresses_admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id)), method: :put do |f| %>
         <% @addresses.each do |address| %>
-          <tr class="<%= cycle('even', 'odd') %>">
+          <tr class="<%= cycle('even', 'odd') %>" id="address-<%= address.id %>">
             <td><%= address %></td>
             <% if @user %>
               <td class="align-center">
@@ -73,7 +73,7 @@
               </td>
             <% end %>
             <td class="actions">
-              <%= link_to_edit_url edit_admin_address_url(address, user_id: @user.try(:id), order_id: @order.try(:id)), :no_text => true %>
+              <%= link_to_edit_url edit_admin_address_url(address.primary_address, user_id: @user.try(:id), order_id: @order.try(:id)), no_text: true, id: "edit-address-#{address.id}" %>
             </td>
           </tr>
         <% end %>
