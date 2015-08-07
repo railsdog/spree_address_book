@@ -7,6 +7,9 @@ Spree::Order.class_eval do
   before_validation :delink_addresses_validation, if: :complete?
   before_validation :merge_user_addresses, unless: :complete?
 
+  before_validation ->{puts "VALIDATION #{state}"} # XXX
+  before_save ->{puts "SAVE #{state}"} # XXX
+
   def clone_shipping_address
     if self.ship_address
       self.bill_address = self.ship_address

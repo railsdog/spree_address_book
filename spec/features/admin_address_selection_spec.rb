@@ -361,6 +361,9 @@ feature 'Admin UI address management' do
         a.save!
 
         visit_order_addresses(order)
+        addrmatrix(order.bill_address, order.ship_address, user.addresses) # XXX
+        require 'byebug' # XXX
+        byebug # XXX - find out why three unique addresses in addrmatrix instead of two
         expect_address_count(2)
       end
 
