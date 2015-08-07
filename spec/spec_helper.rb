@@ -129,7 +129,7 @@ end
 # XXX
 def uaddrcount(user, str=nil)
   user = Spree::User.find(user.id) if user
-  puts "\e[1;30m-->U#{user.try(:id).inspect} has #{user.reload.addresses.reload.count rescue 0} addrs (#{user.try :address_ids}) at \e[0;1m#{str}\e[0;36m #{caller(1,1)[0][/dbook.*/]}\e[0m\n" rescue (puts $!, *caller; raise 'foo')
+  puts "\e[1;30m-->U#{user.try(:id).inspect} has #{user.reload.addresses.reload.count rescue 0} addrs (#{user.try :address_ids}) at \e[0;1m#{str}\e[0;36m #{caller(1)[0][/dbook.*/]}\e[0m\n" rescue (puts $!, *caller; raise 'foo')
 end
 
 # XXX - Compares every address to every other address, showing which are the
