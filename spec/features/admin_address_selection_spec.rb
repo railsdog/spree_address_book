@@ -304,7 +304,7 @@ feature 'Admin UI address management' do
 
     context 'with duplicate addresses' do
       scenario 'shows one item for an order with two identical addresses' do
-        order.update_attributes!(bill_address: order.ship_address.clone)
+        order.update_columns(bill_address_id: cloned_address_id(order.ship_address))
         expect(order.ship_address_id).not_to eq(order.bill_address_id)
         expect(order.ship_address).to be_same_as(order.bill_address)
         expect(Spree::AddressBookList.new(order).count).to eq(1)
@@ -314,7 +314,7 @@ feature 'Admin UI address management' do
       end
 
       scenario 'shows one item for a guest order with two identical addresses' do
-        guest_order.update_attributes!(bill_address: guest_order.ship_address.clone)
+        order.update_columns(bill_address_id: cloned_address_id(order.ship_address))
         expect(guest_order.ship_address_id).not_to eq(guest_order.bill_address_id)
         expect(guest_order.ship_address).to be_same_as(guest_order.bill_address)
         expect(Spree::AddressBookList.new(guest_order).count).to eq(1)
@@ -331,7 +331,7 @@ feature 'Admin UI address management' do
         visit_order_addresses(order)
         expect_address_count(3)
 
-        order.update_attributes!(bill_address: order.ship_address.clone)
+        order.update_columns(bill_address_id: cloned_address_id(order.ship_address))
         expect(Spree::AddressBookList.new(order).count).to eq(1)
         visit_order_addresses(order)
         expect_address_count(2)
@@ -355,7 +355,7 @@ feature 'Admin UI address management' do
 
       scenario 'shows two items for a one-address order and two-address user with one address shared' do
         create(:address, user: user)
-        order.update_attributes!(bill_address: order.ship_address.clone)
+        order.update_columns(bill_address_id: cloned_address_id(order.ship_address))
         a = order.ship_address.clone
         a.user = user
         a.save!

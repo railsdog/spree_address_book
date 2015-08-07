@@ -91,6 +91,13 @@ module AdminAddresses
     # necessary to get whitespace-insensitive matching.
     Regexp.new(Regexp.escape(address.to_s.gsub(/<[^>]+>/, ' ')).gsub(/(\\?\s+)+/, '\s+'), 'i')
   end
+
+  # Clones an address and returns the ID of the clone.
+  def cloned_address_id(address)
+    a = address.clone
+    a.save!
+    a.id
+  end
 end
 
 RSpec.configure do |c|
