@@ -30,6 +30,7 @@ module AdminAddresses
   # Expects the +user+ addresses to be selected on the page, and expects every
   # user address to be present on the page.
   def expect_user_addresses(user)
+    user.reload
     expect_selected(user.bill_address, :user, :bill)
     expect_selected(user.ship_address, :user, :ship)
 
@@ -41,6 +42,7 @@ module AdminAddresses
   # Expects the +order+ addresses to be selected on the page, and expects every
   # order address to be present on the page.
   def expect_order_addresses(order)
+    order.reload
     expect_selected(order.bill_address, :order, :bill)
     expect_selected(order.ship_address, :order, :ship)
 
