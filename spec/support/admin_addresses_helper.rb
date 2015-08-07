@@ -98,6 +98,14 @@ module AdminAddresses
     a.save!
     a.id
   end
+
+  # Sets the user_id of the +order+'s addresses to nil, if addresses are
+  # present.  Returns the order.
+  def strip_order_address_users(order)
+    order.bill_address.try(:update_attributes!, user_id: nil)
+    order.ship_address.try(:update_attributes!, user_id: nil)
+    order
+  end
 end
 
 RSpec.configure do |c|

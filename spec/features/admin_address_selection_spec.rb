@@ -4,20 +4,10 @@ feature 'Admin UI address management' do
   stub_authorization!
 
   let(:user) { create(:user) }
-  let(:order) {
-    o = create(:order_with_line_items, user: user)
-    o.bill_address.update_attributes!(user_id: nil)
-    o.ship_address.update_attributes!(user_id: nil)
-    o
-  }
+  let(:order) { strip_order_address_users(create(:order_with_line_items, user: user)) }
   let(:completed_order) { create(:completed_order_with_pending_payment, user: user) }
   let(:shipped_order) { create(:shipped_order, user: user) }
-  let(:guest_order) {
-    o = create(:order_with_line_items, user: nil, email: 'guest@example.com')
-    o.bill_address.update_attributes!(user_id: nil)
-    o.ship_address.update_attributes!(user_id: nil)
-    o
-  }
+  let(:guest_order) { strip_order_address_users(create(:order_with_line_items, user: nil, email: 'guest@example.com')) }
 
   describe 'User account address list' do
     scenario 'lists no addresses for a user with no addresses' do
@@ -77,8 +67,8 @@ feature 'Admin UI address management' do
 
     scenario 'does not show addresses of many orders in user address list' do
       5.times do
-        create(:order, user: user)
-        create(:order_with_line_items, user: user)
+        strip_order_address_users(create(:order, user: user))
+        strip_order_address_users(create(:order_with_line_items, user: user))
         create(:completed_order_with_pending_payment, user: user)
         create(:shipped_order, user: user)
       end
