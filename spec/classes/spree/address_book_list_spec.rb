@@ -83,6 +83,18 @@ describe Spree::AddressBookList do
       expect(l[0]).to eq(l.addresses[0])
     end
 
+    context 'with a completed order and unmodified factory user' do
+      let(:user) { create(:user) }
+      let(:completed_order) { create(:completed_order_with_pending_payment, user: user) }
+
+      it 'returns two addresses for the order and user together' do
+        expect([completed_order.bill_address_id, completed_order.ship_address_id].compact.uniq.count).to eq(2)
+        expect(user.addresses.count).to eq(0)
+        l = Spree::AddressBookList.new(completed_order, user)
+        expect(l.count).to eq(2)
+      end
+    end
+
     context 'without duplicate addresses' do
       it 'returns one address for an order with one address in both slots' do
         order.update_columns(bill_address_id: order.ship_address_id)
