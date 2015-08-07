@@ -124,30 +124,3 @@ RSpec.configure do |config|
 
   config.fail_fast = ENV['FAIL_FAST'] || false
 end
-
-
-# XXX
-def uaddrcount(user, str=nil)
-  user = Spree::User.find(user.id) if user
-  puts "\e[1;30m-->U#{user.try(:id).inspect} has #{user.reload.addresses.reload.count rescue 0} addrs (#{user.try :address_ids}) at \e[0;1m#{str}\e[0;36m #{caller(1)[0][/dbook.*/]}\e[0m\n" rescue (puts $!, *caller; raise 'foo')
-end
-
-# XXX - Compares every address to every other address, showing which are the
-# same.
-def addrmatrix(*addresses)
-  list = addresses.flatten.uniq
-
-  list.each do |a|
-    list.each do |b|
-      mismatched_attrs = []
-      b_attrs = b.comparison_attributes
-      a.comparison_attributes.each do |k, v|
-        if v != b_attrs[k]
-          mismatched_attrs << "#{k.inspect}: #{a.id}:#{v.inspect} != #{b.id}:#{b[k].inspect}"
-        end
-      end
-
-      puts "#{'%03d' % a.id} -> #{'%03d' % b.id} \e[1m#{a.same_as?(b) ? 'same' : 'diff'}\e[0m U#{a.user_id.inspect}\t#{mismatched_attrs.join(', ')}"
-    end
-  end
-end
