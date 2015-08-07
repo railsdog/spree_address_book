@@ -4,10 +4,20 @@ feature 'Admin UI address management' do
   stub_authorization!
 
   let(:user) { create(:user) }
-  let(:order) { create(:order_with_line_items, user: user) }
+  let(:order) {
+    o = create(:order_with_line_items, user: user)
+    o.bill_address.update_attributes!(user_id: nil)
+    o.ship_address.update_attributes!(user_id: nil)
+    o
+  }
   let(:completed_order) { create(:completed_order_with_pending_payment, user: user) }
   let(:shipped_order) { create(:shipped_order, user: user) }
-  let(:guest_order) { o = create(:order_with_line_items, user: nil, email: 'guest@example.com') }
+  let(:guest_order) {
+    o = create(:order_with_line_items, user: nil, email: 'guest@example.com')
+    o.bill_address.update_attributes!(user_id: nil)
+    o.ship_address.update_attributes!(user_id: nil)
+    o
+  }
 
   describe 'User account address list' do
     scenario 'lists no addresses for a user with no addresses' do
