@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature 'Admin UI address management' do
+feature 'Admin UI address selection' do
   stub_authorization!
 
   let(:user) { create(:user) }

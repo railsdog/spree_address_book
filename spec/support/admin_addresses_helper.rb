@@ -106,6 +106,12 @@ module AdminAddresses
     order.ship_address.try(:update_attributes!, user_id: nil)
     order
   end
+
+  # Returns the current Capybara page path plus query string (e.g. "/a?b=c").
+  def path_with_query
+    uri = URI.parse(page.current_url)
+    "#{uri.path}?#{uri.query}"
+  end
 end
 
 RSpec.configure do |c|
