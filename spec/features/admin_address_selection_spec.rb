@@ -324,7 +324,7 @@ feature 'Admin UI address management' do
       end
 
       scenario 'shows one item for a guest order with two identical addresses' do
-        order.update_columns(bill_address_id: cloned_address_id(order.ship_address))
+        guest_order.update_columns(bill_address_id: cloned_address_id(guest_order.ship_address))
         expect(guest_order.ship_address_id).not_to eq(guest_order.bill_address_id)
         expect(guest_order.ship_address).to be_same_as(guest_order.bill_address)
         expect(Spree::AddressBookList.new(guest_order).count).to eq(1)
