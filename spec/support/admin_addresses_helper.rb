@@ -113,12 +113,31 @@ module AdminAddresses
     "#{uri.path}?#{uri.query}"
   end
 
+  # Fill in an already loaded admin address form with values from the given
+  # +address+.  See also #fill_in_address in support/checkout_with_product.rb.
+  def fill_in_admin_address(address)
+    fill_in Spree.t(:first_name), with: address.firstname
+    fill_in Spree.t(:last_name), with: address.lastname
+    fill_in Spree.t(:company), with: address.company if Spree::Config[:company]
+    fill_in Spree.t(:street_address), with: address.address1
+    fill_in Spree.t(:street_address_2), with: address.address2
+    select address.country.name, from: Spree.t(:country)
+    fill_in Spree.t(:city), with: address.city
+    fill_in Spree.t(:zip), with: address.zipcode
+    select address.state.name, from: Spree.t(:state)
+    fill_in Spree.t(:phone), with: address.phone
+    fill_in Spree.t(:alternative_phone), with: address.alternative_phone if Spree::Config[:alternative_shipping_phone]
+  end
+
   # Visits the appropriate addresses page based on whether +target+ is a user
   # or an order, clicks the edit link for the given +address_id+, updates the
   # form with the given +values+ (a Hash passed iteratively to Capybara's
-  # #fill_in method), then submits the form.  If +expect_success+ is true, then
-  # the operation is expected to succeed.  Otherwise, it is expected to fail.
+  # #fill_in method, or another Spree::Address to copy), then submits the form.
+  # If +expect_success+ is true, then the operation is expected to succeed.
+  # Otherwise, it is expected to fail.
   def edit_address(order_or_user, address_id, expect_success, values)
+    address_id = address_id.id if address_id.is_a?(Spree::Address)
+
     if order_or_user.is_a?(Spree::Order)
       user_id = order_or_user.user_id
       order_id = order_or_user.id
@@ -132,8 +151,14 @@ module AdminAddresses
     click_link "edit-address-#{address_id}"
     expect(current_path).to eq(spree.edit_admin_address_path(address_id))
 
-    values.each do |k, v|
-      fill_in k, with: v
+    if values.is_a?(Spree::Address)
+      fill_in_admin_address(values)
+    elsif values.is_a?(Hash)
+      values.each do |k, v|
+        fill_in k, with: v
+      end
+    else
+      raise "Invalid type #{values.class.name} for values"
     end
 
     click_button Spree.t('actions.update')

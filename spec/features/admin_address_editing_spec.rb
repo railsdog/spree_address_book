@@ -53,7 +53,40 @@ feature 'Admin UI address editing' do
           guest_order.update_attributes!(ship_address: nil)
         end
 
-        pending
+        it 'cannot edit a different address not from the order' do
+          pending
+        end
+
+        it 'can edit the order address' do
+          a = build(
+            :address,
+            first_name: 'First',
+            last_name: 'Last',
+            company: 'Company',
+            address1: '123 Fake',
+            address2: 'Floor Three',
+            city: 'Beverly Hills',
+            phone: '555-555-5555',
+            alternative_phone: '555-555-5556'
+          )
+
+          expect(a).to be_valid
+
+          orig_id = guest_order.bill_address_id
+
+          expect {
+            edit_address(
+              guest_order,
+              guest_order.bill_address,
+              true,
+              a
+            )
+          }.not_to change{ Spree::Address.count }
+
+          expect(guest_order.reload.bill_address_id).to eq(orig_id)
+          expect(guest_order.bill_address).to be_same_as(a)
+          expect(guest_order.ship_address).to be_nil
+        end
       end
 
       pending
