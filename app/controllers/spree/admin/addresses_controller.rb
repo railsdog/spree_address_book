@@ -47,13 +47,6 @@ module Spree
         end
       end
 
-      def edit
-        if @order and !@user
-          # Guest order; limit to the order's addresses
-          @address = @order.addresses.select{|r| r.id == params[:id].to_i }.first
-        end
-      end
-
       def update
         uaddrcount(@user, "AAC:u:b4")
 
@@ -112,7 +105,19 @@ module Spree
         end
 
         def find_address
-          @address ||= Spree::Address.find(params[:id]) if params[:id]
+          if @order && !@user
+            # Guest order; limit to the order's addresses
+            if @order.bill_address.id == params[:id].to_i
+              @address = @order.bill_address
+            elsif @order.ship_address.id == params[:id].to_i
+              @address = @order.ship_address
+            else
+              # Trigger a 404
+              raise ActiveRecord::RecordNotFound, "Could not find address #{params[:id].to_i} on order #{@order.number}"
+            end
+          else
+            @address ||= Spree::Address.find(params[:id]) if params[:id]
+          end
         end
 
         def set_user_or_order
