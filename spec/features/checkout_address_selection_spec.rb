@@ -298,8 +298,6 @@ describe "Address selection during checkout" do
     describe "entering address that is already saved" do
       it "should not save address for user" do
         expect{
-          require 'byebug'
-          # byebug # XXX
           $show_addr_creation = true
 
           address = user.addresses.first

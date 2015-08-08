@@ -76,8 +76,6 @@ feature 'Admin UI address selection' do
       expect(user.orders.count).to eq(20)
 
       visit_user_addresses(user)
-      require 'byebug' # XXX
-      #byebug # XXX
       expect_address_count 0
     end
 
@@ -373,8 +371,6 @@ feature 'Admin UI address selection' do
 
         visit_order_addresses(order)
         addrmatrix(order.bill_address, order.ship_address, user.addresses) # XXX
-        require 'byebug' # XXX
-        # byebug # XXX - find out why three unique addresses in addrmatrix instead of two
         expect_address_count(2)
       end
 
