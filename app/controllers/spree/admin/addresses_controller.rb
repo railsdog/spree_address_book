@@ -2,20 +2,8 @@ module Spree
   module Admin
     class AddressesController < ResourceController
       before_filter :set_user_or_order
+      before_filter :get_address_list
       before_filter :find_address, only: [:edit, :update, :destroy]
-
-      def index
-        if @order and @user
-          # Non-guest order
-          @addresses = Spree::AddressBookList.new(@user, @order)
-        elsif @order
-          # Guest order
-          @addresses = Spree::AddressBookList.new(@order)
-        else
-          # User account
-          @addresses = Spree::AddressBookList.new(@user)
-        end
-      end
 
       def new
         country_id = Spree::Address.default.country.id
@@ -128,6 +116,23 @@ module Spree
 
           if @user && @address.try(:user) && @user != @address.user
             raise "Address user does not match user being edited!"
+          end
+        end
+
+        # Load a deduplicated list of order and user addresses.
+        def get_address_list
+          if @order and @user
+            # Non-guest order
+            @addresses = Spree::AddressBookList.new(@user, @order)
+          elsif @order
+            # Guest order
+            @addresses = Spree::AddressBookList.new(@order)
+          elsif @user
+            # User account
+            @addresses = Spree::AddressBookList.new(@user)
+          else
+            # Nothing; set a blank list
+            @addresses = Spree::AddressBookList.new(nil)
           end
         end
 
