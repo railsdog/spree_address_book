@@ -53,14 +53,14 @@ feature 'Admin UI address editing' do
           guest_order.update_attributes!(ship_address: nil)
         end
 
-        it 'cannot edit a different address not from the order' do
+        scenario 'cannot edit a different address not from the order' do
           a = create(:address)
           visit(spree.edit_admin_address_path(a.id, order_id: guest_order.id))
           expect(path_with_query).to eq(spree.admin_addresses_path(order_id: guest_order.id))
           expect(page).to have_content(Spree.t(:not_found, resource: Spree::Address.model_name.human))
         end
 
-        it 'can edit the order address' do
+        scenario 'can edit the order address' do
           a = build(
             :address,
             first_name: 'First',
@@ -127,30 +127,53 @@ feature 'Admin UI address editing' do
             end
           end
 
-          it 'edits both user and order address objects directly' do
+          scenario 'edits both user and order address objects directly' do
             expect(user.reload.addresses.count).to eq(1)
 
-            expect{
+            bill = completed_order.bill_address
+
+            expect {
               expect {
                 edit_address(completed_order, address, true, Spree.t(:first_name) => 'FirstNameEdit')
-              }.to change{ [address.reload.updated_at, completed_order.bill_address.updated_at] }
-
-              expect(address.id).not_to eq(completed_order.reload.bill_address_id)
-              expect(address.reload.first_name).to eq('FirstNameEdit')
-              expect(address.comparison_attributes.except('user_id')).to eq(completed_order.bill_address.comparison_attributes.except('user_id'))
-
+              }.to change{ [address.reload.updated_at, bill.reload.updated_at] }
             }.not_to change{
-              [completed_order.reload.bill_address_id, completed_order.reload.ship_address_id, user.reload.address_ids]
+              [completed_order.reload.bill_address_id, completed_order.reload.ship_address_id, user.reload.address_ids.sort]
             }
+
+            expect(address.id).not_to eq(completed_order.bill_address_id)
+            expect(address.reload.first_name).to eq('FirstNameEdit')
+            expect(address.comparison_attributes.except('user_id')).to eq(completed_order.bill_address.reload.comparison_attributes.except('user_id'))
+          end
+        end
+
+        context 'with a shared order address' do
+          scenario 'preserves shared address assignments when editing' do
+            order.bill_address.update_attributes!(user: user)
+            order.ship_address.update_attributes!(user: user)
+            user.update_attributes!(
+              bill_address: order.bill_address,
+              ship_address: order.ship_address
+            )
+
+            expect {
+              edit_address(order, order.bill_address, true, Spree.t(:first_name) => 'EditFirstName')
+              edit_address(order, order.ship_address, true, Spree.t(:last_name) => 'LastEditName')
+            }.not_to change{
+              [order.reload.bill_address_id, order.ship_address_id, user.reload.address_ids.sort]
+            }
+
+            expect(user.bill_address_id).to eq(order.bill_address_id)
+            expect(user.bill_address.first_name).to eq('EditFirstName')
+            expect(user.ship_address.last_name).to eq('LastEditName')
           end
         end
 
         pending
       end
-    end
 
-    context 'with duplicate addresses' do
-      pending
+      context 'with duplicate addresses' do
+        pending
+      end
     end
   end
 end
