@@ -101,6 +101,50 @@ feature 'Admin UI address editing' do
       end
 
       context 'with one or more user addresses' do
+        context 'with a detached order address' do
+          let(:address) {
+            a = completed_order.bill_address.clone
+            a.update_attributes!(user: user)
+            a
+          }
+
+          before(:each) do
+            # Allow editing of completed order addresses
+            Spree::Address.class_eval do
+              alias_method :orig_editable?, :editable?
+              def editable?
+                true
+              end
+            end
+
+            address
+          end
+
+          after(:each) do
+            # Restore original #editable? method
+            Spree::Address.class_eval do
+              alias_method :editable?, :orig_editable?
+            end
+          end
+
+          it 'edits both user and order address objects directly' do
+            expect(user.reload.addresses.count).to eq(1)
+
+            expect{
+              expect {
+                edit_address(completed_order, address, true, Spree.t(:first_name) => 'FirstNameEdit')
+              }.to change{ [address.reload.updated_at, completed_order.bill_address.updated_at] }
+
+              expect(address.id).not_to eq(completed_order.reload.bill_address_id)
+              expect(address.reload.first_name).to eq('FirstNameEdit')
+              expect(address.comparison_attributes.except('user_id')).to eq(completed_order.bill_address.comparison_attributes.except('user_id'))
+
+            }.not_to change{
+              [completed_order.reload.bill_address_id, completed_order.reload.ship_address_id, user.reload.address_ids]
+            }
+          end
+        end
+
         pending
       end
     end
