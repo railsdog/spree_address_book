@@ -54,7 +54,10 @@ feature 'Admin UI address editing' do
         end
 
         it 'cannot edit a different address not from the order' do
-          pending
+          a = create(:address)
+          visit(spree.edit_admin_address_path(a.id, order_id: guest_order.id))
+          expect(path_with_query).to eq(spree.admin_addresses_path(order_id: guest_order.id))
+          expect(page).to have_content(Spree.t(:not_found, resource: Spree::Address.model_name.human))
         end
 
         it 'can edit the order address' do

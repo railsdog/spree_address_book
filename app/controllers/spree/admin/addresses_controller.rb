@@ -99,6 +99,13 @@ module Spree
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
       end
 
+      protected
+        # Override Spree::Admin::ResourceController#collection_url to include user_id and order_id.
+        def collection_url(options={})
+          # TODO: Use more "resourceful" routing under Order and/or User
+          super({order_id: @order.try(:id), user_id: @user.try(:id)}.merge!(options))
+        end
+
       private
         def address_params
           params.require(:address).permit(PermittedAttributes.address_attributes)
@@ -107,9 +114,9 @@ module Spree
         def find_address
           if @order && !@user
             # Guest order; limit to the order's addresses
-            if @order.bill_address.id == params[:id].to_i
+            if @order.bill_address.try(:id) == params[:id].to_i
               @address = @order.bill_address
-            elsif @order.ship_address.id == params[:id].to_i
+            elsif @order.ship_address.try(:id) == params[:id].to_i
               @address = @order.ship_address
             else
               # Trigger a 404
