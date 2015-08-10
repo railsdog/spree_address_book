@@ -1,8 +1,8 @@
 module Spree
   module Admin
     class AddressesController < ResourceController
-      before_filter :find_address, only: [:edit, :update, :destroy]
       before_filter :set_user_or_order
+      before_filter :find_address, only: [:edit, :update, :destroy]
 
       def index
         if @order and @user
@@ -51,7 +51,7 @@ module Spree
         uaddrcount(@user, "AAC:u:b4")
 
         list_path = admin_addresses_path(
-          user_id: @user.try(:id) || @address.user_id || @order.try(:user_id), order_id: @order.try(:id)
+          user_id: @user.try(:id) || @address.try(:user_id) || @order.try(:user_id), order_id: @order.try(:id)
         )
 
         if !@address.editable?
