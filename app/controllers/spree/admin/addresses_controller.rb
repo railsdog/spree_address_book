@@ -125,6 +125,10 @@ module Spree
           else
             @address ||= Spree::Address.find(params[:id]) if params[:id]
           end
+
+          if @user && @address.try(:user) && @user != @address.user
+            raise "Address user does not match user being edited!"
+          end
         end
 
         def set_user_or_order
