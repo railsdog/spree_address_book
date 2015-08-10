@@ -95,6 +95,14 @@ Spree::Address.class_eval do
     end
   end
 
+  # Returns a clone of this address with its user set to nil.  The returned
+  # object will not have been saved to the database.
+  def clone_without_user
+    a = self.clone
+    a.user = nil
+    a
+  end
+
   private
   def h(str)
     (str ? CGI::escapeHTML(str.to_s) : str).try(:html_safe)

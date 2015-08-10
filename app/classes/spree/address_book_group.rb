@@ -3,14 +3,14 @@ class Spree::AddressBookGroup
   # All unique addresses on the request, user, and order.
   attr_reader :addresses, :user_addresses, :order_addresses
 
-  # Specifically assigned addresses.  TODO: consider methods that return @primary_address as backup?
+  # Specifically assigned addresses.
   attr_reader :user_ship, :user_bill, :order_ship, :order_bill
 
   # The address object to use to represent all grouped addresses.
   attr_reader :primary_address
 
   delegate :count, to: :addresses
-  delegate :id, :user_id, :created_at, :updated_at, :to_s, :same_as?, :comparison_attributes,
+  delegate :id, :user_id, :created_at, :updated_at, :to_s, :same_as?, :comparison_attributes, :clone_without_user,
     to: :primary_address, allow_nil: true
 
 

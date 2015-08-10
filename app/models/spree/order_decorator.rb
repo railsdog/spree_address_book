@@ -110,15 +110,13 @@ Spree::Order.class_eval do
   def delink_addresses_validation
     uaddrcount(user, "O:b4") # XXX
     if bill_address.try(:user_id)
-      bill_copy = bill_address.clone
-      bill_copy.user_id = nil
+      bill_copy = bill_address.clone_without_user
       bill_copy.save!
       self.bill_address = bill_copy
     end
 
     if ship_address.try(:user_id)
-      ship_copy = ship_address.clone
-      ship_copy.user_id = nil
+      ship_copy = ship_address.clone_without_user
       ship_copy.save!
       self.ship_address = ship_copy
       shipments.update_all address_id: ship_address_id

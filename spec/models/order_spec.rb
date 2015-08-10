@@ -56,13 +56,13 @@ describe Spree::Order do
 
     context :deduplication do
       let(:bill) {
-        a = user.bill_address.clone
-        a.update_attributes!(user: nil)
+        a = user.bill_address.clone_without_user
+        a.save!
         a
       }
       let(:ship) {
-        a = user.ship_address.clone
-        a.update_attributes!(user: nil)
+        a = user.ship_address.clone_without_user
+        a.save!
         a
       }
 
