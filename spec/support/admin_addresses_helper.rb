@@ -174,5 +174,5 @@ module AdminAddresses
 end
 
 RSpec.configure do |c|
-  c.include AdminAddresses, type: :feature
+  c.include AdminAddresses
 end
