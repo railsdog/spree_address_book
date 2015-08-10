@@ -84,4 +84,14 @@ class Spree::AddressBookGroup
       @order_ship == other.order_ship &&
       @order_bill == other.order_bill
   end
+
+  # Destroys all editable user addresses in the group.
+  def destroy
+    result = true
+    @user_addresses.each do |a|
+      result &= a.destroy if a.editable?
+    end
+    @user_addresses.reject!(&:editable?)
+    result
+  end
 end
