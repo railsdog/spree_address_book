@@ -14,6 +14,8 @@ module Spree
         country_id = Spree::Address.default.country.id
         @address = Spree::Address.new({:country_id => country_id, user: @user}.merge(params[:address]))
 
+        # FIXME: Don't allow creating duplicate addresses on a user
+
         if @address.save
           # TODO: There might be a better way to figure out where to assign the address
           if @order and !@user
@@ -38,19 +40,74 @@ module Spree
       def update
         uaddrcount(@user, "AAC:u:b4")
 
-        list_path = admin_addresses_path(
-          user_id: @user.try(:id) || @address.try(:user_id) || @order.try(:user_id), order_id: @order.try(:id)
-        )
+        group = @addresses.find(@address)
+        base_address = group.primary_address
 
-        if !@address.editable?
+        if !@address.editable? # FIXME: Should not happen via UI unless order has detached address not on user
+          # TODO: See if Spree::Admin::ResourceController provides additional help here
           flash[:error] = I18n.t(:address_not_editable, scope: [:address_book])
-          redirect_to list_path
-        elsif @address.update_attributes(address_params)
-          flash[:success] = Spree.t(:account_updated)
-          redirect_to list_path
-        else
-          flash[:error] = @address.errors.full_messages.to_sentence
+          redirect_to collection_url
+          return
+        end
+
+        # Update primary address, destroy editable user duplicates
+        errors = []
+        group.each do |a|
+          if a.id != group.primary_address.id && a.user && a.editable?
+            puts "\e[35mDestroying address \e[1m#{a.id}\e[0;35m against primary \e[1m#{group.id}\e[0m" # XXX
+            puts "\t\e[31mUser: \e[1m#{a.user_id.inspect}/#{group.primary_address.user_id.inspect}\e[0;31m Editable: \e[1m#{a.editable?}/#{group.primary_address.editable?}\e[0m" # XXX
+            a.destroy
+          elsif a.editable?
+            unless a.update_attributes(address_params)
+              errors.concat a.errors.full_messages
+            end
+          end
+        end
+
+        # FIXME: ugly, some of these should probably be in models or helpers or address_book_group.rb
+
+        if group.user_bill && !@user.update_attributes(bill_address_id: group.primary_address.id)
+          errors.concat @user.errors.full_messages
+        end
+
+        if group.user_ship && !@user.update_attributes(ship_address_id: group.primary_address.id)
+          errors.concat @user.errors.full_messages
+        end
+
+        if group.order_bill
+          if @order.complete?
+            unless @order.bill_address.editable?
+              # An editable address will have been updated by the loop above
+              @order.bill_address.destroy
+              @order.update_attributes(bill_address: group.clone_without_user)
+            end
+          else
+            @order.update_attributes(bill_address_id: group.id)
+          end
+        end
+
+        errors.concat @order.errors.full_messages if @order
+
+        if group.order_ship
+          if @order.complete?
+            unless @order.ship_address.editable?
+              # An editable address will have been updated by the loop above
+              @order.ship_address.destroy
+              @order.update_attributes(ship_address: group.clone_without_user)
+            end
+          else
+            @order.update_attributes(ship_address_id: group.id)
+          end
+        end
+
+        errors.concat @order.errors.full_messages if @order
+
+        if errors.any?
+          flash[:error] = errors.uniq.to_sentence
           render :edit
+        else
+          flash[:success] = Spree.t(:account_updated)
+          redirect_to collection_url
         end
 
         uaddrcount(@user, "AAC:u:aft(#{flash})")

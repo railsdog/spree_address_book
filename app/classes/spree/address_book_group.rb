@@ -9,7 +9,7 @@ class Spree::AddressBookGroup
   # The address object to use to represent all grouped addresses.
   attr_reader :primary_address
 
-  delegate :count, to: :addresses
+  delegate :count, :each, :[], to: :addresses
   delegate :id, :user_id, :created_at, :updated_at, :to_s, :same_as?, :comparison_attributes, :clone_without_user,
     to: :primary_address, allow_nil: true
 
