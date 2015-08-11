@@ -10,11 +10,11 @@ Spree::Address.class_eval do
   # XXX
   def debug_addr(step)
     $show_addr_creation ||= false
-    if self.user && $show_addr_creation
+    if (self.user && $show_addr_creation) || step == :destroy
       puts "\e[32m==|#{step} address #{id.inspect} for user #{user_id.inspect}\e[0m"
 
       bt = caller.reject{|l|
-        l =~ %r{(gems/(act|rack|rail|state|warden|capybara|rspec)|webrick)}
+        l =~ %r{(gems/(act|factory|rack|rail|state|warden|capybara|rspec)|webrick)}
       }.map{|l|
         l = l[/(dbook|rubies|gems).*/] || l
         l = l[%r{/gems.*}] || l
@@ -24,7 +24,7 @@ Spree::Address.class_eval do
         )
       }
 
-      puts bt
+      puts bt, "\n"
     end
   end
 
@@ -87,7 +87,8 @@ Spree::Address.class_eval do
 
   # UPGRADE_CHECK if future versions of spree have a custom destroy function, this will break
   def destroy
-    puts "\n\nDestroying address #{id}: #{caller(4).join("\n\t")}" # XXX
+    debug_addr(:destroy) # XXX
+
     if can_be_deleted?
       super
     else

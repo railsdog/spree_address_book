@@ -298,7 +298,7 @@ describe "Address selection during checkout" do
     describe "entering address that is already saved" do
       it "should not save address for user" do
         expect{
-          $show_addr_creation = true
+          $show_addr_creation = true # XXX
 
           address = user.addresses.first
           choose "order_ship_address_id_#{address.id}"
@@ -309,6 +309,8 @@ describe "Address selection during checkout" do
           check "Use Billing Address"
           uaddrcount(user, 'RSPEC b4 checkout') # XXX
           complete_checkout
+
+          $show_addr_creation = false # XXX
         }.not_to change { user.addresses.count }
       end
     end

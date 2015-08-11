@@ -110,7 +110,7 @@ module Spree
           redirect_to collection_url
         end
 
-        uaddrcount(@user, "AAC:u:aft(#{flash})")
+        uaddrcount(@user, "AAC:u:aft(#{flash.to_hash})")
       end
 
       def destroy
@@ -145,7 +145,7 @@ module Spree
           end
         end
 
-        uaddrcount(@user, "AAC:ua:aft(#{flash})")
+        uaddrcount(@user, "AAC:ua:aft(#{flash.to_hash})")
 
         flash[:success] = I18n.t(:default_addresses_updated, scope: :address_book) unless flash[:error]
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))

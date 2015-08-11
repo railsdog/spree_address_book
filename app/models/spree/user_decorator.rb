@@ -26,12 +26,12 @@ Spree.user_class.class_eval do
   # address be their default address. Spree makes a copy from the order. Instead
   # we just want to reference the address so we don't create extra address objects.
   def persist_order_address(order)
-    uaddrcount self, "U:poa:b4" # XXX
+    uaddrcount self, "U:poa:b4", order: order # XXX
     r = update_attributes bill_address_id: order.bill_address_id
 
     # May not be present if delivery step has been removed
     r &= update_attributes ship_address_id: order.ship_address_id if order.ship_address
-    uaddrcount self, "U:poa:aft(#{r.inspect}/#{errors.full_messages})" # XXX
+    uaddrcount self, "U:poa:aft(#{r.inspect}/#{errors.full_messages})", order: order # XXX
     r
   end
 end

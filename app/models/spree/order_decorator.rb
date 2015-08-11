@@ -7,8 +7,8 @@ Spree::Order.class_eval do
   before_validation :delink_addresses_validation, if: :complete?
   before_validation :merge_user_addresses, unless: :complete?
 
-  before_validation ->{puts "VALIDATION #{state}"} # XXX
-  before_save ->{puts "SAVE #{state}"} # XXX
+  before_validation ->{puts "VALIDATION #{state} #{id}"} # XXX
+  before_save ->{puts "SAVE #{state} #{id}"} # XXX
 
   def clone_shipping_address
     if self.ship_address
@@ -22,17 +22,17 @@ Spree::Order.class_eval do
   # cloning is handled by #delink_addresses.
   def clone_billing_address
     puts "O: Clone billing on #{id} change #{ship_address_id.inspect} to #{bill_address_id.inspect}" # XXX
-    uaddrcount(user, "O:b4") # XXX
+    uaddrcount(user, "O:b4", order: self) # XXX
 
     if self.bill_address
       self.ship_address = self.bill_address
     end
-    uaddrcount(user, "O:aft") # XXX
+    uaddrcount(user, "O:aft", order: self) # XXX
     true
   end
 
   def bill_address_id=(id)
-    uaddrcount(user, "O:b4") # XXX
+    uaddrcount(user, "O:bai=:b4", order: self) # XXX
     address = Spree::Address.where(:id => id).first
     if address && address.user_id == self.user_id
       self["bill_address_id"] = address.id
@@ -41,20 +41,20 @@ Spree::Order.class_eval do
       a = self["bill_address_id"] = nil
     end
 
-    uaddrcount(user, "O:aft") # XXX
+    uaddrcount(user, "O:bai=:aft", order: self) # XXX
 
     a
   end
 
   def bill_address_attributes=(attributes)
-    uaddrcount(user, "O:b4") # XXX
+    uaddrcount(user, "O:baa=:b4", order: self) # XXX
     self.bill_address = update_or_create_address(attributes)
-    uaddrcount(user, "O:aft") # XXX
+    uaddrcount(user, "O:baa=:aft", order: self) # XXX
     self.bill_address
   end
 
   def ship_address_id=(id)
-    uaddrcount(user, "O:b4") # XXX
+    uaddrcount(user, "O:sai=:b4", order: self) # XXX
     address = Spree::Address.where(:id => id).first
     if address && address.user_id == self.user_id
       self["ship_address_id"] = address.id
@@ -62,23 +62,23 @@ Spree::Order.class_eval do
     else
       a = self["ship_address_id"] = nil
     end
-    uaddrcount(user, "O:aft") # XXX
+    uaddrcount(user, "O:sai=:aft", order: self) # XXX
 
     a
   end
 
   def ship_address_attributes=(attributes)
-    uaddrcount(user, "O:b4") # XXX
+    uaddrcount(user, "O:sae=:b4", order: self) # XXX
     self.ship_address = update_or_create_address(attributes)
-    uaddrcount(user, "O:aft") # XXX
+    uaddrcount(user, "O:sae=:aft", order: self) # XXX
     self.ship_address
   end
 
   def save_current_order_addresses(billing, shipping, address)
-    uaddrcount(user, "O:b4") # XXX
+    uaddrcount(user, "O:scoa:b4", order: self) # XXX
     res = self.update_attributes(bill_address_id: address.id) if billing.present?
     res &= self.update_attributes(ship_address_id: address.id) if shipping.present?
-    uaddrcount(user, "O:aft(#{res.inspect})") # XXX
+    uaddrcount(user, "O:scoa:aft(#{res.inspect})", order: self) # XXX
 
     res
   end
@@ -108,7 +108,7 @@ Spree::Order.class_eval do
   # Delinks addresses without validating, for use in a before_validation
   # callback.
   def delink_addresses_validation
-    uaddrcount(user, "O:b4") # XXX
+    uaddrcount(user, "O:dav:b4", order: self) # XXX
     if bill_address.try(:user_id)
       bill_copy = bill_address.clone_without_user
       bill_copy.save!
@@ -121,13 +121,13 @@ Spree::Order.class_eval do
       self.ship_address = ship_copy
       shipments.update_all address_id: ship_address_id
     end
-    uaddrcount(user, "O:aft") # XXX
+    uaddrcount(user, "O:dav:aft", order: self) # XXX
   end
 
   # Copies new addresses from incomplete orders to users, switches order
   # addresses to user addresses if matching addresses exist.
   def merge_user_addresses
-    uaddrcount(user, "O:sa:b4")
+    uaddrcount(user, "O:mua:b4", order: self) # XXX
 
     result = true
 
@@ -167,7 +167,7 @@ Spree::Order.class_eval do
       user.addresses.reload
     end
 
-    uaddrcount(user, "O:sa:aft(#{result.inspect})")
+    uaddrcount(user, "O:mua:aft(#{result.inspect})", order: self) # XXX
 
     result
   end
@@ -176,7 +176,7 @@ Spree::Order.class_eval do
   # if the address already exists it will only update its attributes
   # in case the address is +editable?+
   def update_or_create_address(attributes)
-    uaddrcount(user, "O:b4") # XXX
+    uaddrcount(user, "O:uoca:b4", order: self) # XXX
     if attributes[:id]
       address = Spree::Address.find(attributes[:id])
       if address.editable?
@@ -187,7 +187,7 @@ Spree::Order.class_eval do
     else
       address = Spree::Address.create(attributes)
     end
-    uaddrcount(user, "O:aft") # XXX
+    uaddrcount(user, "O:uoca:aft", order: self) # XXX
     address
   end
 end
