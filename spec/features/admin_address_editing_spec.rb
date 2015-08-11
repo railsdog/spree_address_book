@@ -97,46 +97,61 @@ feature 'Admin UI address editing' do
 
     context 'with a logged-in order' do
       context 'with no user addresses' do
-        context 'with one address object' do
-          before(:each) do
-            order.update_attributes!(bill_address_id: order.ship_address_id)
-            expect(order.bill_address_id).to eq(order.ship_address_id)
-          end
-
-          scenario 'editing the address creates two identical addresses' do
-            visit_order_addresses(order)
-            expect_address_count(1)
-
-            edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'NewFirst')
-            expect_address_count(1)
-
-            expect(order.reload.bill_address_id).not_to eq(order.ship_address_id)
-            expect(order.bill_address).to be_same_as(order.ship_address)
-            expect(order.bill_address.first_name).to eq('NewFirst')
-          end
-        end
-
-        context 'with two identical addresses' do
-          before(:each) do
-            order.update_attributes!(bill_address: order.ship_address.clone)
-            expect(order.bill_address_id).not_to eq(order.ship_address_id)
-          end
-
-          scenario 'editing the address updates both addresses' do
-            visit_order_addresses(order)
-            expect_address_count(1)
-
-            edit_address(order, order.bill_address_id, true, Spree.t(:first_name) => 'FirstNew')
-            expect_address_count(1)
-
-            expect(order.bill_address_id).not_to eq(order.ship_address_id)
-            expect(order.bill_address).to be_same_as(order.ship_address)
-            expect(order.ship_address.first_name).to eq('FirstNew')
-          end
-        end
-
-        context 'with two different addresses' do
+        context 'with an incomplete order' do
           pending
+        end
+
+        context 'with a complete order' do
+          make_addresses_editable
+
+          context 'with one address object' do
+            before(:each) do
+              $show_addr_creation = true # XXX
+              order.update_columns(bill_address_id: order.ship_address_id)
+              expect(order.bill_address_id).to eq(order.ship_address_id)
+            end
+
+            after(:each) do
+              $show_addr_creation = false # XXX
+            end
+
+            scenario 'editing the address creates two identical addresses' do
+              visit_order_addresses(order)
+              expect_address_count(1)
+
+              edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'NewFirst')
+              expect_address_count(1)
+
+              expect(order.reload.bill_address_id).not_to eq(order.ship_address_id)
+              expect(order.bill_address).to be_same_as(order.ship_address)
+              expect(order.bill_address.first_name).to eq('NewFirst')
+            end
+          end
+
+          context 'with two identical addresses' do
+            before(:each) do
+              a = order.ship_address.clone
+              a.save!
+              order.update_columns(bill_address_id: a.id)
+              expect(order.bill_address_id).not_to eq(order.ship_address_id)
+            end
+
+            scenario 'editing the address updates both addresses' do
+              visit_order_addresses(order)
+              expect_address_count(1)
+
+              edit_address(order, order.bill_address_id, true, Spree.t(:first_name) => 'FirstNew')
+              expect_address_count(1)
+
+              expect(order.reload.bill_address_id).not_to eq(order.ship_address_id)
+              expect(order.bill_address).to be_same_as(order.ship_address)
+              expect(order.ship_address.first_name).to eq('FirstNew')
+            end
+          end
+
+          context 'with two different addresses' do
+            pending
+          end
         end
       end
 
@@ -148,23 +163,10 @@ feature 'Admin UI address editing' do
             a
           }
 
+          make_addresses_editable
+
           before(:each) do
-            # Allow editing of completed order addresses
-            Spree::Address.class_eval do
-              alias_method :orig_editable?, :editable?
-              def editable?
-                true
-              end
-            end
-
             address
-          end
-
-          after(:each) do
-            # Restore original #editable? method
-            Spree::Address.class_eval do
-              alias_method :editable?, :orig_editable?
-            end
           end
 
           scenario 'edits both user and order address objects directly' do

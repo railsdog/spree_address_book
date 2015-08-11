@@ -175,4 +175,25 @@ end
 
 RSpec.configure do |c|
   c.include AdminAddresses
+
+  # Sets up before and after blocks that make all addresses editable (including
+  # complete orders) during each test in the current context.
+  def make_addresses_editable
+    before(:each) do
+      # Allow editing of completed order addresses
+      Spree::Address.class_eval do
+        alias_method :orig_editable?, :editable?
+        def editable?
+          true
+        end
+      end
+    end
+
+    after(:each) do
+      # Restore original #editable? method
+      Spree::Address.class_eval do
+        alias_method :editable?, :orig_editable?
+      end
+    end
+  end
 end
