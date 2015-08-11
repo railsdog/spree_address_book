@@ -116,11 +116,17 @@ feature 'Admin UI address editing' do
             end
 
             scenario 'editing the address creates two identical addresses' do
+              uaddrcount(user, "RSpec:edit1a:b4", order: order) # XXX
+
               visit_order_addresses(order)
               expect_address_count(1)
 
+              uaddrcount(user, "RSpec:edit1a:mid", order: order) # XXX
+
               edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'NewFirst')
               expect_address_count(1)
+
+              uaddrcount(user, "RSpec:edit1a:aft", order: order) # XXX
 
               expect(order.reload.bill_address_id).not_to eq(order.ship_address_id)
               expect(order.bill_address).to be_same_as(order.ship_address)

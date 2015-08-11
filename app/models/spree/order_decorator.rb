@@ -7,8 +7,9 @@ Spree::Order.class_eval do
   before_validation :delink_addresses_validation, if: :complete?
   before_validation :merge_user_addresses, unless: :complete?
 
-  before_validation ->{puts "VALIDATION #{state} #{id}"} # XXX
-  before_save ->{puts "SAVE #{state} #{id}"} # XXX
+  before_validation { uaddrcount(user, "B4VALIDATION #{state} #{id.inspect}", order: self) } # XXX
+  before_save { uaddrcount(user, "B4SAVE #{state} #{id.inspect}", order: self) } # XXX
+  after_save { uaddrcount(user, "AftSAVE #{state} #{id.inspect}", order: self) } # XXX
 
   def clone_shipping_address
     if self.ship_address

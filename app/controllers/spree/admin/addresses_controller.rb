@@ -38,10 +38,21 @@ module Spree
       end
 
       def update
-        uaddrcount(@user, "AAC:u:b4")
+        uaddrcount(@user, "AAC:u:b4", order: @order) # XXX
 
         group = @addresses.find(@address)
         base_address = group.primary_address
+
+
+        # XXX
+        $:.unshift('/home/mikeb/.rvm/rubies/ruby-2.1.5/lib/ruby/gems/2.1.0/gems/awesome_print-1.2.0/lib')
+        require 'awesome_print'
+        puts "    \e[35mAddress count: #{@addresses.try(:count).inspect}  Group count: #{@group.try(:count).inspect}  Group IDs: #{@group.try(:addresses).try(:map, &:id).inspect}\e[0m"
+        ap @group.try(:addresses)
+        ap @addresses.try(:addresses).try(:map, &:addresses)
+        ap @address
+        ap params
+        # XXX
 
         if !@address.editable? # FIXME: Should not happen via UI unless order has detached address not on user
           # TODO: See if Spree::Admin::ResourceController provides additional help here
@@ -110,7 +121,7 @@ module Spree
           redirect_to collection_url
         end
 
-        uaddrcount(@user, "AAC:u:aft(#{flash.to_hash})")
+        uaddrcount(@user, "AAC:u:aft(#{flash.to_hash})", order: @order) # XXX
       end
 
       def destroy
@@ -131,7 +142,7 @@ module Spree
       end
 
       def update_addresses
-        uaddrcount(@user, "AAC:ua:b4")
+        uaddrcount(@user, "AAC:ua:b4", order: @order) # XXX
 
         if @order and !@user
           unless @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id))
@@ -145,7 +156,7 @@ module Spree
           end
         end
 
-        uaddrcount(@user, "AAC:ua:aft(#{flash.to_hash})")
+        uaddrcount(@user, "AAC:ua:aft(#{flash.to_hash})", order: @order) # XXX
 
         flash[:success] = I18n.t(:default_addresses_updated, scope: :address_book) unless flash[:error]
         redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
