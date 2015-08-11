@@ -172,6 +172,21 @@ feature 'Admin UI address editing' do
       end
 
       context 'with duplicate addresses' do
+        before(:each) do
+          a = create(:address, user: user)
+          4.times do
+            a.clone.save!
+          end
+        end
+
+        it 'deletes duplicates when editing an address' do
+          expect(user.addresses.reload.count).to eq(5)
+          edit_address(user, Spree::AddressBookList.new(user).first.id, true, Spree.t(:first_name) => 'Changed')
+          expect(user.addresses.reload.count).to eq(1)
+        end
+
+        pending 'deduplicates when an address is edited to match another address'
+
         pending
       end
     end
