@@ -31,16 +31,10 @@ Spree::Order.class_eval do
     true
   end
 
+  # Disallow assignment of other users' addresses as the billing address.
   def bill_address_id=(id)
     uaddrcount(user, "O:bai=:b4", order: self) # XXX
-    address = Spree::Address.where(:id => id).first
-    if address && address.user_id == self.user_id
-      self["bill_address_id"] = address.id
-      a = self.bill_address.reload
-    else
-      a = self["bill_address_id"] = nil
-    end
-
+    a = check_address_owner(id, :bill)
     uaddrcount(user, "O:bai=:aft", order: self) # XXX
 
     a
@@ -53,15 +47,10 @@ Spree::Order.class_eval do
     self.bill_address
   end
 
+  # Disallow assignment of other users' addresses as the shipping address.
   def ship_address_id=(id)
     uaddrcount(user, "O:sai=:b4", order: self) # XXX
-    address = Spree::Address.where(:id => id).first
-    if address && address.user_id == self.user_id
-      self["ship_address_id"] = address.id
-      a = self.ship_address.reload
-    else
-      a = self["ship_address_id"] = nil
-    end
+    a = check_address_owner(id, :ship)
     uaddrcount(user, "O:sai=:aft", order: self) # XXX
 
     a
@@ -72,6 +61,29 @@ Spree::Order.class_eval do
     self.ship_address = update_or_create_address(attributes)
     uaddrcount(user, "O:sae=:aft", order: self) # XXX
     self.ship_address
+  end
+
+  # Verifies ownership of the address given by +id+, then assigns it to this
+  # order's address of the given +type+ (:bill or :ship).  Used by
+  # #bill_address_id= and #ship_address_id= to prevent assignment of other
+  # users' addresses.  Raises an error if another user's address is assigned.
+  # TODO: this could probably be implemented as a validation, except address
+  # delinking is performed in a before_validation hook
+  def check_address_owner(id, type)
+    if a = Spree::Address.find_by_id(id)
+      if a.user_id.present? && a.user_id != self.user_id
+        raise "Attempt to assign address #{a.id.inspect} from user #{a.user_id.inspect} to order #{self.number} from user #{self.user_id.inspect}"
+      end
+    end
+
+    id = a.try(:id)
+    if type == :bill
+      self['bill_address_id'] = id
+      self.bill_address.try(:reload) if id
+    else
+      self['ship_address_id'] = id
+      self.ship_address.try(:reload) if id
+    end
   end
 
   def save_current_order_addresses(billing, shipping, address)
