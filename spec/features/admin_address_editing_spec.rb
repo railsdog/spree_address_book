@@ -97,7 +97,47 @@ feature 'Admin UI address editing' do
 
     context 'with a logged-in order' do
       context 'with no user addresses' do
-        pending
+        context 'with one address object' do
+          before(:each) do
+            order.update_attributes!(bill_address_id: order.ship_address_id)
+            expect(order.bill_address_id).to eq(order.ship_address_id)
+          end
+
+          scenario 'editing the address creates two identical addresses' do
+            visit_order_addresses(order)
+            expect_address_count(1)
+
+            edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'NewFirst')
+            expect_address_count(1)
+
+            expect(order.reload.bill_address_id).not_to eq(order.ship_address_id)
+            expect(order.bill_address).to be_same_as(order.ship_address)
+            expect(order.bill_address.first_name).to eq('NewFirst')
+          end
+        end
+
+        context 'with two identical addresses' do
+          before(:each) do
+            order.update_attributes!(bill_address: order.ship_address.clone)
+            expect(order.bill_address_id).not_to eq(order.ship_address_id)
+          end
+
+          scenario 'editing the address updates both addresses' do
+            visit_order_addresses(order)
+            expect_address_count(1)
+
+            edit_address(order, order.bill_address_id, true, Spree.t(:first_name) => 'FirstNew')
+            expect_address_count(1)
+
+            expect(order.bill_address_id).not_to eq(order.ship_address_id)
+            expect(order.bill_address).to be_same_as(order.ship_address)
+            expect(order.ship_address.first_name).to eq('FirstNew')
+          end
+        end
+
+        context 'with two different addresses' do
+          pending
+        end
       end
 
       context 'with one or more user addresses' do
