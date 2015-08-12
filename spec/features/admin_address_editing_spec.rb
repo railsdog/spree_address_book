@@ -92,13 +92,82 @@ feature 'Admin UI address editing' do
         end
       end
 
-      pending
+      skip
     end
 
     context 'with a logged-in order' do
       context 'with no user addresses' do
         context 'with an incomplete order' do
-          pending
+          context 'with one address object' do
+            before(:each) do
+              order.update_columns(bill_address_id: order.ship_address_id)
+              expect(order.bill_address_id).to eq(order.ship_address_id)
+            end
+
+            scenario 'editing the address links it to the user, leaving one object' do
+              uaddrcount(user, "RSpec:edit1a:b4", order: order) # XXX
+
+              visit_order_addresses(order)
+              expect_address_count(1)
+
+              uaddrcount(user, "RSpec:edit1a:mid", order: order) # XXX
+
+              edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'NewFirst')
+              expect_address_count(1)
+
+              uaddrcount(user, "RSpec:edit1a:aft", order: order) # XXX
+
+              expect(order.reload.bill_address_id).to eq(order.ship_address_id)
+              expect(order.bill_address_id).to be_present
+              expect(order.ship_address_id).to be_present
+              expect(user.addresses.count).to eq(1)
+              expect(order.bill_address.first_name).to eq('NewFirst')
+            end
+          end
+
+          context 'with two identical addresses' do
+            before(:each) do
+              a = order.ship_address.clone
+              a.save!
+              order.update_columns(bill_address_id: a.id)
+              expect(order.bill_address_id).not_to eq(order.ship_address_id)
+            end
+
+            scenario 'editing the address destroys one, shares and links the other to the user' do
+              visit_order_addresses(order)
+              expect_address_count(1)
+
+              edit_address(order, order.bill_address_id, true, Spree.t(:first_name) => 'FirstNew')
+              expect_address_count(1)
+
+              expect(order.reload.bill_address_id).to eq(order.ship_address_id)
+              expect(order.bill_address_id).to be_present
+              expect(order.ship_address_id).to be_present
+              expect(order.ship_address.first_name).to eq('FirstNew')
+              expect(user.reload.addresses.count).to eq(1)
+              expect(user.addresses.first.id).to eq(order.bill_address_id)
+            end
+          end
+
+          context 'with two different addresses' do
+            scenario 'editing one address does not affect the other, links both to the user' do
+              visit_order_addresses(order)
+              expect_address_count(2)
+
+              edit_address(order, order.bill_address_id, true, Spree.t(:first_name) => 'BillFirst')
+              edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'ShipFirst')
+              expect_address_count(2)
+
+              expect(order.reload.bill_address).not_to be_same_as(order.ship_address)
+              expect(order.bill_address_id).to be_present
+              expect(order.ship_address_id).to be_present
+              expect(order.bill_address.first_name).to eq('BillFirst')
+              expect(order.ship_address.first_name).to eq('ShipFirst')
+
+              expect(user.addresses.count).to eq(2)
+              expect(user.address_ids.sort).to eq([order.bill_address_id, order.ship_address_id].sort)
+            end
+          end
         end
 
         context 'with a complete order' do
