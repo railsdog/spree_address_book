@@ -89,6 +89,12 @@ Spree::Address.class_eval do
   def destroy
     debug_addr(:destroy) # XXX
 
+    if user && self.id
+      user.bill_address_id = nil if user.bill_address_id == self.id
+      user.ship_address_id = nil if user.ship_address_id == self.id
+      user.save
+    end
+
     if can_be_deleted?
       super
     else
