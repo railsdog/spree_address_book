@@ -45,8 +45,6 @@ module Spree
 
 
         # XXX
-        $:.unshift('/home/mikeb/.rvm/rubies/ruby-2.1.5/lib/ruby/gems/2.1.0/gems/awesome_print-1.2.0/lib')
-        require 'awesome_print'
         puts "    \e[35mAddress count: #{@addresses.try(:count).inspect}  Group count: #{@group.try(:count).inspect}  Group IDs: #{@group.try(:addresses).try(:map, &:id).inspect}\e[0m"
         ap @group.try(:addresses)
         ap @addresses.try(:addresses).try(:map, &:addresses)
