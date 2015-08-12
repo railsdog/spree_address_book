@@ -41,7 +41,7 @@ feature 'Admin UI address editing' do
         end
       end
 
-      pending
+      skip
     end
   end
 
@@ -308,7 +308,7 @@ feature 'Admin UI address editing' do
           end
         end
 
-        pending
+        skip
       end
 
       context 'with duplicate addresses' do
@@ -325,9 +325,9 @@ feature 'Admin UI address editing' do
           expect(user.addresses.reload.count).to eq(1)
         end
 
-        pending 'deduplicates when an address is edited to match another address'
+        skip 'deduplicates when an address is edited to match another address'
 
-        pending
+        skip
       end
     end
   end
