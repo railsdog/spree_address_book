@@ -50,6 +50,24 @@ describe Spree::Address do
       Spree::Address.where(["id = (?)", address2.id]).should_not be_empty
     end
 
+    it 'is removed as default when destroyed' do
+      user.update_attributes!(bill_address_id: address.id, ship_address_id: address2.id)
+
+      # Make sure the various model hooks didn't override the ID assignments
+      expect(address.reload.user).to eq(user)
+      expect(address2.reload.user).to eq(user)
+      expect(user.bill_address_id).to eq(address.id)
+      expect(user.ship_address_id).to eq(address2.id)
+
+      address.destroy
+      expect(user.reload.bill_address_id).to be_nil
+      expect(user.ship_address_id).to eq(address2.id)
+
+      address2.destroy
+      expect(user.reload.bill_address_id).to be_nil
+      expect(user.ship_address_id).to be_nil
+    end
+
     describe '#same_as?' do
       let(:address) { a = FactoryGirl.create(:address); a.state_name = nil; a }
       let(:address2) { FactoryGirl.create(:address) }
