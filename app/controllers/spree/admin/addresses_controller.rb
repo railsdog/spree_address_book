@@ -61,7 +61,7 @@ module Spree
           return
         end
 
-        # Update primary address, destroy editable user duplicates
+        # Update primary address and non-user duplicates, destroy editable user duplicates
         errors = []
         group.each do |a|
           if a.id != group.primary_address.id && a.user && a.editable?
@@ -110,6 +110,8 @@ module Spree
             @order.update_attributes(ship_address_id: group.id)
           end
         end
+
+        @order.save if @order && errors.empty?
 
         errors.concat @order.errors.full_messages if @order
 

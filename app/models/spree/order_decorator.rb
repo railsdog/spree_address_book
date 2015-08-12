@@ -119,7 +119,7 @@ Spree::Order.class_eval do
   end
 
   # Delinks addresses without validating, for use in a before_validation
-  # callback.
+  # callback.  Ensures complete orders have two separate address objects.
   def delink_addresses_validation
     uaddrcount(user, "O:dav:b4", order: self) # XXX
     if bill_address.try(:user_id)
@@ -128,12 +128,13 @@ Spree::Order.class_eval do
       self.bill_address = bill_copy
     end
 
-    if ship_address.try(:user_id)
+    if ship_address.try(:user_id) || ship_address.try(:id) == bill_address.try(:id) || ship_address == bill_address
       ship_copy = ship_address.clone_without_user
       ship_copy.save!
       self.ship_address = ship_copy
       shipments.update_all address_id: ship_address_id
     end
+
     uaddrcount(user, "O:dav:aft", order: self) # XXX
   end
 
