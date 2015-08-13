@@ -92,7 +92,7 @@ module Spree
             end
           end
 
-          if @order.changed? && !@order.save
+          if !@order.save
             @address.errors.add(:order, @order.errors.full_messages.to_sentence)
           end
         end
