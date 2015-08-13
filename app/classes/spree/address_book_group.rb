@@ -85,13 +85,45 @@ class Spree::AddressBookGroup
       @order_bill == other.order_bill
   end
 
+  # Updates the attributes of every editable address in the group.  Returns
+  # true on success or if there were no editable addresses, false on error.
+  def update_all_attributes(attrs)
+    result = true
+    @addresses.each do |a|
+      result &= a.update_attributes(attrs) if a.editable?
+    end
+    result
+  end
+
   # Destroys all editable user addresses in the group.
   def destroy
     result = true
+
     @user_addresses.each do |a|
-      result &= a.destroy if a.editable?
+      next unless a.editable?
+      result &= a.destroy
+      @addresses.delete a
     end
     @user_addresses.reject!(&:editable?)
+
+    result
+  end
+
+  # Destroys all editable duplicate user addresses in the group.
+  def destroy_duplicates
+    result = true
+
+    @user_addresses.each do |a|
+      next unless a.editable? && a.id != @primary_address.id
+
+      puts "\e[35mDestroying address \e[1m#{a.id}\e[0;35m against primary \e[1m#{@primary_address.id}\e[0m" # XXX
+      puts "\t\e[31mUser: \e[1m#{a.user_id.inspect}/#{@primary_address.user_id.inspect}\e[0;31m Editable: \e[1m#{a.editable?}/#{@primary_address.editable?}\e[0m" # XXX
+
+      result &= a.destroy
+      @addresses.delete a
+    end
+    @user_addresses.reject!{|a| a.editable? && a.id != @primary_address.id }
+
     result
   end
 end
