@@ -36,7 +36,7 @@ Spree.user_class.class_eval do
         self.bill_address = self.bill_address.clone
       end
       self.bill_address.user = self
-      # XXX r &= self.bill_address.save
+      r &= self.bill_address.save unless self.bill_address.new_record?
     end
 
     if self.ship_address && !self.ship_address.user
@@ -45,7 +45,7 @@ Spree.user_class.class_eval do
         self.ship_address = self.ship_address.clone
       end
       self.ship_address.user = self
-      # XXX r &= self.ship_address.save
+      r &= self.ship_address.save unless self.ship_address.new_record?
     end
 
     uaddrcount self.id && self, "U:la:aft(#{r.inspect}/#{bill_address.try(:errors).try(:full_messages)}/#{ship_address.try(:errors).try(:full_messages)})" # XXX
