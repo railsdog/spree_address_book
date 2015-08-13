@@ -1,21 +1,41 @@
 Spree.user_class.class_eval do
   has_many :addresses, -> { where(:deleted_at => nil).order("updated_at DESC") }, :class_name => 'Spree::Address'
 
-  after_save :link_address
-
   before_validation { uaddrcount(self.id ? self : nil, "U:B4VALIDATION") } # XXX
   before_save { uaddrcount(self.id ? self : nil, "U:B4SAVE") } # XXX
   after_save { uaddrcount(self.id ? self : nil, "U:AftSAVE") } # XXX
 
+  before_validation :link_address # XXX after_save
 
 
+  # After save hook that adds user_id to addresses that are assigned to the
+  # user's default address slots.
   def link_address
-    uaddrcount self, "U:la:b4" # XXX
-    # TODO: Handle assignment of order-specific address if the order is complete (where is this called?)
+    uaddrcount self.id && self, "U:la:b4(#{changes})" # XXX
     r = true
-    r &= bill_address.update_attributes!(user_id: id) if bill_address_id_changed? && bill_address
-    r &= ship_address.update_attributes!(user_id: id) if ship_address_id_changed? && ship_address
-    uaddrcount self, "U:la:aft(#{r.inspect}/#{bill_address.try(:errors).try(:full_messages)}/#{ship_address.try(:errors).try(:full_messages)})" # XXX
+
+    if self.bill_address && !self.bill_address.user
+      uaddrcount self.id && self, "U:la:bill" # XXX
+      unless self.bill_address.editable?
+        self.bill_address = self.bill_address.clone
+      end
+      self.bill_address.user = self
+      # XXX r &= self.bill_address.save
+    end
+
+    if self.ship_address && !self.ship_address.user
+      uaddrcount self.id && self, "U:la:ship" # XXX
+      unless self.ship_address.editable?
+        self.ship_address = self.ship_address.clone
+      end
+      self.ship_address.user = self
+      # XXX r &= self.ship_address.save
+    end
+
+    # XXX r &= save
+
+    uaddrcount self.id && self, "U:la:aft(#{r.inspect}/#{bill_address.try(:errors).try(:full_messages)}/#{ship_address.try(:errors).try(:full_messages)})" # XXX
+
     r
   end
 
