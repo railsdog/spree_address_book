@@ -11,6 +11,29 @@ Spree::Order.class_eval do
   before_save { uaddrcount(user, "O:B4SAVE #{state} #{id.inspect}", order: self) } # XXX
   after_save { uaddrcount(user, "O:AftSAVE #{state} #{id.inspect}", order: self) } # XXX
 
+  # XXX / TODO: Probably want to get rid of this validation before deploying to
+  # production because there is old invalid data.
+  validate :verify_address_owners
+
+  # XXX
+  # Validates that the addresses on the order are owned by an incomplete
+  # order's user, if it has one, or not owned at all for complete orders.
+  def verify_address_owners
+    if complete?
+      errors.add(:bill_address, 'Billing address should not have a user') if bill_address.try(:user_id)
+      errors.add(:ship_address, 'Shipping address should not have a user') if ship_address.try(:user_id)
+    else
+      if bill_address && bill_address.user_id != user_id
+        errors.add(:bill_address, 'Billing address user does not match order')
+      end
+
+      if ship_address && ship_address.user_id != user_id
+        errors.add(:ship_address, 'Shipping address user does not match order')
+      end
+    end
+  end
+
+
   # Returns orders that have the given +address+ as billing or shipping address.
   scope :with_address, ->(address){
     where('bill_address_id = :id OR ship_address_id = :id', id: address)
