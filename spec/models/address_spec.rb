@@ -55,13 +55,14 @@ describe Spree::Address do
     it 'is removed from user defaults when destroyed' do
       puts "\e[1muser: #{user.id} address1 user: #{address.user_id} address2 user: #{address2.user_id}\e[0m" # XXX
 
+      address2.update_attributes!(user: nil)
       user.update_attributes!(bill_address_id: address.id, ship_address_id: address2.id)
 
       # Make sure the various model hooks didn't override the ID assignments
-      expect(address.reload.user).to eq(user)
-      expect(address2.reload.user).to eq(user)
       expect(user.bill_address_id).to eq(address.id)
       expect(user.ship_address_id).to eq(address2.id)
+      expect(address.reload.user).to eq(user)
+      expect(address2.reload.user).to eq(user)
 
       address.destroy
       expect(user.reload.bill_address_id).to be_nil
