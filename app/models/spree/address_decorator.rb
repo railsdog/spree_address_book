@@ -12,19 +12,7 @@ Spree::Address.class_eval do
     $show_addr_creation ||= false
     if (self.user && $show_addr_creation) || step == :destroy
       puts "\e[32m==|#{step} address #{id.inspect} for user #{user_id.inspect}\e[0m"
-
-      bt = caller.reject{|l|
-        l =~ %r{(gems/(act|factory|rack|rail|state|warden|capybara|rspec)|webrick)}
-      }.map{|l|
-        l = l[/(dbook|rubies|gems).*/] || l
-        l = l[%r{/gems.*}] || l
-        "\t\e[36m" + l.sub(
-          %r{/([^:/]+):(\d+):in `([^']*)'},
-          "/\e[1;33m\\1\e[0m:\e[34m\\2\e[0m:in `\e[1;35m\\3\e[0m'"
-        )
-      }
-
-      puts bt, "\n"
+      whereami
     end
   end
 

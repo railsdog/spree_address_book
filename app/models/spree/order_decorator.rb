@@ -7,9 +7,9 @@ Spree::Order.class_eval do
   before_validation :delink_addresses_validation, if: :complete?
   before_validation :merge_user_addresses, unless: :complete?
 
-  before_validation { uaddrcount(user, "B4VALIDATION #{state} #{id.inspect}", order: self) } # XXX
-  before_save { uaddrcount(user, "B4SAVE #{state} #{id.inspect}", order: self) } # XXX
-  after_save { uaddrcount(user, "AftSAVE #{state} #{id.inspect}", order: self) } # XXX
+  before_validation { uaddrcount(user, "O:B4VALIDATION #{state} #{id.inspect}", order: self) } # XXX
+  before_save { uaddrcount(user, "O:B4SAVE #{state} #{id.inspect}", order: self) } # XXX
+  after_save { uaddrcount(user, "O:AftSAVE #{state} #{id.inspect}", order: self) } # XXX
 
   # Returns orders that have the given +address+ as billing or shipping address.
   scope :with_address, ->(address){
@@ -159,37 +159,53 @@ Spree::Order.class_eval do
   # addresses to user addresses if matching addresses exist.
   def merge_user_addresses
     uaddrcount(user, "O:mua:b4", order: self) # XXX
+    whereami # XXX
 
     result = true
 
     if user
+      uaddrcount(user, "O:mua:A", order: self) # XXX
+
       l = Spree::AddressBookList.new(user)
 
       if self.bill_address
+        uaddrcount(user, "O:mua:BILL", order: self) # XXX
+
         bill = l.find(self.bill_address)
         if bill
+          puts "FOUND BILL" # XXX
           if self.bill_address_id != bill.id
+            puts "SET FOUND BILL" # XXX
             oldbill = self.bill_address
             self.bill_address_id = bill.primary_address.id
             oldbill.destroy
           end
         elsif self.bill_address.user_id.nil?
+          puts "GIVE BILL TO USER" # XXX
+          whereami # XXX
           result &= self.bill_address.update_attributes(user_id: self.user_id)
         end
       end
 
       if self.ship_address
+        uaddrcount(user, "O:mua:SHIP", order: self) # XXX
+
         if self.ship_address.same_as?(self.bill_address)
+          puts "SHIP SAME AS BILL ADDRESS; SHARING ID" # XXX
           self.ship_address_id = self.bill_address_id
         else
           ship = l.find(self.ship_address)
           if ship
+            puts "FOUND SHIP" # XXX
             if self.ship_address_id != ship.id
+              puts "SET FOUND SHIP" # XXX
               oldship = self.ship_address
               self.ship_address_id = ship.primary_address.id
               oldship.destroy
             end
           elsif self.ship_address.user_id.nil?
+            puts "GIVE SHIP TO USER" # XXX
+            whereami # XXX
             result &= self.ship_address.update_attributes(user_id: self.user_id) # TODO: just use =?
           end
         end

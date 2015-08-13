@@ -151,12 +151,20 @@ feature 'Admin UI address editing' do
 
           context 'with two different addresses' do
             scenario 'editing one address does not affect the other, links both to the user' do
+              uaddrcount(user, 'RSpec:eoadnatolbttu:b4', order: order) # XXX
+
               visit_order_addresses(order)
               expect_address_count(2)
+
+              uaddrcount(user, 'RSpec:eoadnatolbttu:mid', order: order) # XXX
 
               edit_address(order, order.bill_address_id, true, Spree.t(:first_name) => 'BillFirst')
               edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'ShipFirst')
               expect_address_count(2)
+
+              uaddrcount(user, 'RSpec:eoadnatolbttu:aft', order: order) # XXX
+
+              # byebug # XXX
 
               expect(order.reload.bill_address).not_to be_same_as(order.ship_address)
               expect(order.bill_address_id).to be_present

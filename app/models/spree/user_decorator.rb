@@ -1,7 +1,13 @@
 Spree.user_class.class_eval do
+  has_many :addresses, -> { where(:deleted_at => nil).order("updated_at DESC") }, :class_name => 'Spree::Address'
+
   after_save :link_address
 
-  has_many :addresses, -> { where(:deleted_at => nil).order("updated_at DESC") }, :class_name => 'Spree::Address'
+  before_validation { uaddrcount(self.id ? self : nil, "U:B4VALIDATION") } # XXX
+  before_save { uaddrcount(self.id ? self : nil, "U:B4SAVE") } # XXX
+  after_save { uaddrcount(self.id ? self : nil, "U:AftSAVE") } # XXX
+
+
 
   def link_address
     uaddrcount self, "U:la:b4" # XXX

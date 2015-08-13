@@ -67,3 +67,18 @@ def addrmatrix(*addresses)
   end
 end
 
+# Prints a filtered backtrace. XXX
+def whereami
+  bt = caller(1).reject{|l|
+    l =~ %r{(gems/(act|factory|rack|rail|state|warden|capybara|rspec)|webrick)}
+  }.map{|l|
+    l = l[/(dbook|rubies|gems).*/] || l
+    l = l[%r{/gems.*}] || l
+    "\t\e[36m" + l.sub(
+      %r{/([^:/]+):(\d+):in `([^']*)'},
+      "/\e[1;33m\\1\e[0m:\e[34m\\2\e[0m:in `\e[1;35m\\3\e[0m'"
+    )
+  }
+
+  puts bt, "\n"
+end
