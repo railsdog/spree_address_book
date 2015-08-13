@@ -246,7 +246,7 @@ feature 'Admin UI address selection' do
         end
 
         scenario 'lists one address for an order with only one address' do
-          order.update_columns(ship_address: nil)
+          order.update_columns(ship_address_id: nil)
 
           visit_order_addresses(order)
           expect_address_count 1
