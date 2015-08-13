@@ -78,7 +78,7 @@ module Spree
 
           if Spree::Address.find_by_id(@order.bill_address_id).nil? || @order.bill_address.try(:deleted_at)
             if old_match.try(:order_bill) || new_match.try(:order_bill)
-              puts "   \e[1mReassigning order bill\e[0m" # XXX
+              puts "\n\n\n   \e[1mReassigning order bill\e[0m\n\n\n" # XXX
               @order.bill_address.destroy unless @order.bill_address.user_id
               @order.bill_address_id = @address.id
             end
@@ -86,7 +86,7 @@ module Spree
 
           if Spree::Address.find_by_id(@order.ship_address_id).nil? || @order.ship_address.try(:deleted_at)
             if old_match.try(:order_ship) || new_match.try(:order_ship)
-              puts "   \e[1mReassigning order ship\e[0m" # XXX
+              puts "\n\n\n   \e[1mReassigning order ship\e[0m\n\n\n" # XXX
               @order.ship_address.destroy unless @order.ship_address.user_id
               @order.ship_address_id = @address.id
             end

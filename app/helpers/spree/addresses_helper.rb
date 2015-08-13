@@ -40,7 +40,8 @@ end
 def uaddrcount(user, str=nil, options={})
   user = Spree::User.find(user.id) if user
   order = Spree::Order.find_by_id(options[:order].id) || options[:order] if options[:order]
-  puts "\e[1;30m-->U#{user.try(:id).inspect} has #{user.reload.addresses.reload.count rescue 0} addrs (#{user.try :address_ids}) [B: #{user.try(:bill_address_id).inspect} S: #{user.try(:ship_address_id).inspect}] at \e[0;1m#{str}\e[0;36m #{caller(1)[0][/dbook.*/]}\e[0m\n" rescue (puts $!, *caller; raise 'foo')
+  ids = Spree::AddressBookList.new(user).addresses.map{|a| a.addresses.map(&:id)}
+  puts "\e[1;30m-->U#{user.try(:id).inspect} has #{user.reload.addresses.reload.count rescue 0} addrs (#{ids}) [B: #{user.try(:bill_address_id).inspect} S: #{user.try(:ship_address_id).inspect}] at \e[0;1m#{str}\e[0;36m #{caller(1)[0][/dbook.*/]}\e[0m\n" rescue (puts $!, *caller; raise 'foo')
 
   if order
     puts "  \e[34mO: \e[1m#{order.id.inspect}(#{order.state})\e[0;34m B: \e[1m#{order.bill_address_id.inspect}\e[0;34m S: \e[1m#{order.ship_address_id.inspect}\e[0m"

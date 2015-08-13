@@ -174,9 +174,9 @@ Spree::Order.class_eval do
 
         bill = l.find(self.bill_address)
         if bill
-          puts "FOUND BILL" # XXX
+          puts "FOUND BILL (#{bill.primary_address.try(:id).inspect})" # XXX
           if self.bill_address_id != bill.id
-            puts "SET FOUND BILL" # XXX
+            puts "SET FOUND BILL (old: #{self.bill_address.try(:id).inspect})" # XXX
             oldbill = self.bill_address
             self.bill_address_id = bill.primary_address.id
             oldbill.destroy
@@ -197,9 +197,9 @@ Spree::Order.class_eval do
         else
           ship = l.find(self.ship_address)
           if ship
-            puts "FOUND SHIP" # XXX
+            puts "FOUND SHIP (#{ship.primary_address.try(:id).inspect})" # XXX
             if self.ship_address_id != ship.id
-              puts "SET FOUND SHIP" # XXX
+              puts "SET FOUND SHIP (old: #{self.ship_address.try(:id).inspect})" # XXX
               oldship = self.ship_address
               self.ship_address_id = ship.primary_address.id
               oldship.destroy
@@ -225,6 +225,8 @@ Spree::Order.class_eval do
   # in case the address is +editable?+
   def update_or_create_address(attributes)
     uaddrcount(user, "O:uoca:b4", order: self) # XXX
+    whereami
+
     if attributes[:id]
       address = Spree::Address.find(attributes[:id])
       if address.editable?
