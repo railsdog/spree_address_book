@@ -31,7 +31,7 @@ Spree.user_class.class_eval do
     r = true
 
     if self.bill_address && !self.bill_address.user
-      uaddrcount self.id && self, "U:la:bill" # XXX
+      uaddrcount self.id && self, "U:la:bill(#{!self.bill_address.nil?}/#{self.bill_address.try(:id).inspect})" # XXX
       unless self.bill_address.editable?
         self.bill_address = self.bill_address.clone
       end
@@ -40,15 +40,13 @@ Spree.user_class.class_eval do
     end
 
     if self.ship_address && !self.ship_address.user
-      uaddrcount self.id && self, "U:la:ship" # XXX
+      uaddrcount self.id && self, "U:la:ship(#{!self.ship_address.nil?}/#{self.ship_address.try(:id).inspect})" # XXX
       unless self.ship_address.editable?
         self.ship_address = self.ship_address.clone
       end
       self.ship_address.user = self
       # XXX r &= self.ship_address.save
     end
-
-    # XXX r &= save
 
     uaddrcount self.id && self, "U:la:aft(#{r.inspect}/#{bill_address.try(:errors).try(:full_messages)}/#{ship_address.try(:errors).try(:full_messages)})" # XXX
 
