@@ -71,14 +71,19 @@ module Spree
         ap params
         # XXX
 
-        if @order
+        if @order && (@order.bill_address.try(:editable?) || @order.ship_address.try(:editable?))
           # The order's before_validation #delink_addresses hook will take care
           # of assigning/cloning addresses, so just set the address IDs.
-          @order.bill_address_id = @address.id if old_match.try(:order_bill) || new_match.try(:order_bill)
-          @order.ship_address_id = @address.id if old_match.try(:order_ship) || new_match.try(:order_ship)
 
-          # TODO: Do not reassign addresses on non-editable orders, do not
-          # reassign addresses if the old address objects still exist
+          if @order.bill_address_id != @address.id && (old_match.try(:order_bill) || new_match.try(:order_bill))
+            @order.bill_address.destroy unless @order.bill_address.user_id
+            @order.bill_address_id = @address.id
+          end
+
+          if @order.ship_address_id != @address.id && (old_match.try(:order_ship) || new_match.try(:order_ship))
+            @order.ship_address.destroy unless @order.ship_address.user_id
+            @order.ship_address_id = @address.id
+          end
 
           if @order.changed? && !@order.save
             @address.errors.add(:order, @order.errors.full_messages.to_sentence)
