@@ -7,8 +7,24 @@ Spree.user_class.class_eval do
 
   before_validation :link_address # XXX after_save
 
+  # XXX / TODO: Probably want to get rid of this validation before deploying to
+  # production because there is old invalid data.
+  validate :verify_address_owners
 
-  # After save hook that adds user_id to addresses that are assigned to the
+  # XXX
+  # Validates that the default addresses are owned by the user.
+  def verify_address_owners
+    if bill_address && bill_address.user_id != self.id
+      errors.add(:bill_address, 'Billing address does not belong to this user')
+    end
+
+    if ship_address && ship_address.user_id != self.id
+      errors.add(:ship_address, 'Shipping address does not belong to this user')
+    end
+  end
+
+
+  # Pre-validation hook that adds user_id to addresses that are assigned to the
   # user's default address slots.
   def link_address
     uaddrcount self.id && self, "U:la:b4(#{changes})" # XXX
