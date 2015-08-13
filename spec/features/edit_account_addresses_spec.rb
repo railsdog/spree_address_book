@@ -100,7 +100,7 @@ describe "User editing addresses for his account" do
     expect{address2.reload}.to raise_error
   end
 
-  it 'should remove a non-editable address if it is altered to match an existing address' do
+  it 'should remove the user from a non-editable address if it is edited to match an existing address', js: true do
     # There should never be a completed order with a user address, but test it
     # anyway in case the store has old orders with misassigned addresses.
 
@@ -115,6 +115,8 @@ describe "User editing addresses for his account" do
 
     visit spree.account_path
 
+    expect(page).to have_css('#user_addresses > tbody > tr', count: 2)
+
     within("#user_addresses > tbody > tr:first-child") do
       click_link Spree.t(:edit)
     end
@@ -125,7 +127,7 @@ describe "User editing addresses for his account" do
       click_button "Update"
     }.to change{ user.addresses.count }.by(-1)
 
-    expect(address2.reload.deleted_at).not_to be_nil
+    expect(address2.reload.user_id).to be_nil
 
     expect(current_path).to eq(spree.account_path)
     expect(page).to have_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))

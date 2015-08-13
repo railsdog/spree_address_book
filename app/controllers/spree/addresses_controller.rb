@@ -34,10 +34,14 @@ class Spree::AddressesController < Spree::StoreController
   end
 
   def update
+    if !@address.editable?
+      a = @address.clone
+      @address.update_attributes(user_id: nil)
+      @address = a
+    end
+
     # See app/helpers/spree/addresses_helper.rb
     @address, *_ = update_and_merge @address, @addresses
-
-    # TODO: interface of update_and_merge may change
 
     if @address.errors.any?
       flash[:error] = @address.errors.full_messages.to_sentence
