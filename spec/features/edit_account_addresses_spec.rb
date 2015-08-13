@@ -123,7 +123,7 @@ describe "User editing addresses for his account" do
     expect(current_path).to eq(spree.edit_address_path(address2))
 
     expect {
-      fill_in Spree.t(:address2), :with => address.address2
+      fill_in_address address
       click_button "Update"
     }.to change{ user.addresses.count }.by(-1)
 

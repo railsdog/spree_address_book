@@ -61,7 +61,7 @@ describe "Address selection during checkout" do
         end
         within("#shipping") do
           choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(shipping, :ship)
+          fill_in_address(shipping)
         end
         complete_checkout
       end.to change { user.addresses.count }.by(2)
@@ -75,7 +75,7 @@ describe "Address selection during checkout" do
         end
         within("#shipping") do
           choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(billing, :ship)
+          fill_in_address(billing)
         end
         complete_checkout
       end.to change { user.addresses.count }.by(1)
@@ -91,7 +91,7 @@ describe "Address selection during checkout" do
           fill_in_address(address)
         end
         within("#shipping") do
-          fill_in_address(address, :ship)
+          fill_in_address(address)
         end
         click_button "Save and Continue"
         within("#bfirstname") do
@@ -111,7 +111,7 @@ describe "Address selection during checkout" do
         end
         within("#shipping") do
           choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(shipping, :ship)
+          fill_in_address(shipping)
         end
         complete_checkout
         expect(page).to have_content("processed successfully")
@@ -138,7 +138,7 @@ describe "Address selection during checkout" do
           choose "order_bill_address_id_#{address.id}"
           within("#shipping") do
             choose I18n.t(:other_address, :scope => :address_book)
-            fill_in_address(shipping, :ship)
+            fill_in_address(shipping)
           end
           complete_checkout
         end.to change{ user.addresses.count }.by(1)
@@ -149,7 +149,7 @@ describe "Address selection during checkout" do
         choose "order_bill_address_id_#{address.id}"
         within("#shipping") do
           choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(shipping, :ship)
+          fill_in_address(shipping)
         end
         complete_checkout
         expect(page).to have_content("processed successfully")
@@ -169,7 +169,7 @@ describe "Address selection during checkout" do
         choose "order_bill_address_id_#{address.id}"
         within("#shipping") do
           choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(shipping, :ship)
+          fill_in_address(shipping)
         end
         click_button "Save and Continue"
         within("#saddress1") do
