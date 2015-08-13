@@ -307,8 +307,6 @@ feature 'Admin UI address editing' do
             expect(user.ship_address.last_name).to eq('LastEditName')
           end
         end
-
-        skip
       end
 
       context 'with duplicate addresses' do
@@ -325,9 +323,18 @@ feature 'Admin UI address editing' do
           expect(user.addresses.reload.count).to eq(1)
         end
 
-        skip 'deduplicates when an address is edited to match another address'
+        it 'deduplicates and reassigns when a default address is edited to match another address' do
+          old_address = user.addresses.first
+          address = create(:address, user: user)
+          user.update_columns(bill_address_id: address.id, ship_address_id: address.id)
 
-        skip
+          edit_address(user, user.bill_address_id, true, old_address)
+          expect(user.addresses.reload.count).to eq(1)
+          expect(user.bill_address_id).to eq(user.addresses.first.id)
+          expect(user.ship_address_id).to eq(user.addresses.first.id)
+        end
+
+        skip 'TODO'
       end
     end
   end
