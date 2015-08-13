@@ -337,7 +337,7 @@ feature 'Admin UI address editing' do
           user.update_columns(bill_address_id: address.id, ship_address_id: address.id)
 
           edit_address(user, user.bill_address_id, true, old_address)
-          expect(user.addresses.reload.count).to eq(1)
+          expect(user.reload.addresses.reload.count).to eq(1)
           expect(user.bill_address_id).to eq(user.addresses.first.id)
           expect(user.ship_address_id).to eq(user.addresses.first.id)
         end
