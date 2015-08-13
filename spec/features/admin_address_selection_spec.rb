@@ -374,30 +374,80 @@ feature 'Admin UI address selection' do
         expect_address_count(2)
       end
 
-      scenario 'shows expected number of items for an order and user with many duplicated/shared addresses' do
-        4.times do
-          # 8 addresses, 4 unique (testing case insensitivity)
-          a = create(:address, user: user)
-          b = a.clone
-          a.firstname = a.firstname.downcase
-          a.save!
-          b.save!
+      context 'with lots of case mismatched addresses' do
+        before(:each) do
+          4.times do
+            # 8 addresses, 4 unique (testing case insensitivity)
+            a = create(:address, user: user)
+            b = a.clone
+            a.firstname = a.firstname.downcase
+            a.save!
+            b.save!
 
-          # Make sure downcased address is older, so it's not the primary_address
-          expect(b.updated_at).to be > a.updated_at
+            # Make sure downcased address is older, so it's not the primary_address
+            expect(b.updated_at).to be > a.updated_at
+          end
         end
 
-        user.update_attributes!(bill_address: user.addresses.first, ship_address: order.ship_address.clone)
-        expect(user.ship_address.user).to eq(user)
+        context 'with an incomplete order' do
+          scenario 'shows expected number of items for an order and user with many duplicated/shared addresses' do
+            user.update_attributes!(bill_address: user.addresses.first, ship_address: order.ship_address.clone)
+            expect(user.ship_address.user).to eq(user)
 
-        # User should have five unique addresses, the order two, with one shared, for six total.
-        visit_order_addresses(order)
-        expect_address_count(6)
+            # User should have five unique addresses, the order two, with one shared, for six total.
+            visit_order_addresses(order)
+            expect_address_count(6)
 
-        # Check again with a duplicated order address
-        order.bill_address.update_attributes!(order.ship_address.comparison_attributes.except('user_id'))
-        visit_order_addresses(order)
-        expect_address_count(5)
+            # Check again with a duplicated order address
+            order.bill_address.update_attributes!(order.ship_address.comparison_attributes.except('user_id'))
+            visit_order_addresses(order)
+            expect_address_count(5)
+          end
+
+          scenario 'assigns the primary deduplicated address when selecting addresses' do
+            l = Spree::AddressBookList.new(order, user)
+            a = l.find(user.addresses[5])
+
+            visit_order_addresses(order)
+            select_address(a.primary_address, :order, :ship)
+            select_address(a.primary_address, :order, :bill)
+            select_address(a.primary_address, :user, :ship)
+            select_address(a.primary_address, :user, :bill)
+            submit_addresses
+
+            expect(order.reload.bill_address).to be_same_as(a)
+            expect(order.bill_address_id).to eq(a.id)
+            expect(order.ship_address_id).to eq(a.id)
+
+            expect(user.reload.bill_address_id).to eq(a.id)
+            expect(user.ship_address_id).to eq(a.id)
+          end
+        end
+
+        context 'with a complete order' do
+          let(:order) { completed_order }
+
+          scenario 'assigns primary address to user, cloned addresses to order' do
+            l = Spree::AddressBookList.new(order, user)
+            a = l.find(user.addresses[5])
+
+            visit_order_addresses(order)
+            select_address(a.primary_address, :order, :ship)
+            select_address(a.primary_address, :order, :bill)
+            select_address(a.primary_address, :user, :ship)
+            select_address(a.primary_address, :user, :bill)
+            submit_addresses
+
+            expect(order.reload.bill_address).to be_same_as(a)
+            expect(order.ship_address).to be_same_as(a)
+            expect(order.bill_address_id).not_to eq(a.id)
+            expect(order.ship_address_id).not_to eq(a.id)
+            expect(order.ship_address_id).not_to eq(order.bill_address_id)
+
+            expect(user.reload.bill_address_id).to eq(a.id)
+            expect(user.ship_address_id).to eq(a.id)
+          end
+        end
       end
     end
   end
