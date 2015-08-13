@@ -261,6 +261,46 @@ feature 'Admin UI address selection' do
           visit_order_addresses(order)
           expect_address_count 2
         end
+
+        scenario 'shares selected incomplete order addresses with the user' do
+          visit_order_addresses(order)
+
+          expect(user.addresses.count).to eq(0)
+
+          expect {
+            select_address(order.bill_address, :user, :ship)
+            select_address(order.ship_address, :user, :bill)
+            submit_addresses
+          }.not_to change{ [order.reload.bill_address_id, order.ship_address_id] }
+
+          # Addresses should be the same object
+          expect(user.reload.addresses.count).to eq(2)
+          expect(order.bill_address.user_id).to eq(user.id)
+          expect(order.ship_address.user_id).to eq(user.id)
+          expect(order.bill_address_id).to eq(user.ship_address_id)
+          expect(order.ship_address_id).to eq(user.bill_address_id)
+        end
+
+        scenario 'clones selected complete order addresses to the user' do
+          visit_order_addresses(completed_order)
+
+          expect(user.addresses.count).to eq(0)
+
+          expect {
+            select_address(completed_order.bill_address, :user, :ship)
+            select_address(completed_order.ship_address, :user, :bill)
+            submit_addresses
+          }.not_to change{ [completed_order.reload.bill_address_id, completed_order.ship_address_id] }
+
+          # Addresses should match but have different IDs
+          expect(user.reload.addresses.count).to eq(2)
+          expect(completed_order.reload.bill_address.user_id).to be_nil
+          expect(completed_order.ship_address.user_id).to be_nil
+          expect(completed_order.bill_address).to be_same_as(user.ship_address)
+          expect(completed_order.bill_address_id).not_to eq(user.ship_address_id)
+          expect(completed_order.ship_address).to be_same_as(user.bill_address)
+          expect(completed_order.ship_address_id).not_to eq(user.bill_address_id)
+        end
       end
 
       context 'with one or more user addresses' do
