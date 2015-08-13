@@ -15,11 +15,11 @@ Spree.user_class.class_eval do
   # Validates that the default addresses are owned by the user.
   def verify_address_owners
     if bill_address && bill_address.user_id != self.id
-      errors.add(:bill_address, 'Billing address does not belong to this user')
+      errors.add(:bill_address, "Billing address belongs to #{bill_address.user_id.inspect}, not to this user #{id.inspect}")
     end
 
     if ship_address && ship_address.user_id != self.id
-      errors.add(:ship_address, 'Shipping address does not belong to this user')
+      errors.add(:ship_address, "Shipping address belongs to #{ship_address.user_id.inspect}, not to this user #{id.inspect}")
     end
   end
 
