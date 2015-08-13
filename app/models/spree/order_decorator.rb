@@ -11,6 +11,22 @@ Spree::Order.class_eval do
   before_save { uaddrcount(user, "B4SAVE #{state} #{id.inspect}", order: self) } # XXX
   after_save { uaddrcount(user, "AftSAVE #{state} #{id.inspect}", order: self) } # XXX
 
+  # Returns orders that have the given +address+ as billing or shipping address.
+  scope :with_address, ->(address){
+    where('bill_address_id = :id OR ship_address_id = :id', id: address)
+  }
+
+  # Returns orders that have the given +address+ as billing address.
+  scope :with_bill_address, ->(address){
+    where(bill_address_id: address)
+  }
+
+  # Returns orders that have the given +address+ as shipping address.
+  scope :with_ship_address, ->(address){
+    where(ship_address_id: address)
+  }
+
+
   def clone_shipping_address
     if self.ship_address
       self.bill_address = self.ship_address
@@ -68,6 +84,7 @@ Spree::Order.class_eval do
   # order's address of the given +type+ (:bill or :ship).  Used by
   # #bill_address_id= and #ship_address_id= to prevent assignment of other
   # users' addresses.  Raises an error if another user's address is assigned.
+  #
   # TODO: this could probably be implemented as a validation, except address
   # delinking is performed in a before_validation hook
   def check_address_owner(id, type)

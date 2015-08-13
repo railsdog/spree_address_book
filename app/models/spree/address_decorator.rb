@@ -67,11 +67,11 @@ Spree::Address.class_eval do
   # can modify an address if it's not been used in an completed order
   # Users of the gem can override this method to provide different rules.
   def editable?
-    new_record? || !Spree::Order.complete.where("bill_address_id = ? OR ship_address_id = ?", self.id, self.id).exists?
+    new_record? || !Spree::Order.complete.with_address(self).any?
   end
 
   def can_be_deleted?
-    shipments.empty? && !Spree::Order.where("bill_address_id = ? OR ship_address_id = ?", self.id, self.id).any?
+    shipments.empty? && !Spree::Order.complete.with_address(self).any?
   end
 
   def to_s
