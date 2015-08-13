@@ -99,8 +99,6 @@ module Spree
       def destroy
         a = @addresses.find(@address) || @address
 
-        # TODO: Remove the address from any orders that have the address?
-
         # Only destroys user and guest order addresses, not delinked order
         # addresses (FIXME?  Should it be possible to destroy an order
         # address?)

@@ -89,11 +89,16 @@ Spree::Address.class_eval do
   def destroy
     debug_addr(:destroy) # XXX
 
+    # Remove the address from its user's default address slots
     if user && self.id
       user.bill_address_id = nil if user.bill_address_id == self.id
       user.ship_address_id = nil if user.ship_address_id == self.id
       user.save
     end
+
+    # Remove the address from any incomplete orders
+    Spree::Order.incomplete.with_bill_address(self).update_all(bill_address_id: nil)
+    Spree::Order.incomplete.with_ship_address(self).update_all(ship_address_id: nil)
 
     if can_be_deleted?
       super

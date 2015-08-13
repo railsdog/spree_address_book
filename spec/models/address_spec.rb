@@ -26,12 +26,13 @@ describe Spree::Address do
       address.should be_can_be_deleted
     end
 
-    it "isn't editable when there is an associated order" do
-      # TODO need to simulate completing an order
-      # address2.should_not be_editable
+    it "isn't editable when there is an associated completed order" do
+      order.update_columns(state: 'complete', completed_at: Time.now)
+      address2.should_not be_editable
     end
 
-    it "can't be deleted when there is an associated order" do
+    it "can't be deleted when there is an associated completed order" do
+      order.update_columns(state: 'complete', completed_at: Time.now)
       address2.should_not be_can_be_deleted
     end
 
@@ -40,17 +41,18 @@ describe Spree::Address do
       address.to_s.should eq("#{a.firstname} #{a.lastname} <br/>#{a.company} <br/>#{a.address1} <br/>#{a.address2} <br/>#{a.city} #{a.state_text} #{a.zipcode} <br/>#{a.country}".html_safe)
     end
 
-    it 'is destroyed without saving used' do
+    it 'is deleted outright if it has no complete order' do
       address.destroy
-      Spree::Address.where(["id = (?)", address.id]).should be_empty
+      expect{Spree::Address.find(address.id)}.to raise_error
     end
 
-    it 'is destroyed deleted timestamp' do
+    it 'is destroyed using deleted timestamp if it has a complete order' do
+      order.update_columns(state: 'complete', completed_at: Time.now)
       address2.destroy
-      Spree::Address.where(["id = (?)", address2.id]).should_not be_empty
+      expect{Spree::Address.find(address2.id)}.not_to raise_error
     end
 
-    it 'is removed as default when destroyed' do
+    it 'is removed from user defaults when destroyed' do
       user.update_attributes!(bill_address_id: address.id, ship_address_id: address2.id)
 
       # Make sure the various model hooks didn't override the ID assignments
@@ -66,6 +68,18 @@ describe Spree::Address do
       address2.destroy
       expect(user.reload.bill_address_id).to be_nil
       expect(user.ship_address_id).to be_nil
+    end
+
+    it 'is removed from incomplete orders when destroyed' do
+      order.update_columns(bill_address_id: address.id)
+      address.destroy
+      expect(order.reload.bill_address_id).to be_nil
+    end
+
+    it 'is not removed from complete orders when destroyed' do
+      order.update_columns(bill_address_id: address.id, state: 'complete', completed_at: Time.now)
+      address.destroy
+      expect(order.bill_address_id).to eq(address.id)
     end
 
     describe '#same_as?' do
