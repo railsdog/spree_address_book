@@ -71,18 +71,25 @@ module Spree
         ap params
         # XXX
 
+        # FIXME: This seems wrong and incomplete TODO: tests don't trigger reassignment
         if @order && (@order.bill_address.try(:editable?) || @order.ship_address.try(:editable?))
           # The order's before_validation #delink_addresses hook will take care
           # of assigning/cloning addresses, so just set the address IDs.
 
-          if @order.bill_address_id != @address.id && (old_match.try(:order_bill) || new_match.try(:order_bill))
-            @order.bill_address.destroy unless @order.bill_address.user_id
-            @order.bill_address_id = @address.id
+          if Spree::Address.find_by_id(@order.bill_address_id).nil? || @order.bill_address.try(:deleted_at)
+            if old_match.try(:order_bill) || new_match.try(:order_bill)
+              puts "   \e[1mReassigning order bill\e[0m" # XXX
+              @order.bill_address.destroy unless @order.bill_address.user_id
+              @order.bill_address_id = @address.id
+            end
           end
 
-          if @order.ship_address_id != @address.id && (old_match.try(:order_ship) || new_match.try(:order_ship))
-            @order.ship_address.destroy unless @order.ship_address.user_id
-            @order.ship_address_id = @address.id
+          if Spree::Address.find_by_id(@order.ship_address_id).nil? || @order.ship_address.try(:deleted_at)
+            if old_match.try(:order_ship) || new_match.try(:order_ship)
+              puts "   \e[1mReassigning order ship\e[0m" # XXX
+              @order.ship_address.destroy unless @order.ship_address.user_id
+              @order.ship_address_id = @address.id
+            end
           end
 
           if @order.changed? && !@order.save
