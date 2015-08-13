@@ -36,6 +36,7 @@ module Spree::AddressUpdateHelper
 
       # Destroy any old matching addresses, if possible.
       old_match.destroy if old_match
+      new_match.destroy_duplicates
 
       # Update any remaining editable addresses.
       old_match.update_all_attributes(attrs) if old_match
