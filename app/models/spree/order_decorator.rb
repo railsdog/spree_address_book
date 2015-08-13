@@ -83,10 +83,11 @@ Spree::Order.class_eval do
   # Verifies ownership of the address given by +id+, then assigns it to this
   # order's address of the given +type+ (:bill or :ship).  Used by
   # #bill_address_id= and #ship_address_id= to prevent assignment of other
-  # users' addresses.  Raises an error if another user's address is assigned.
+  # users' addresses.
   #
-  # TODO: this could probably be implemented as a validation, except address
-  # delinking is performed in a before_validation hook
+  # Raises an error if another user's address is assigned.  This cannot be
+  # implemented as a validation because address delinking is performed in a
+  # before_validation hook.
   def check_address_owner(id, type)
     if a = Spree::Address.find_by_id(id)
       if a.user_id.present? && a.user_id != self.user_id
