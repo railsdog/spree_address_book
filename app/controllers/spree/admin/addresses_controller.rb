@@ -126,22 +126,18 @@ module Spree
       def update_addresses
         uaddrcount(@user, "AAC:ua:b4", order: @order) # XXX
 
-        if @order and !@user
-          unless @order.update_attributes(params[:order].permit(:bill_address_id, :ship_address_id))
-            flash[:error] = @order.errors.full_messages.to_sentence
-          end
-        elsif @user
-          if @user.update_attributes(params[:user].permit(:bill_address_id, :ship_address_id))
-            update_order_addresses
-          else
-            flash[:error] = @order.errors.full_messages.to_sentence
-          end
+        update_object_addresses(@user, params[:user]) if @user
+        update_object_addresses(@order, params[:order]) if @order
+
+        if (@user && @user.errors.any?) || (@order && @order.errors.any?)
+          flash[:error] = (@user.errors.full_messages + @order.errors.full_messages).to_sentence
+        else
+          flash[:success] = I18n.t(:default_addresses_updated, scope: :address_book)
         end
 
-        uaddrcount(@user, "AAC:ua:aft(#{flash.to_hash})", order: @order) # XXX
+        redirect_to collection_url # XXX admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
 
-        flash[:success] = I18n.t(:default_addresses_updated, scope: :address_book) unless flash[:error]
-        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+        uaddrcount(@user, "AAC:ua:aft(#{flash.to_hash})", order: @order) # XXX
       end
 
       protected
@@ -199,19 +195,29 @@ module Spree
           end
         end
 
-        def update_order_addresses
-          if params[:order]
-            params[:order].permit(:bill_address_id, :ship_address_id)
-            bill_address = Spree::Address.find(params[:order][:bill_address_id])
-            ship_address = Spree::Address.find(params[:order][:ship_address_id])
-            if bill_address
-              @order.bill_address_attributes = bill_address.dup.attributes
+        # Assigns address IDs from +attrs+ (which should be from params) to the
+        # given +object+ (an order or user).  Callbacks on the order decorator
+        # will ensure that addresses are deduplicated.
+        def update_object_addresses(object, attrs)
+          if attrs
+            attrs = attrs.permit(:bill_address_id, :ship_address_id)
+
+            bill = Spree::Address.find_by_id(attrs[:bill_address_id])
+            ship = Spree::Address.find_by_id(attrs[:ship_address_id])
+
+            if bill && bill.user_id && @user && bill.user_id != @user.id
+              raise 'Bill address belongs to a different user'
             end
-            if ship_address
-              @order.ship_address_attributes = ship_address.dup.attributes
+
+            if ship && ship.user_id && @user && ship.user_id != @user.id
+              raise 'Ship address belongs to a different user'
             end
-            @order.save
+
+            object.bill_address_id = bill.id if bill
+            object.ship_address_id = ship.id if ship
           end
+
+          object.save
         end
     end
   end
