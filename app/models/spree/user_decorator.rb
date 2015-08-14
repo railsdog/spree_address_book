@@ -3,9 +3,9 @@ Spree.user_class.class_eval do
 
   before_validation { uaddrcount(self.id ? self : nil, "U:B4VALIDATION") } # XXX
   before_save { uaddrcount(self.id ? self : nil, "U:B4SAVE") } # XXX
-  after_save { uaddrcount(self.id ? self : nil, "U:AftSAVE") } # XXX
+  after_save { uaddrcount(self.id ? self : nil, "U:AftSAVE"); whereami } # XXX
 
-  before_validation :link_address # XXX after_save
+  before_validation :link_address
 
   # XXX / TODO: Probably want to get rid of this validation before deploying to
   # production because there is old invalid data.
@@ -14,11 +14,11 @@ Spree.user_class.class_eval do
   # XXX
   # Validates that the default addresses are owned by the user.
   def verify_address_owners
-    if bill_address && bill_address.user_id != self.id
+    if bill_address && bill_address.user != self
       errors.add(:bill_address, "Billing address belongs to #{bill_address.user_id.inspect}, not to this user #{id.inspect}")
     end
 
-    if ship_address && ship_address.user_id != self.id
+    if ship_address && ship_address.user != self
       errors.add(:ship_address, "Shipping address belongs to #{ship_address.user_id.inspect}, not to this user #{id.inspect}")
     end
   end
@@ -29,6 +29,9 @@ Spree.user_class.class_eval do
   def link_address
     uaddrcount self.id && self, "U:la:b4(#{changes})" # XXX
     r = true
+
+    puts "Bill present: #{self.bill_address.present?}" # XXX
+    puts "Ship present: #{self.ship_address.present?}" # XXX
 
     if self.bill_address && !self.bill_address.user
       uaddrcount self.id && self, "U:la:bill(#{!self.bill_address.nil?}/#{self.bill_address.try(:id).inspect})" # XXX
