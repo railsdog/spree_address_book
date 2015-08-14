@@ -17,10 +17,9 @@ module Spree
         country_id = Spree::Address.default.country.id
         @address = Spree::Address.new({:country_id => country_id, user: @user}.merge(params[:address]))
 
-        # FIXME: Don't allow creating duplicate addresses on a user
+        # FIXME: Don't allow creating duplicate addresses on a user or guest order
 
         if @address.save
-          # TODO: There might be a better way to figure out where to assign the address
           if @order and !@user
             case params[:address][:address_type]
             when "bill_address"
@@ -28,7 +27,10 @@ module Spree
             when "ship_address"
               @order.ship_address = @address
             end
-            @order.save!
+
+            unless @order.save
+              flash[:error] = @order.errors.full_messages.to_sentence
+            end
           end
 
           flash[:success] = Spree.t(:account_updated)

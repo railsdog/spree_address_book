@@ -90,9 +90,54 @@ feature 'Admin UI address editing' do
           expect(guest_order.bill_address).to be_same_as(a)
           expect(guest_order.ship_address).to be_nil
         end
-      end
 
-      skip
+        context 'creating an address' do
+          scenario 'defaults to the empty slot' do
+            a = build(:address, first_name: 'Ship')
+
+            expect {
+              create_address(guest_order, true, a)
+            }.not_to change{ guest_order.reload.bill_address.comparison_attributes }
+
+            expect(guest_order.ship_address.comparison_attributes).to eq(a.comparison_attributes)
+
+
+            b = build(:address, first_name: 'Bill')
+
+            guest_order.update_columns(bill_address_id: nil)
+            expect {
+              create_address(guest_order, true, b)
+            }.not_to change{ guest_order.reload.ship_address.comparison_attributes }
+
+            # Note: using #comparison_attributes instead of #same_as? so RSpec will show a diff.
+            expect(guest_order.bill_address.comparison_attributes).to eq(b.comparison_attributes)
+          end
+
+          scenario 'can overwrite the existing slot without filling the other' do
+            a = build(:address, first_name: 'OverwriteBill')
+
+            expect {
+              create_address(guest_order, true, a, :bill)
+            }.not_to change{ guest_order.reload.bill_address_id }
+
+            expect(guest_order.bill_address.comparison_attributes).to eq(a.comparison_attributes)
+            expect(guest_order.ship_address).to be_nil
+
+
+            b = build(:address, first_name: 'OverwriteShip')
+
+            guest_order.update_columns(bill_address_id: nil, ship_address_id: guest_order.bill_address_id)
+            expect {
+              create_address(guest_order, true, b, :ship)
+            }.not_to change{ guest_order.reload.ship_address_id }
+
+            expect(guest_order.ship_address.comparison_attributes).to eq(b.comparison_attributes)
+            expect(guest_order.bill_address).to be_nil
+          end
+
+          skip 'prevents duplication if the created address is the same as the existing address' # TODO ?
+        end
+      end
     end
 
     context 'with a logged-in order' do
