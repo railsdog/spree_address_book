@@ -98,10 +98,37 @@ feature 'Admin UI address editing' do
     context 'with a logged-in order' do
       context 'with no user addresses' do
         context 'with an incomplete order' do
+
           context 'with one address object' do
             before(:each) do
               order.update_columns(bill_address_id: order.ship_address_id)
               expect(order.bill_address_id).to eq(order.ship_address_id)
+            end
+
+            context 'with one slot blank' do
+              scenario 'editing shipping does not assign it to billing' do
+                order.update_columns(bill_address_id: nil)
+
+                expect {
+                  edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'ShipFirst')
+                  expect_address_count(1)
+                }.not_to change{order.reload.ship_address_id}
+
+                expect(order.bill_address_id).to be_nil
+                expect(order.ship_address.first_name).to eq('ShipFirst')
+              end
+
+              scenario 'editing billing does not assign it to shipping' do
+                order.update_columns(ship_address_id: nil)
+
+                expect {
+                  edit_address(order, order.bill_address_id, true, Spree.t(:first_name) => 'BillFirst')
+                  expect_address_count(1)
+                }.not_to change{order.reload.bill_address_id}
+
+                expect(order.ship_address_id).to be_nil
+                expect(order.bill_address.first_name).to eq('BillFirst')
+              end
             end
 
             scenario 'editing the address links it to the user, leaving one object' do
