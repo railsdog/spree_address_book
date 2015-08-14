@@ -100,6 +100,7 @@ feature 'Admin UI address editing' do
             }.not_to change{ guest_order.reload.bill_address.comparison_attributes }
 
             expect(guest_order.ship_address.comparison_attributes).to eq(a.comparison_attributes)
+            expect_address_count(2)
 
 
             b = build(:address, first_name: 'Bill')
@@ -111,6 +112,7 @@ feature 'Admin UI address editing' do
 
             # Note: using #comparison_attributes instead of #same_as? so RSpec will show a diff.
             expect(guest_order.bill_address.comparison_attributes).to eq(b.comparison_attributes)
+            expect_address_count(2)
           end
 
           scenario 'can overwrite the existing slot without filling the other' do
