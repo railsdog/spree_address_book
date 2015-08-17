@@ -31,14 +31,14 @@ module Spree
           if @order and !@user # TODO: Always show address type dropdown
             case params[:address][:address_type]
             when "bill_address"
-              if @order.bill_address && !@order.bill_address.user
+              if @order.bill_address && !@order.bill_address.user && @order.bill_address.editable?
                 @order.bill_address.update_attributes(attrs)
               else
                 @order.bill_address = @address
               end
 
             when "ship_address"
-              if @order.ship_address && !@order.ship_address.user
+              if @order.ship_address && !@order.ship_address.user && @order.ship_address.editable?
                 @order.ship_address.update_attributes(attrs)
               else
                 @order.ship_address = @address
