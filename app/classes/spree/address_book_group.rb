@@ -88,9 +88,17 @@ class Spree::AddressBookGroup
   # Updates the attributes of every editable address in the group.  Returns
   # true on success or if there were no editable addresses, false on error.
   def update_all_attributes(attrs)
+    puts "Calling all attributes: #{@addresses.map(&:id)}" # XXX
+
     result = true
     @addresses.each do |a|
-      result &= a.update_attributes(attrs) if a.editable?
+      # XXX
+      if a.editable?
+        puts "Updating address #{a.try(:id).inspect}" # XXX
+        result &= a.update_attributes(attrs) if a.editable?
+      else
+        puts "Skipping update of address #{a.try(:id).inspect}" # XXX
+      end
     end
     result
   end
@@ -113,6 +121,8 @@ class Spree::AddressBookGroup
   def destroy_duplicates
     result = true
 
+    puts "Before dedup: All=#{@addresses.map(&:id)} user=#{@user_addresses.map(&:id)} order=#{@order_addresses.map(&:id)}" # XXX
+
     primary_id = @primary_address.id
     @user_addresses.each do |a|
       next unless a.editable? && a.id != primary_id
@@ -127,9 +137,12 @@ class Spree::AddressBookGroup
       end
 
       result &= a.destroy
-      @addresses.delete a
+      @addresses.reject!{|addr| addr.id == a.id}
+      puts "------------------ Removed address #{a.id} from @addresses" # XXX
     end
     @user_addresses.reject!{|a| a.editable? && a.id != @primary_address.id }
+
+    puts "AFTER dedup: All=#{@addresses.map(&:id)} user=#{@user_addresses.map(&:id)} order=#{@order_addresses.map(&:id)}" # XXX
 
     result
   end

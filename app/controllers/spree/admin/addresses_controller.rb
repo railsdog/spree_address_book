@@ -76,11 +76,11 @@ module Spree
       end
 
       def update
-        uaddrcount(@user, "AAC:u:b4", order: @order) # XXX
+        uaddrcount(@user, "AAC:u:b4(aid=#{@address.try(:id).inspect})", order: @order) # XXX
 
         @address, new_match, old_match = update_and_merge(@address, @addresses)
 
-        uaddrcount(@user, "AAC:u:mid", order: @order) # XXX
+        uaddrcount(@user, "AAC:u:mid(aid=#{@address.try(:id).inspect})", order: @order) # XXX
 
 
         if new_match && old_match
