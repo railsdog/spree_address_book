@@ -176,7 +176,6 @@ feature 'Admin UI address editing' do
     context 'with a logged-in order' do
       context 'with no user addresses' do
         context 'with an incomplete order' do
-
           context 'with one address object' do
             before(:each) do
               order.update_columns(bill_address_id: order.ship_address_id)
@@ -206,6 +205,32 @@ feature 'Admin UI address editing' do
 
                 expect(order.ship_address_id).to be_nil
                 expect(order.bill_address.first_name).to eq('BillFirst')
+              end
+
+              scenario 'creating an address assigns it to the blank slot' do
+                order.update_columns(bill_address_id: nil)
+
+                # FIXME: non-guest orders don't have the dropdown
+
+                a = build(:address, first_name: 'Ship')
+
+                expect {
+                  create_address(order, true, a)
+                }.not_to change{ order.reload.bill_address.comparison_attributes }
+
+                expect(order.ship_address.comparison_attributes).to eq(a.comparison_attributes)
+                expect_address_count(2)
+
+
+                b = build(:address, first_name: 'Bill')
+
+                order.update_columns(bill_address_id: nil)
+                expect {
+                  create_address(order, true, b)
+                }.not_to change{ order.reload.ship_address.comparison_attributes }
+
+                expect(order.bill_address.comparison_attributes).to eq(b.comparison_attributes)
+                expect_address_count(2)
               end
             end
 
