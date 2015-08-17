@@ -164,18 +164,20 @@ describe "User editing addresses for his account" do
     primary = Spree::AddressBookList.new(user.reload).find(a).primary_address.id
     expect(primary).not_to eq(a.id)
 
-    order = strip_order_address_users(create(:order_with_line_items))
+    order = strip_order_address_users(create(:order_with_line_items, user: user))
     order.update_columns(bill_address_id: a.id, ship_address_id: a.id)
 
-    expect {
-      visit spree.account_path
-      expect(page).to have_css('tr.address', count: 1)
-      click_link "edit_address_#{primary}"
-      fill_in Spree.t(:first_name), with: 'First'
-      click_button 'Update'
-    }.to change{ user.addresses.count }.to(1)
+    expect(user.addresses.count).to eq(6)
 
-    expect(order.bill_address_id).to eq(primary)
+    visit spree.account_path
+    expect(page).to have_css('tr.address', count: 1)
+    click_link "edit_address_#{primary}"
+    fill_in Spree.t(:first_name), with: 'First'
+    click_button 'Update'
+
+    expect(order.reload.bill_address_id).to eq(primary)
     expect(order.ship_address_id).to eq(primary)
+
+    expect(user.addresses.count).to eq(1)
   end
 end

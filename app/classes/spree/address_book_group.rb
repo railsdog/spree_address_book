@@ -113,11 +113,18 @@ class Spree::AddressBookGroup
   def destroy_duplicates
     result = true
 
+    primary_id = @primary_address.id
     @user_addresses.each do |a|
-      next unless a.editable? && a.id != @primary_address.id
+      next unless a.editable? && a.id != primary_id
 
-      puts "\e[35mDestroying address \e[1m#{a.id}\e[0;35m against primary \e[1m#{@primary_address.id}\e[0m" # XXX
+      puts "\e[35mDestroying address \e[1m#{a.id}\e[0;35m from \e[1m#{@user_addresses.map(&:id)}\e[0;35m against primary \e[1m#{primary_id}\e[0m" # XXX
       puts "\t\e[31mUser: \e[1m#{a.user_id.inspect}/#{@primary_address.user_id.inspect}\e[0;31m Editable: \e[1m#{a.editable?}/#{@primary_address.editable?}\e[0m" # XXX
+
+      Spree::Order.incomplete.with_address(a).each do |o|
+        o.bill_address_id = primary_id if o.bill_address_id == a.id
+        o.ship_address_id = primary_id if o.ship_address_id == a.id
+        result &= o.save if o.changed?
+      end
 
       result &= a.destroy
       @addresses.delete a

@@ -403,8 +403,8 @@ feature 'Admin UI address editing' do
       end
 
       context 'with duplicate addresses' do
+        let(:a) { create(:address, user: user) }
         before(:each) do
-          a = create(:address, user: user)
           4.times do
             a.clone.save!
           end
@@ -428,7 +428,30 @@ feature 'Admin UI address editing' do
           expect(user.ship_address_id).to eq(user.addresses.first.id)
         end
 
-        skip 'TODO'
+        it 'corrects other incomplete orders when addresses are deduplicated' do
+          id = user.address_ids[2]
+          order.update_columns(bill_address_id: id, ship_address_id: id)
+          completed_order.update_columns(bill_address_id: a.id, ship_address_id: a.id)
+
+          expect(user.addresses.count).to eq(5)
+
+          primary = Spree::AddressBookList.new(user).find(a).id
+          expect(primary).not_to eq(a.id)
+          expect(primary).not_to eq(id)
+
+          edit_address(user, primary, true, Spree.t(:first_name) => 'Different')
+          expect(Spree::AddressBookList.new(user).count).to eq(1)
+
+          # 2 because address id=1 is not editable since completed_order owns it
+          expect(user.reload.addresses.count).to eq(2)
+
+          expect(order.reload.bill_address_id).to eq(primary)
+          expect(order.ship_address_id).to eq(primary)
+
+          # Make sure completed orders are not modified, even if they have invalid addresses
+          expect(completed_order.reload.bill_address_id).to eq(a.id)
+          expect(completed_order.ship_address_id).to eq(a.id)
+        end
       end
     end
   end
