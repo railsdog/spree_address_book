@@ -15,30 +15,55 @@ module Spree
 
       def create
         country_id = Spree::Address.default.country.id
-        @address = Spree::Address.new({:country_id => country_id, user: @user}.merge(params[:address]))
+        attrs = address_params(params.require(:address).except('address_type'))
+        @address = Spree::Address.new({ country_id: country_id, user: @user }.merge!(attrs))
 
-        # FIXME: Don't allow creating duplicate addresses on a user or guest order
+        # Don't allow creating duplicate addresses on a user or guest order
+        match = @addresses.find(@address)
+        if match
+          match.destroy_duplicates
+          match.update_all_attributes(attrs)
+          @address = match.primary_address
+        end
 
         if @address.save
-          if @order and !@user
+          # Assign the new address to the order
+          if @order and !@user # TODO: Always show address type dropdown
             case params[:address][:address_type]
             when "bill_address"
-              @order.bill_address = @address
-            when "ship_address"
-              @order.ship_address = @address
-            end
+              if @order.bill_address && !@order.bill_address.user
+                @order.bill_address.update_attributes(attrs)
+              else
+                @order.bill_address = @address
+              end
 
-            unless @order.save
-              flash[:error] = @order.errors.full_messages.to_sentence
+            when "ship_address"
+              if @order.ship_address && !@order.ship_address.user
+                @order.ship_address.update_attributes(attrs)
+              else
+                @order.ship_address = @address
+              end
             end
           end
 
-          flash[:success] = Spree.t(:account_updated)
+          @order.save if @order
+        end
 
-          redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
-        else
-          flash[:error] = @address.errors.full_messages.to_sentence
+        errors = []
+        errors.concat @address.errors.full_messages
+
+        if @order
+          errors.concat @order.errors.full_messages
+          errors.concat @order.bill_address.errors.full_messages if @order.bill_address
+          errors.concat @order.ship_address.errors.full_messages if @order.ship_address
+        end
+
+        if errors.any?
+          flash[:error] = errors.uniq.to_sentence
           render :new
+        else
+          flash[:success] = Spree.t(:account_updated)
+          redirect_to collection_url # XXX admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
         end
       end
 
@@ -49,7 +74,6 @@ module Spree
           return
         end
       end
-
 
       def update
         uaddrcount(@user, "AAC:u:b4", order: @order) # XXX
