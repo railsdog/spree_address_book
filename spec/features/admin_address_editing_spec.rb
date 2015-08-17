@@ -137,7 +137,18 @@ feature 'Admin UI address editing' do
             expect(guest_order.bill_address).to be_nil
           end
 
-          skip 'prevents duplication if the created address is the same as the existing address' # TODO ?
+          scenario 'overwrites correctly if the address is the same as the existing address' do
+            a = build(:address, guest_order.bill_address.comparison_attributes)
+
+            expect(guest_order.bill_address.first_name.downcase).not_to eq(guest_order.bill_address.first_name)
+
+            expect {
+              create_address(guest_order, true, a, :bill)
+            }.not_to change{ guest_order.reload.bill_address_id }
+
+            expect(guest_order.bill_address.first_name.downcase).to eq(guest_order.bill_address.first_name)
+            expect(guest_order.ship_address).to be_nil
+          end
         end
       end
     end
