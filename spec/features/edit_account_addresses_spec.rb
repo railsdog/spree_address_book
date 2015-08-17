@@ -152,4 +152,30 @@ describe "User editing addresses for his account" do
     # table is not displayed unless addresses are available
     page.should_not have_selector("#user_addresses")
   end
+
+  it 'updates orders with deduplicated addresses', js: true do
+    user.addresses.delete_all
+
+    a = create(:address, user: user)
+    5.times do
+      b = a.clone.save!
+    end
+
+    primary = Spree::AddressBookList.new(user.reload).find(a).primary_address.id
+    expect(primary).not_to eq(a.id)
+
+    order = strip_order_address_users(create(:order_with_line_items))
+    order.update_columns(bill_address_id: a.id, ship_address_id: a.id)
+
+    expect {
+      visit spree.account_path
+      expect(page).to have_css('tr.address', count: 1)
+      click_link "edit_address_#{primary}"
+      fill_in Spree.t(:first_name), with: 'First'
+      click_button 'Update'
+    }.to change{ user.addresses.count }.to(1)
+
+    expect(order.bill_address_id).to eq(primary)
+    expect(order.ship_address_id).to eq(primary)
+  end
 end
