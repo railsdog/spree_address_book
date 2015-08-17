@@ -36,12 +36,32 @@ feature 'Admin UI address editing' do
 
         # Set up duplicate addresses
         3.times do
-          a = create(:address, user: user)
-          a.clone.save!
+          @a = create(:address, user: user)
+          @a.clone.save!
         end
       end
 
-      skip
+      scenario 'editing an address deduplicates it' do
+        id = Spree::AddressBookList.new(user).find(@a).id
+
+        expect {
+          edit_address(user, id, true, Spree.t(:first_name) => 'NewFirstName')
+        }.to change{ user.reload.addresses.count }.by(-1)
+
+        expect(Spree::Address.find(id).first_name).to eq('NewFirstName')
+      end
+
+      scenario 'creating an address links it to the user' do
+        expect {
+          create_address(user, true, build(:address))
+        }.to change{ user.reload.addresses.count }.by(1)
+      end
+
+      scenario 'trying to create an identical address deduplicates it' do
+        expect {
+          create_address(user, true, @a)
+        }.to change{ user.reload.addresses.count }.by(-1)
+      end
     end
   end
 
@@ -410,13 +430,13 @@ feature 'Admin UI address editing' do
           end
         end
 
-        it 'deletes duplicates when editing an address' do
+        scenario 'deletes duplicates when editing an address' do
           expect(user.addresses.reload.count).to eq(5)
           edit_address(user, Spree::AddressBookList.new(user).first.id, true, Spree.t(:first_name) => 'Changed')
           expect(user.addresses.reload.count).to eq(1)
         end
 
-        it 'deduplicates and reassigns when a default address is edited to match another address' do
+        scenario 'deduplicates and reassigns when a default address is edited to match another address' do
           old_address = user.addresses.first
           address = create(:address, user: user)
           user.update_columns(bill_address_id: address.id, ship_address_id: address.id)
@@ -428,7 +448,7 @@ feature 'Admin UI address editing' do
           expect(user.ship_address_id).to eq(user.addresses.first.id)
         end
 
-        it 'corrects other incomplete orders when addresses are deduplicated' do
+        scenario 'corrects other incomplete orders when addresses are deduplicated' do
           id = user.address_ids[2]
           order.update_columns(bill_address_id: id, ship_address_id: id)
           completed_order.update_columns(bill_address_id: a.id, ship_address_id: a.id)
