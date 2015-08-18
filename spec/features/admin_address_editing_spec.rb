@@ -10,6 +10,25 @@ feature 'Admin UI address editing' do
   let(:guest_order) { strip_order_address_users(create(:order_with_line_items, user: nil, email: 'guest@example.com')) }
 
   describe 'User account address list' do
+    scenario 'can create addresses' do
+      5.times do |n|
+        a = build(:fake_address)
+        create_address(user, true, a)
+        expect_address_count(n + 1)
+
+        addr = user.reload.addresses.unscope(:order).order(:id).last
+
+        # Note: using #comparison_attributes instead of #same_as? so RSpec will show a diff.
+        expect(
+          addr.comparison_attributes.except('user_id').merge(run: n)
+        ).to eq(
+          a.comparison_attributes.except('user_id').merge(run: n)
+        )
+
+        expect(addr).to be_same_as(a)
+      end
+    end
+
     scenario 'can edit a single address' do
       a = create(:address, user: user)
 
@@ -131,7 +150,6 @@ feature 'Admin UI address editing' do
               create_address(guest_order, true, b)
             }.not_to change{ guest_order.reload.ship_address.comparison_attributes }
 
-            # Note: using #comparison_attributes instead of #same_as? so RSpec will show a diff.
             expect(guest_order.ship_address.lastname).to eq("Bill's")
             expect(guest_order.bill_address.comparison_attributes).to eq(b.comparison_attributes)
             expect_address_count(2)
