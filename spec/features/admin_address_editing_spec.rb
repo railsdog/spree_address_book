@@ -113,17 +113,18 @@ feature 'Admin UI address editing' do
 
         context 'creating an address' do
           scenario 'defaults to the empty slot' do
-            a = build(:address, firstname: 'Ship')
+            a = build(:address, firstname: "Ship's")
 
             expect {
               create_address(guest_order, true, a)
             }.not_to change{ guest_order.reload.bill_address.comparison_attributes }
 
+            expect(guest_order.ship_address.firstname).to eq("Ship's")
             expect(guest_order.ship_address.comparison_attributes).to eq(a.comparison_attributes)
             expect_address_count(2)
 
 
-            b = build(:address, firstname: 'Bill')
+            b = build(:address, firstname: "Bill's")
 
             guest_order.update_columns(bill_address_id: nil)
             expect {
@@ -131,6 +132,7 @@ feature 'Admin UI address editing' do
             }.not_to change{ guest_order.reload.ship_address.comparison_attributes }
 
             # Note: using #comparison_attributes instead of #same_as? so RSpec will show a diff.
+            expect(guest_order.ship_address.lastname).to eq("Bill's")
             expect(guest_order.bill_address.comparison_attributes).to eq(b.comparison_attributes)
             expect_address_count(2)
           end

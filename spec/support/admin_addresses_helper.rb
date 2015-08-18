@@ -105,7 +105,7 @@ module AdminAddresses
   def content_regex(address)
     # Regexp.escape adds backslashes before spaces, so the second gsub was
     # necessary to get whitespace-insensitive matching.
-    Regexp.new(Regexp.escape(address.to_s.gsub(/<[^>]+>/, ' ')).gsub(/(\\?\s+)+/, '\s+'), 'i')
+    Regexp.new(Regexp.escape(CGI::unescapeHTML(address.to_s.gsub(/<[^>]+>/, ' '))).gsub(/(\\?\s+)+/, '\s+'), 'i')
   end
 
   # Clones an address and returns the ID of the clone.
