@@ -228,17 +228,18 @@ feature 'Admin UI address editing' do
               end
 
               scenario 'creating an address assigns it to the blank slot' do
-                order.update_columns(bill_address_id: nil)
+                order.update_columns(ship_address_id: nil)
 
-                # FIXME: non-guest orders don't have the dropdown
+                visit_order_addresses(order)
+                expect_address_count(1)
 
                 a = build(:address, firstname: 'Ship')
 
                 expect {
                   create_address(order, true, a)
-                }.not_to change{ order.reload.bill_address.comparison_attributes }
+                }.not_to change{ order.reload.bill_address.comparison_attributes.except('user_id') }
 
-                expect(order.ship_address.comparison_attributes).to eq(a.comparison_attributes)
+                expect(order.ship_address.comparison_attributes.except('user_id')).to eq(a.comparison_attributes.except('user_id'))
                 expect_address_count(2)
 
 
@@ -247,10 +248,10 @@ feature 'Admin UI address editing' do
                 order.update_columns(bill_address_id: nil)
                 expect {
                   create_address(order, true, b)
-                }.not_to change{ order.reload.ship_address.comparison_attributes }
+                }.not_to change{ order.reload.ship_address.comparison_attributes.except('user_id') }
 
-                expect(order.bill_address.comparison_attributes).to eq(b.comparison_attributes)
-                expect_address_count(2)
+                expect(order.bill_address.comparison_attributes.except('user_id')).to eq(b.comparison_attributes.except('user_id'))
+                expect_address_count(3)
               end
             end
 

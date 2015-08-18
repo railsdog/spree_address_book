@@ -1,19 +1,33 @@
 <div id="address" data-hook="address_fields">
-  <% if @order and !@user %>
+  <% if @order %>
     <div class="field address-row">
       <%= f.label :address_type, Spree.t(:address_type) %>
       <% 
-          puts "\n\n\n\tAddr: #{@address.id}\n\tBill: #{@order.bill_address_id}\n\tShip: #{@order.ship_address_id}\n\n\n" # XXX
+        puts "\n\n\n\tAddr: #{@address.id}\n\tBill: #{@order.bill_address_id}\n\tShip: #{@order.ship_address_id}\n\n\n" # XXX
+
         selected_type = case @address.id
-        when @order.bill_address_id
-          "bill_address"
-        when @order.ship_address_id
-          "ship_address"
+          when @order.bill_address_id
+            "bill_address"
+
+          when @order.ship_address_id
+            "ship_address"
+
+          else
+            nil
         end
 
-        puts "Seltype: #{selected_type}\n\n\n" # XXX
+        puts "Seltype for O#{@order.try(:id).inspect}/U#{@user.try(:id).inspect}: #{selected_type.inspect}\n\n\n" # XXX
+
+        opts = options_for_select(
+          [
+            (@user ? [ Spree.t(:user), nil ] : nil),
+            [ "#{Spree.t(:order)}: #{Spree.t(:billing_address)}", 'bill_address' ],
+            [ "#{Spree.t(:order)}: #{Spree.t(:shipping_address)}", 'ship_address' ],
+          ].compact,
+          selected: selected_type
+        )
       %>
-      <%= f.select :address_type, options_for_select([[Spree.t(:billing_address),'bill_address'], [Spree.t(:shipping_address),'ship_address']], selected: selected_type), {}, :class => 'select2 fullwidth' %>
+      <%= f.select :address_type, opts, {}, :class => 'select2 fullwidth' %>
     </div>
   <% end %>
   

@@ -27,8 +27,8 @@ module Spree
         end
 
         if @address.save
-          # Assign the new address to the order
-          if @order and !@user # TODO: Always show address type dropdown
+          # Assign the new/modified address to the order
+          if @order
             case params[:address][:address_type]
             when "bill_address"
               if @order.bill_address && !@order.bill_address.user && @order.bill_address.editable?
@@ -44,9 +44,9 @@ module Spree
                 @order.ship_address = @address
               end
             end
-          end
 
-          @order.save if @order
+            @order.save
+          end
         end
 
         errors = []
@@ -63,7 +63,7 @@ module Spree
           render :new
         else
           flash[:success] = Spree.t(:account_updated)
-          redirect_to collection_url # XXX admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+          redirect_to collection_url
         end
       end
 
