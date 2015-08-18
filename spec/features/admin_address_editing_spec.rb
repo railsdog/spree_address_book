@@ -253,6 +253,18 @@ feature 'Admin UI address editing' do
                 expect(order.bill_address.comparison_attributes.except('user_id')).to eq(b.comparison_attributes.except('user_id'))
                 expect_address_count(3)
               end
+
+              scenario 'creating an identical address does not create a new address object' do
+                order.update_columns(ship_address_id: nil)
+                order.bill_address.update_columns(user_id: user.id)
+
+                expect {
+                  create_address(order, true, order.bill_address)
+                }.not_to change{ user.reload.addresses.count }
+
+                expect(order.reload.bill_address_id).to eq(order.ship_address_id)
+                expect(order.bill_address.user_id).to eq(user.id)
+              end
             end
 
             scenario 'editing the address links it to the user, leaving one object' do
