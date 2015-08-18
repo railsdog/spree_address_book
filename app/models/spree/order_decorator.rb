@@ -24,11 +24,17 @@ Spree::Order.class_eval do
       errors.add(:ship_address, 'Shipping address should not have a user') if ship_address.try(:user_id)
     else
       if bill_address && bill_address.user_id != user_id
-        errors.add(:bill_address, 'Billing address user does not match order')
+        errors.add(
+          :bill_address,
+          "Billing address user #{bill_address.user_id.inspect} does not match order #{user_id.inspect}"
+        )
       end
 
       if ship_address && ship_address.user_id != user_id
-        errors.add(:ship_address, 'Shipping address user does not match order')
+        errors.add(
+          :ship_address,
+          "Shipping address user #{ship_address.user_id.inspect} does not match order #{user_id.inspect}"
+        )
       end
     end
   end
