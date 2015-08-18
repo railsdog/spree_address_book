@@ -48,7 +48,7 @@ feature 'Admin UI address editing' do
           edit_address(user, id, true, Spree.t(:first_name) => 'NewFirstName')
         }.to change{ user.reload.addresses.count }.by(-1)
 
-        expect(Spree::Address.find(id).first_name).to eq('NewFirstName')
+        expect(Spree::Address.find(id).firstname).to eq('NewFirstName')
       end
 
       scenario 'creating an address links it to the user' do
@@ -83,8 +83,8 @@ feature 'Admin UI address editing' do
         scenario 'can edit the order address' do
           a = build(
             :address,
-            first_name: 'First',
-            last_name: 'Last',
+            firstname: 'First',
+            lastname: 'Last',
             company: 'Company',
             address1: '123 Fake',
             address2: 'Floor Three',
@@ -113,7 +113,7 @@ feature 'Admin UI address editing' do
 
         context 'creating an address' do
           scenario 'defaults to the empty slot' do
-            a = build(:address, first_name: 'Ship')
+            a = build(:address, firstname: 'Ship')
 
             expect {
               create_address(guest_order, true, a)
@@ -123,7 +123,7 @@ feature 'Admin UI address editing' do
             expect_address_count(2)
 
 
-            b = build(:address, first_name: 'Bill')
+            b = build(:address, firstname: 'Bill')
 
             guest_order.update_columns(bill_address_id: nil)
             expect {
@@ -136,7 +136,7 @@ feature 'Admin UI address editing' do
           end
 
           scenario 'can overwrite the existing slot without filling the other' do
-            a = build(:address, first_name: 'OverwriteBill')
+            a = build(:address, firstname: 'OverwriteBill')
 
             expect {
               create_address(guest_order, true, a, :bill)
@@ -146,7 +146,7 @@ feature 'Admin UI address editing' do
             expect(guest_order.ship_address).to be_nil
 
 
-            b = build(:address, first_name: 'OverwriteShip')
+            b = build(:address, firstname: 'OverwriteShip')
 
             guest_order.update_columns(bill_address_id: nil, ship_address_id: guest_order.bill_address_id)
             expect {
@@ -160,13 +160,13 @@ feature 'Admin UI address editing' do
           scenario 'overwrites correctly if the address is the same as the existing address' do
             a = build(:address, guest_order.bill_address.comparison_attributes)
 
-            expect(guest_order.bill_address.first_name.downcase).not_to eq(guest_order.bill_address.first_name)
+            expect(guest_order.bill_address.firstname.downcase).not_to eq(guest_order.bill_address.firstname)
 
             expect {
               create_address(guest_order, true, a, :bill)
             }.not_to change{ guest_order.reload.bill_address_id }
 
-            expect(guest_order.bill_address.first_name.downcase).to eq(guest_order.bill_address.first_name)
+            expect(guest_order.bill_address.firstname.downcase).to eq(guest_order.bill_address.firstname)
             expect(guest_order.ship_address).to be_nil
           end
         end
@@ -192,7 +192,7 @@ feature 'Admin UI address editing' do
                 }.not_to change{order.reload.ship_address_id}
 
                 expect(order.bill_address_id).to be_nil
-                expect(order.ship_address.first_name).to eq('ShipFirst')
+                expect(order.ship_address.firstname).to eq('ShipFirst')
               end
 
               scenario 'editing billing does not assign it to shipping' do
@@ -204,7 +204,7 @@ feature 'Admin UI address editing' do
                 }.not_to change{order.reload.bill_address_id}
 
                 expect(order.ship_address_id).to be_nil
-                expect(order.bill_address.first_name).to eq('BillFirst')
+                expect(order.bill_address.firstname).to eq('BillFirst')
               end
 
               scenario 'creating an address assigns it to the blank slot' do
@@ -212,7 +212,7 @@ feature 'Admin UI address editing' do
 
                 # FIXME: non-guest orders don't have the dropdown
 
-                a = build(:address, first_name: 'Ship')
+                a = build(:address, firstname: 'Ship')
 
                 expect {
                   create_address(order, true, a)
@@ -222,7 +222,7 @@ feature 'Admin UI address editing' do
                 expect_address_count(2)
 
 
-                b = build(:address, first_name: 'Bill')
+                b = build(:address, firstname: 'Bill')
 
                 order.update_columns(bill_address_id: nil)
                 expect {
@@ -251,7 +251,7 @@ feature 'Admin UI address editing' do
               expect(order.bill_address_id).to be_present
               expect(order.ship_address_id).to be_present
               expect(user.reload.addresses.count).to eq(1)
-              expect(order.bill_address.first_name).to eq('NewFirst')
+              expect(order.bill_address.firstname).to eq('NewFirst')
             end
           end
 
@@ -273,7 +273,7 @@ feature 'Admin UI address editing' do
               expect(order.reload.bill_address_id).to eq(order.ship_address_id)
               expect(order.bill_address_id).to be_present
               expect(order.ship_address_id).to be_present
-              expect(order.ship_address.first_name).to eq('FirstNew')
+              expect(order.ship_address.firstname).to eq('FirstNew')
               expect(user.reload.addresses.count).to eq(1)
               expect(user.addresses.first.id).to eq(order.bill_address_id)
             end
@@ -299,8 +299,8 @@ feature 'Admin UI address editing' do
               expect(order.reload.bill_address).not_to be_same_as(order.ship_address)
               expect(order.bill_address_id).to be_present
               expect(order.ship_address_id).to be_present
-              expect(order.bill_address.first_name).to eq('BillFirst')
-              expect(order.ship_address.first_name).to eq('ShipFirst')
+              expect(order.bill_address.firstname).to eq('BillFirst')
+              expect(order.ship_address.firstname).to eq('ShipFirst')
 
               expect(user.reload.addresses.count).to eq(2)
               expect(user.address_ids.sort).to eq([order.bill_address_id, order.ship_address_id].sort)
@@ -341,7 +341,7 @@ feature 'Admin UI address editing' do
               expect(order.ship_address_id).to be_present
               expect(order.bill_address).to be_same_as(order.ship_address)
               expect(user.reload.addresses.count).to eq(0)
-              expect(order.bill_address.first_name).to eq('NewFirst')
+              expect(order.bill_address.firstname).to eq('NewFirst')
             end
           end
 
@@ -364,7 +364,7 @@ feature 'Admin UI address editing' do
               expect(order.bill_address_id).to be_present
               expect(order.ship_address_id).to be_present
               expect(order.bill_address).to be_same_as(order.ship_address)
-              expect(order.ship_address.first_name).to eq('FirstNew')
+              expect(order.ship_address.firstname).to eq('FirstNew')
 
               expect(user.reload.addresses.count).to eq(0)
             end
@@ -382,8 +382,8 @@ feature 'Admin UI address editing' do
               expect(order.reload.bill_address).not_to be_same_as(order.ship_address)
               expect(order.bill_address_id).to be_present
               expect(order.ship_address_id).to be_present
-              expect(order.bill_address.first_name).to eq('BillFirst')
-              expect(order.ship_address.first_name).to eq('ShipFirst')
+              expect(order.bill_address.firstname).to eq('BillFirst')
+              expect(order.ship_address.firstname).to eq('ShipFirst')
 
               expect(user.reload.addresses.count).to eq(0)
             end
@@ -419,7 +419,7 @@ feature 'Admin UI address editing' do
             }
 
             expect(address.id).not_to eq(completed_order.bill_address_id)
-            expect(address.reload.first_name).to eq('FirstNameEdit')
+            expect(address.reload.firstname).to eq('FirstNameEdit')
             expect(address.comparison_attributes.except('user_id')).to eq(completed_order.bill_address.reload.comparison_attributes.except('user_id'))
           end
         end
@@ -441,8 +441,8 @@ feature 'Admin UI address editing' do
             }
 
             expect(user.bill_address_id).to eq(order.bill_address_id)
-            expect(user.bill_address.first_name).to eq('EditFirstName')
-            expect(user.ship_address.last_name).to eq('LastEditName')
+            expect(user.bill_address.firstname).to eq('EditFirstName')
+            expect(user.ship_address.lastname).to eq('LastEditName')
           end
         end
       end
