@@ -143,14 +143,14 @@ feature 'Admin UI address editing' do
             expect_address_count(2)
 
 
-            b = build(:address, firstname: "Bill's")
+            b = build(:address, lastname: "Bill's")
 
             guest_order.update_columns(bill_address_id: nil)
             expect {
               create_address(guest_order, true, b)
             }.not_to change{ guest_order.reload.ship_address.comparison_attributes }
 
-            expect(guest_order.ship_address.lastname).to eq("Bill's")
+            expect(guest_order.bill_address.lastname).to eq("Bill's")
             expect(guest_order.bill_address.comparison_attributes).to eq(b.comparison_attributes)
             expect_address_count(2)
           end
