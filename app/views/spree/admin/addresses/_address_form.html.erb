@@ -2,7 +2,7 @@
   <% if @order %>
     <div class="field address-row">
       <%= f.label :address_type, Spree.t(:address_type) %>
-      <% 
+      <%
         puts "\n\n\n\tAddr: #{@address.id}\n\tBill: #{@order.bill_address_id}\n\tShip: #{@order.ship_address_id}\n\n\n" # XXX
 
         selected_type = case @address.id
@@ -26,8 +26,12 @@
           ].compact,
           selected: selected_type
         )
+
+        disable = !@order.can_update_addresses?
+
+        puts "Disable is #{disable}\n\n\n" # XXX
       %>
-      <%= f.select :address_type, opts, {}, :class => 'select2 fullwidth' %>
+      <%= f.select :address_type, opts, {}, :class => 'select2 fullwidth', disabled: disable, readonly: disable %>
     </div>
   <% end %>
   

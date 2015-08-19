@@ -59,16 +59,26 @@
               </td>
             <% end %>
             <% if @order %>
+              <% disable = !@order.can_update_addresses? %>
+
               <td class="align-center">
-                <%= radio_button_tag 'order[bill_address_id]',
-                  address.order_bill.try(:id) || address.id,
-                  address.order_bill.present? %>
+                <%=
+                  radio_button_tag 'order[bill_address_id]',
+                    address.order_bill.try(:id) || address.id,
+                    address.order_bill.present?,
+                    disabled: disable,
+                    readonly: disable
+                %>
                 <%= label_tag "order_bill_address_id_#{address.id}", '' %>
               </td>
               <td class="align-center">
-                <%= radio_button_tag 'order[ship_address_id]',
-                  address.order_ship.try(:id) || address.id,
-                  address.order_ship.present? %>
+                <%=
+                  radio_button_tag 'order[ship_address_id]',
+                    address.order_ship.try(:id) || address.id,
+                    address.order_ship.present?,
+                    disabled: disable,
+                    readonly: disable
+                %>
                 <%= label_tag "order_ship_address_id_#{address.id}", '' %>
               </td>
             <% end %>

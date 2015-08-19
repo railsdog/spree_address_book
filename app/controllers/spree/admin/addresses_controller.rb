@@ -29,6 +29,8 @@ module Spree
         if @address.save
           # Assign the new/modified address to the order
           if @order
+            # FIXME: Honor can_update_addresses? and add a test for it
+
             case params[:address][:address_type]
             when "bill_address"
               if @order.bill_address && !@order.bill_address.user && @order.bill_address.editable?
@@ -146,7 +148,7 @@ module Spree
           flash[:error] = @address.errors.full_messages.to_sentence
         end
 
-        redirect_to admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+        redirect_to collection_url
       end
 
       def update_addresses
@@ -161,7 +163,7 @@ module Spree
           flash[:success] = I18n.t(:default_addresses_updated, scope: :address_book)
         end
 
-        redirect_to collection_url # XXX admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id))
+        redirect_to collection_url
 
         uaddrcount(@user, "AAC:ua:aft(#{flash.to_hash})", order: @order) # XXX
       end
@@ -219,31 +221,6 @@ module Spree
           if @order && @user && @user != @order.user
             raise "User ID does not match order's user ID!"
           end
-        end
-
-        # Assigns address IDs from +attrs+ (which should be from params) to the
-        # given +object+ (an order or user).  Callbacks on the order decorator
-        # will ensure that addresses are deduplicated.
-        def update_object_addresses(object, attrs)
-          if attrs
-            attrs = attrs.permit(:bill_address_id, :ship_address_id)
-
-            bill = Spree::Address.find_by_id(attrs[:bill_address_id])
-            ship = Spree::Address.find_by_id(attrs[:ship_address_id])
-
-            if bill && bill.user_id && @user && bill.user_id != @user.id
-              raise 'Bill address belongs to a different user'
-            end
-
-            if ship && ship.user_id && @user && ship.user_id != @user.id
-              raise 'Ship address belongs to a different user'
-            end
-
-            object.bill_address_id = bill.id if bill
-            object.ship_address_id = ship.id if ship
-          end
-
-          object.save
         end
     end
   end

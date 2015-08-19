@@ -49,3 +49,4 @@ en:
     save_my_address: "Make these addresses my default"
     editing_order: Editing Order
     address_type: "Address Type"
+    addresses_not_editable: "Addresses cannot be updated for this %{resource}."

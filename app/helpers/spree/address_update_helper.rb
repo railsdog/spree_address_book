@@ -73,4 +73,49 @@ module Spree::AddressUpdateHelper
 
     return address, new_match, old_match
   end
+
+  # Assigns address IDs from +attrs+ (an ActionController::Parameters instance)
+  # to the given +object+ (an order or user).  Callbacks on the order decorator
+  # will ensure that addresses are deduplicated.  Does nothing and adds errors
+  # to the object if the object's #can_update_addresses? method returns false.
+  #
+  # For use by address assignment actions of address controllers.  Use .errors
+  # instead of .valid? to check for errors on the object afterward.
+  def update_object_addresses(object, attrs)
+    if attrs
+      attrs = attrs.permit(:bill_address_id, :ship_address_id)
+
+      bill_id = attrs[:bill_address_id]
+      ship_id = attrs[:ship_address_id]
+
+      # byebug # XXX
+
+      # Do nothing except save the object if the IDs are unchanged.
+      if bill_id == object.bill_address_id && ship_id == object.ship_address_id
+        object.save
+      else
+        unless object.can_update_addresses?
+          object.save
+          object.errors.add(:base, Spree.t(:addresses_not_editable, resource: object.class.model_name.human))
+          false
+        else
+          bill = Spree::Address.find_by_id(bill_id)
+          ship = Spree::Address.find_by_id(ship_id)
+
+          if bill && bill.user_id && @user && bill.user_id != @user.id
+            raise 'Bill address belongs to a different user'
+          end
+
+          if ship && ship.user_id && @user && ship.user_id != @user.id
+            raise 'Ship address belongs to a different user'
+          end
+
+          object.bill_address_id = bill.id if bill
+          object.ship_address_id = ship.id if ship
+
+          object.save
+        end
+      end
+    end
+  end
 end
