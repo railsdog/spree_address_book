@@ -260,12 +260,27 @@ RSpec.configure do |c|
           true
         end
       end
+
+      [Spree::Order, Spree::User].each do |c|
+        c.class_eval do
+          alias_method :orig_can_update_addresses?, :can_update_addresses?
+          def can_update_addresses?
+            true
+          end
+        end
+      end
     end
 
     after(:each) do
       # Restore original #editable? method
       Spree::Address.class_eval do
         alias_method :editable?, :orig_editable?
+      end
+
+      [Spree::Order, Spree::User].each do |c|
+        c.class_eval do
+          alias_method :can_update_addresses?, :orig_can_update_addresses?
+        end
       end
     end
   end

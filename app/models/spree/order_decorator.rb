@@ -154,6 +154,15 @@ Spree::Order.class_eval do
     end
   end
 
+  # Returns true if this order should allow its addresses to be edited or
+  # reassigned, false otherwise.  Users of the gem may override this method to
+  # provide different behavior.  See also Spree::User#can_update_addresses? and
+  # Spree::Address#editable?
+  def can_update_addresses?
+    !complete?
+  end
+
+
   private
 
   # While an order is in progress it refers to the same object as is in the

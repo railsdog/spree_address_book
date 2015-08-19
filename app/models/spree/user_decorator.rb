@@ -78,4 +78,12 @@ Spree.user_class.class_eval do
     uaddrcount self, "U:poa:aft(#{r.inspect}/#{errors.full_messages})", order: order # XXX
     r
   end
+
+  # Returns true if this user's addresses can be edited or reassigned.  The
+  # base implementation always returns true; users of the gem may override the
+  # method to provide different behavior.  See also Spree::Address#editable?
+  # and Spree::Order#can_update_addresses?
+  def can_update_addresses?
+    true
+  end
 end

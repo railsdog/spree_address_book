@@ -54,6 +54,7 @@ Spree::Address.class_eval do
 
   # can modify an address if it's not been used in an completed order
   # Users of the gem can override this method to provide different rules.
+  # See also Spree::Order#can_update_addresses? and Spree::User#can_update_addresses?
   def editable?
     new_record? || !Spree::Order.complete.with_address(self).any?
   end

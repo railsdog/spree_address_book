@@ -111,6 +111,12 @@ describe Spree::Order do
       expect( order.bill_address.user_id ).to be_nil
       expect( order.ship_address.user_id ).to be_nil
     end
+
+    it 'should indicate editing is not allowed if the order is complete' do
+      expect(order.can_update_addresses?).to eq(true)
+      order.update_attributes!(state: 'complete')
+      expect(order.can_update_addresses?).to eq(false)
+    end
   end
 
 end
