@@ -481,16 +481,22 @@ feature 'Admin UI address editing' do
       end
 
       context 'with duplicate addresses' do
+        let(:order) { create(:order_with_line_items, user: user, bill_address: nil, ship_address: nil) }
+        let(:second_order) { create(:order_with_line_items, user: user, bill_address: nil, ship_address: nil) }
+
         let(:a) { create(:address, user: user) }
+
         before(:each) do
           4.times do
             a.clone.save!
           end
+
+          user.addresses.reload
         end
 
         scenario 'deletes duplicates when editing an address' do
           expect(user.addresses.reload.count).to eq(5)
-          edit_address(user, Spree::AddressBookList.new(user).first.id, true, Spree.t(:first_name) => 'Changed')
+          edit_address(order, Spree::AddressBookList.new(user).first.id, true, Spree.t(:first_name) => 'Changed')
           expect(user.addresses.reload.count).to eq(1)
         end
 
@@ -499,7 +505,7 @@ feature 'Admin UI address editing' do
           address = create(:address, user: user)
           user.update_columns(bill_address_id: address.id, ship_address_id: address.id)
 
-          edit_address(user, user.bill_address_id, true, old_address)
+          edit_address(order, user.bill_address_id, true, old_address)
           expect(user.reload.addresses.count).to eq(1)
           expect(user.bill_address_id).not_to eq(address.id)
           expect(user.bill_address_id).to eq(user.addresses.first.id)
@@ -517,7 +523,7 @@ feature 'Admin UI address editing' do
           expect(primary).not_to eq(a.id)
           expect(primary).not_to eq(id)
 
-          edit_address(user, primary, true, Spree.t(:first_name) => 'Different')
+          edit_address(second_order, primary, true, Spree.t(:first_name) => 'Different')
           expect(Spree::AddressBookList.new(user).count).to eq(1)
 
           # 2 because address id=1 is not editable since completed_order owns it
