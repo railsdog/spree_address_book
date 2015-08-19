@@ -56,7 +56,7 @@ Spree::Address.class_eval do
   # Users of the gem can override this method to provide different rules.
   # See also Spree::Order#can_update_addresses? and Spree::User#can_update_addresses?
   def editable?
-    new_record? || !Spree::Order.complete.with_address(self).any?
+    new_record? || (self.deleted_at.nil? && !Spree::Order.complete.with_address(self).any?)
   end
 
   def can_be_deleted?
