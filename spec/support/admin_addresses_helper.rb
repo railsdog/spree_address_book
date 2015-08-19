@@ -19,7 +19,7 @@ module AdminAddresses
   # verification of selected addresses.
   def visit_user_addresses(user)
     visit spree.admin_addresses_path(user_id: user.id)
-    expect(page).to have_content(I18n.t(:new_address, scope: :address_book))
+    expect_new_address_link
 
     expect_user_addresses(user)
   end
@@ -28,10 +28,15 @@ module AdminAddresses
   # verification of selected addresses.
   def visit_order_addresses(order)
     visit spree.admin_addresses_path(order_id: order.id)
-    expect(page).to have_content(I18n.t(:new_address, scope: :address_book))
+    expect_new_address_link
 
     expect_order_addresses(order)
     expect_user_addresses(order.user) if order.user
+  end
+
+  # Expects the New Address or NEW ADDRESS link to be present on the page.
+  def expect_new_address_link
+    expect(page).to have_content(/#{Regexp.escape(I18n.t(:new_address, scope: :address_book))}/i)
   end
 
   # Expects +count+ addresses on the address listing page.
@@ -83,22 +88,51 @@ module AdminAddresses
     end
   end
 
+  # Visits the addresses page of the given +order_or_user+, then selects the
+  # specified +addresses+ (a Hash mapping one or more address types to IDs).
+  #
+  # Address type Hash keys:
+  #   :user_bill - User default billing address
+  #   :user_ship - User default shipping address
+  #   :order_bill - Order billing address
+  #   :order_ship - Order shipping address ID
+  #   :fail - If present and truthy, then flash success will not be expected.
+  def select_addresses(order_or_user, addresses={})
+    visit_addresses(order_or_user)
+
+    select_address(addresses[:user_bill], :user, :bill) if addresses[:user_bill]
+    select_address(addresses[:user_ship], :user, :ship) if addresses[:user_ship]
+    select_address(addresses[:order_bill], :order, :bill) if addresses[:order_bill]
+    select_address(addresses[:order_ship], :order, :ship) if addresses[:order_ship]
+
+    submit_addresses(!addresses[:fail])
+  end
+
   # Clicks on the given address's radio button for the given address type.
   #   user_or_order - :user or :order
   #   bill_or_ship - :bill or :ship
   def select_address(address, user_or_order, bill_or_ship)
     item_selector = address_radio_selector(address, user_or_order, bill_or_ship)
-    choose(item_selector[1..-1]) # Skip '#'
+    choose(item_selector[1..-1]) # Skip '#' character in ID string using 1..-1
   end
 
   # Returns a CSS selector to find the given address's radio button.
   def address_radio_selector(address, user_or_order, bill_or_ship)
-    "##{user_or_order}_#{bill_or_ship}_address_id_#{address.try(:id)}"
+    address = address.id if address.is_a?(Spree::Address)
+    "##{user_or_order}_#{bill_or_ship}_address_id_#{address}"
   end
 
-  # Clicks on the address page's submit button.
-  def submit_addresses
+  # Clicks on the address page's submit button.  If success is true, then
+  # expects to find a success message.  If false, it expects not to find a
+  # success message.  Otherwise, success or failure is not checked.
+  def submit_addresses(success=true)
     click_button I18n.t(:update_default_addresses, scope: :address_book)
+
+    if success == true
+      expect(page).to have_content(I18n.t(:default_addresses_updated, scope: :address_book))
+    elsif success == false
+      expect(page).not_to have_content(I18n.t(:default_addresses_updated, scope: :address_book))
+    end
   end
 
   # Returns a Regexp that will find the address's text, ignoring case.

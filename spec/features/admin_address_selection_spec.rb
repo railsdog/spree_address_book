@@ -448,12 +448,13 @@ feature 'Admin UI address selection' do
             l = Spree::AddressBookList.new(order, user)
             a = l.find(user.addresses[5])
 
-            visit_order_addresses(order)
-            select_address(a.primary_address, :order, :ship)
-            select_address(a.primary_address, :order, :bill)
-            select_address(a.primary_address, :user, :ship)
-            select_address(a.primary_address, :user, :bill)
-            submit_addresses
+            select_addresses(
+              order,
+              user_bill: a.primary_address,
+              user_ship: a.primary_address,
+              order_bill: a.primary_address,
+              order_ship: a.primary_address
+            )
 
             expect(order.reload.bill_address).to be_same_as(a)
             expect(order.bill_address_id).to eq(a.id)
@@ -467,25 +468,53 @@ feature 'Admin UI address selection' do
         context 'with a complete order' do
           let(:order) { completed_order }
 
-          scenario 'assigns primary address to user, cloned addresses to order' do
-            l = Spree::AddressBookList.new(order, user)
-            a = l.find(user.addresses[5])
+          context 'without editable addresses', js: true do
+            scenario 'cannot choose order address radio buttons' do
+              visit_addresses(order)
 
-            visit_order_addresses(order)
-            select_address(a.primary_address, :order, :ship)
-            select_address(a.primary_address, :order, :bill)
-            select_address(a.primary_address, :user, :ship)
-            select_address(a.primary_address, :user, :bill)
-            submit_addresses
+              expect(page).to have_css(address_radio_selector(order.bill_address, :order, :bill) + '[disabled]')
+              expect(page).to have_css(address_radio_selector(order.ship_address, :order, :ship) + '[disabled]')
 
-            expect(order.reload.bill_address).to be_same_as(a)
-            expect(order.ship_address).to be_same_as(a)
-            expect(order.bill_address_id).not_to eq(a.id)
-            expect(order.ship_address_id).not_to eq(a.id)
-            expect(order.ship_address_id).not_to eq(order.bill_address_id)
+              expect{ select_address(order.bill_address, :order, :bill) }.to raise_error
+            end
 
-            expect(user.reload.bill_address_id).to eq(a.id)
-            expect(user.ship_address_id).to eq(a.id)
+            scenario 'cannot submit different order addresses' do
+              visit_addresses(order)
+
+              # Re-enable the disabled order address radio buttons to test the backend controller
+              page.evaluate_script('$("input + label").remove()')
+              page.evaluate_script('$("input:disabled").prop("disabled", false).prop("readonly", false)')
+
+              select_address(order.bill_address, :order, :ship)
+              select_address(order.ship_address, :order, :bill)
+              submit_addresses(false)
+            end
+          end
+
+          context 'with editable addresses' do
+            make_addresses_editable
+
+            scenario 'assigns primary address to user, cloned addresses to order' do
+              l = Spree::AddressBookList.new(order, user)
+              a = l.find(user.addresses[5])
+
+              select_addresses(
+                order,
+                user_bill: a.primary_address,
+                user_ship: a.primary_address,
+                order_bill: a.primary_address,
+                order_ship: a.primary_address
+              )
+
+              expect(order.reload.bill_address).to be_same_as(a)
+              expect(order.ship_address).to be_same_as(a)
+              expect(order.bill_address_id).not_to eq(a.id)
+              expect(order.ship_address_id).not_to eq(a.id)
+              expect(order.ship_address_id).not_to eq(order.bill_address_id)
+
+              expect(user.reload.bill_address_id).to eq(a.id)
+              expect(user.ship_address_id).to eq(a.id)
+            end
           end
         end
       end
