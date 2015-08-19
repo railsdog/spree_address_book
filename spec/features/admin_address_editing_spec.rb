@@ -371,7 +371,7 @@ feature 'Admin UI address editing' do
           end
         end
 
-        context 'with a complete order' do
+        context 'with a complete but editable order' do
           let(:order) { completed_order }
           make_addresses_editable
 

@@ -1,5 +1,5 @@
 <div id="address" data-hook="address_fields">
-  <% if @order %>
+  <% if @order && @order.can_update_addresses? %>
     <div class="field address-row">
       <%= f.label :address_type, Spree.t(:address_type) %>
       <%

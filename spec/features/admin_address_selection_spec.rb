@@ -489,6 +489,15 @@ feature 'Admin UI address selection' do
               select_address(order.ship_address, :order, :bill)
               submit_addresses(false)
             end
+
+            scenario 'order addresses do not have an edit link' do
+              a = create(:address, user: order.user)
+              visit_addresses(order)
+
+              expect(page).to have_no_css("#edit-address-#{order.bill_address_id}")
+              expect(page).to have_no_css("#edit-address-#{order.ship_address_id}")
+              expect(page).to have_css("#edit-address-#{user.addresses.first.id}")
+            end
           end
 
           context 'with editable addresses' do

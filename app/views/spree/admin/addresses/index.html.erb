@@ -83,7 +83,9 @@
               </td>
             <% end %>
             <td class="actions">
-              <%= link_to_edit_url edit_admin_address_url(address.primary_address, user_id: @user.try(:id), order_id: @order.try(:id)), no_text: true, id: "edit-address-#{address.id}" %>
+              <% if address.primary_address.editable? %>
+                <%= link_to_edit_url edit_admin_address_url(address.primary_address, user_id: @user.try(:id), order_id: @order.try(:id)), no_text: true, id: "edit-address-#{address.id}" %>
+              <% end %>
             </td>
           </tr>
         <% end %>

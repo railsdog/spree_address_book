@@ -7,8 +7,10 @@
       <tr class="address <%= cycle('even', 'odd') %>" data-address="<%= a.id %>">
         <td><%= a %></td>
         <td>
-          <%= link_to Spree.t(:edit), edit_address_path(a), id: "edit_address_#{a.id}" %>&nbsp;
-          <%= link_to Spree.t(:remove), address_path(a), { :method => :delete, data: {:confirm => Spree.t(:are_you_sure)} } %>
+          <% if spree_current_user.can_update_addresses? %>
+            <%= link_to Spree.t(:edit), edit_address_path(a), id: "edit_address_#{a.id}" %>&nbsp;
+            <%= link_to Spree.t(:remove), address_path(a), { :method => :delete, data: {:confirm => Spree.t(:are_you_sure)} } %>
+          <% end %>
         </td>
       </tr>
     <% end %>
