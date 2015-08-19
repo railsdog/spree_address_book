@@ -3,7 +3,7 @@ Spree.user_class.class_eval do
 
   before_validation { uaddrcount(self.id ? self : nil, "U:B4VALIDATION") } # XXX
   before_save { uaddrcount(self.id ? self : nil, "U:B4SAVE") } # XXX
-  after_save { uaddrcount(self.id ? self : nil, "U:AftSAVE"); whereami } # XXX
+  after_save { uaddrcount(self.id ? self : nil, "U:AftSAVE"); whereami('U:AftSAVE') } # XXX
 
   before_validation :link_address
 

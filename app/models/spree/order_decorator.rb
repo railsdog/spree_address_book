@@ -190,7 +190,7 @@ Spree::Order.class_eval do
   # addresses to user addresses if matching addresses exist.
   def merge_user_addresses
     uaddrcount(user, "O:mua:b4", order: self) # XXX
-    whereami # XXX
+    whereami('O:mua:b4') # XXX
 
     result = true
 
@@ -213,7 +213,7 @@ Spree::Order.class_eval do
           end
         elsif self.bill_address.user_id.nil?
           puts "GIVE BILL TO USER" # XXX
-          whereami # XXX
+          whereami('GIVE BILL') # XXX
           result &= self.bill_address.update_attributes(user_id: self.user_id)
         end
       end
@@ -236,7 +236,7 @@ Spree::Order.class_eval do
             end
           elsif self.ship_address.user_id.nil?
             puts "GIVE SHIP TO USER" # XXX
-            whereami # XXX
+            whereami('GIVE SHIP') # XXX
             result &= self.ship_address.update_attributes(user_id: self.user_id) # TODO: just use =?
           end
         end
@@ -255,7 +255,7 @@ Spree::Order.class_eval do
   # in case the address is +editable?+
   def update_or_create_address(attributes)
     uaddrcount(user, "O:uoca:b4", order: self) # XXX
-    whereami
+    whereami('O:uoca:b4')
 
     if attributes[:id]
       address = Spree::Address.find(attributes[:id])

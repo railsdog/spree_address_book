@@ -12,7 +12,7 @@ Spree::Address.class_eval do
     $show_addr_creation ||= false
     if (self.user && $show_addr_creation) || step == :destroy
       puts "\e[32m==|#{step} address #{id.inspect} for user #{user_id.inspect}\e[0m"
-      whereami
+      whereami(step)
     end
   end
 

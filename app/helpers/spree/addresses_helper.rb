@@ -68,18 +68,33 @@ def addrmatrix(*addresses)
   end
 end
 
-# Prints a filtered backtrace. XXX
-def whereami
+# Prints a filtered backtrace with a Unicode box around it. XXX
+def whereami(msg=nil)
+  require 'io/console'
+
+  width = IO.console.winsize[1]
+  divider = "#{"\u2500" * (width - 3)}\u257c\e[0m"
+  leader = "\e[34m\u2502\e[0m"
+
+  puts "\e[34m\u256d#{divider}"
+
+  puts "#{leader}\e[1m#{msg}\e[0m" if msg
+
   bt = caller(1).reject{|l|
+    # Skip gems we don't care about
     l =~ %r{(gems/(act|factory|rack|rail|state|warden|capybara|rspec)|webrick)}
   }.map{|l|
+    # Skip leading paths
     l = l[/(dbook|rubies|gems).*/] || l
     l = l[%r{/gems.*}] || l
-    "\t\e[36m" + l.sub(
+
+    # Highlight the line
+    "#{leader}  \e[36m" + l.sub(
       %r{/([^:/]+):(\d+):in `([^']*)'},
       "/\e[1;33m\\1\e[0m:\e[34m\\2\e[0m:in `\e[1;35m\\3\e[0m'"
     )
   }
 
-  puts bt, "\n"
+  puts bt
+  puts "\e[34m\u2514#{divider}"
 end
