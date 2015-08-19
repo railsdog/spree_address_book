@@ -8,7 +8,8 @@ Spree.user_class.class_eval do
   before_validation :link_address
 
   # XXX / TODO: Probably want to get rid of this validation before deploying to
-  # production because there is old invalid data.
+  # production because there is old invalid data. (Or override logic in gem
+  # user to limit to new orders)
   validate :verify_address_owners
 
   # XXX

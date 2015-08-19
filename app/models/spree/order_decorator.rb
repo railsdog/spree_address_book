@@ -12,7 +12,8 @@ Spree::Order.class_eval do
   after_save { uaddrcount(user, "O:AftSAVE #{state} #{id.inspect}", order: self) } # XXX
 
   # XXX / TODO: Probably want to get rid of this validation before deploying to
-  # production because there is old invalid data.
+  # production because there is old invalid data.  Alternatively, limit
+  # validation to orders created after a certain date (override in user of gem)
   validate :verify_address_owners
 
   # XXX
