@@ -265,6 +265,36 @@ feature 'Admin UI address editing' do
                 expect(order.reload.bill_address_id).to eq(order.ship_address_id)
                 expect(order.bill_address.user_id).to eq(user.id)
               end
+
+              scenario 'editing a different address does not try to assign it to a slot by default' do
+                order.update_columns(ship_address_id: nil)
+                a = create(:address, user: order.user)
+
+                expect {
+                  edit_address(order, a.id, true, Spree.t(:first_name) => 'FirstEdit')
+                }.not_to change{
+                  [order.reload.ship_address_id, order.bill_address.comparison_attributes.except('user_id')]
+                }
+
+                expect(a.reload.firstname).to eq('FirstEdit')
+              end
+
+              scenario 'an edited address can be assigned to a slot' do
+                a = create(:address, user: order.user)
+
+                expect {
+                  edit_address(order, a, true, {Spree.t(:first_name) => 'TheFirst'}, :ship)
+                }.to change{ order.reload.ship_address_id }
+
+                expect(order.ship_address.firstname).to eq('TheFirst')
+                expect(order.ship_address).to be_same_as(a.reload)
+              end
+
+              scenario 'the address type controls are not visible on a completed order' do
+                order.update_attributes!(state: 'complete', completed_at: Time.now)
+                visit_edit_address(order, create(:address, user: order.user))
+                expect(page).to have_no_css('#address_address_type')
+              end
             end
 
             scenario 'editing the address links it to the user, leaving one object' do

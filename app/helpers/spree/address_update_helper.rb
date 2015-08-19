@@ -1,8 +1,7 @@
 module Spree::AddressUpdateHelper
-  # Returns params, requiring/permitting address-related parameters.  If
-  # necessary, a modified address params hash can be passed in +p+.
-  def address_params(p=nil)
-    (p || params.require(:address)).permit(Spree::PermittedAttributes.address_attributes)
+  # Returns params, requiring/permitting address-related parameters.
+  def address_params
+    @addr_attrs ||= params.require(:address).permit(Spree::PermittedAttributes.address_attributes)
   end
 
   # For use by #update actions of address controllers.  Pass the existing

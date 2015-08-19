@@ -15,40 +15,18 @@ module Spree
 
       def create
         country_id = Spree::Address.default.country.id
-        attrs = address_params(params.require(:address).except('address_type'))
-        @address = Spree::Address.new({ country_id: country_id, user: @user }.merge!(attrs))
+        @address = Spree::Address.new({ country_id: country_id, user: @user }.merge!(address_params))
 
         # Don't allow creating duplicate addresses on a user or guest order
         match = @addresses.find(@address)
         if match
           match.destroy_duplicates
-          match.update_all_attributes(attrs)
+          match.update_all_attributes(address_params)
           @address = match.primary_address
         end
 
         if @address.save
-          # Assign the new/modified address to the order
-          if @order
-            # FIXME: Honor can_update_addresses? and add a test for it
-
-            case params[:address][:address_type]
-            when "bill_address"
-              if @order.bill_address && !@order.bill_address.user && @order.bill_address.editable?
-                @order.bill_address.update_attributes(attrs)
-              else
-                @order.bill_address = @address
-              end
-
-            when "ship_address"
-              if @order.ship_address && !@order.ship_address.user && @order.ship_address.editable?
-                @order.ship_address.update_attributes(attrs)
-              else
-                @order.ship_address = @address
-              end
-            end
-
-            @order.save
-          end
+          assign_order_address if @order
         end
 
         errors = []
@@ -100,6 +78,7 @@ module Spree
         # XXX
 
         # FIXME: This seems wrong and incomplete TODO: tests don't trigger reassignment
+        # TODO: Is some of this block rendered irrelevant by order and user decorators?
         if @order && (@order.bill_address.try(:editable?) || @order.ship_address.try(:editable?))
           # The order's before_validation #delink_addresses hook will take care
           # of assigning/cloning addresses, so just set the address IDs.
@@ -120,10 +99,12 @@ module Spree
             end
           end
 
-          if !@order.save
+          if @order.errors.any?
             @address.errors.add(:order, @order.errors.full_messages.to_sentence)
           end
         end
+
+        assign_order_address if @order && @address.errors.empty?
 
         if @address.errors.any?
           flash[:error] = @address.errors.full_messages.uniq.to_sentence
@@ -220,6 +201,40 @@ module Spree
 
           if @order && @user && @user != @order.user
             raise "User ID does not match order's user ID!"
+          end
+        end
+
+        # Assigns a new or modified address to the order, if requested by the
+        # user via the address type combobox.  Saves the order.  Use
+        # @address.errors to detect any errors.
+        def assign_order_address
+          unless params[:address][:address_type]
+            @order.save
+          else
+            unless @order.can_update_addresses?
+              @order.save
+              @address.errors.add(:order, Spree.t(:addresses_not_editable, resource: @order.class.model_name.human))
+            else
+              case params[:address][:address_type]
+              when "bill_address"
+                if @order.bill_address && !@order.bill_address.user && @order.bill_address.editable?
+                  @order.bill_address.update_attributes(address_params)
+                else
+                  @order.bill_address = @address
+                end
+
+              when "ship_address"
+                if @order.ship_address && !@order.ship_address.user && @order.ship_address.editable?
+                  @order.ship_address.update_attributes(address_params)
+                else
+                  @order.ship_address = @address
+                end
+              end
+
+              unless @order.save
+                @address.errors.add(:order, @order.errors.full_messages.to_sentence)
+              end
+            end
           end
         end
     end

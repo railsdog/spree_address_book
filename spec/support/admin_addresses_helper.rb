@@ -34,6 +34,17 @@ module AdminAddresses
     expect_user_addresses(order.user) if order.user
   end
 
+  # Clicks the editing link for the given +address+ (numeric ID or address
+  # object), using the addresses page for the given +order_or_user+.  Verifies
+  # that the link led to the correct path.
+  def visit_edit_address(order_or_user, address)
+    address = address.id if address.is_a?(Spree::Address)
+
+    visit_addresses(order_or_user)
+    click_link "edit-address-#{address}"
+    expect(current_path).to eq(spree.edit_admin_address_path(address))
+  end
+
   # Expects the New Address or NEW ADDRESS link to be present on the page.
   def expect_new_address_link
     expect(page).to have_content(/#{Regexp.escape(I18n.t(:new_address, scope: :address_book))}/i)
@@ -165,8 +176,12 @@ module AdminAddresses
 
   # Fill in an already loaded admin address form with the given +values+
   # (either a Spree::Address, or a Hash mapping field names to field values).
+  # If +type+ is :user, :bill, or :ship, then the address type field (for order
+  # addresses) will be set to User, Billing, or Shipping, respectively (see
+  # #assign_order_address in Spree::Admin::AddressesController).
+  #
   # See also #fill_in_address in support/checkout_with_product.rb.
-  def fill_in_admin_address(values)
+  def fill_in_admin_address(values, type=nil)
     if values.is_a?(Spree::Address)
       fill_in Spree.t(:first_name), with: values.firstname
       fill_in Spree.t(:last_name), with: values.lastname
@@ -186,27 +201,31 @@ module AdminAddresses
     else
       raise "Invalid type #{values.class.name} for values"
     end
+
+    expect(page).to have_css('#address_address_type') if type
+    if type == :user
+      select Spree.t(:user), from: Spree.t(:address_type)
+    elsif type == :bill
+      select Spree.t(:billing_address), from: Spree.t(:address_type)
+    elsif type == :ship
+      select Spree.t(:shipping_address), from: Spree.t(:address_type)
+    end
   end
 
   # Visits the addresses pages for the given order or user, clicks the New
   # Address link, then fills out and submits the address form with +values+.
   # If +expect_success+ is true, the operation is expected to succeed.
-  # Otherwise, it is expected to fail.  If +type+ is :bill or :ship, then the
-  # address type field (for guest orders) will be set to Billing or Shipping,
-  # respectively.
+  # Otherwise, it is expected to fail.  If +type+ is :user, :bill, or :ship,
+  # then the address type field (for order addresses) will be set to User,
+  # Billing, or Shipping, respectively (see #assign_order_address in
+  # Spree::Admin::AddressesController).
   def create_address(order_or_user, expect_success, values, type=nil)
     visit_addresses(order_or_user)
 
     click_link I18n.t(:new_address, scope: :address_book)
     expect(current_path).to eq(spree.new_admin_address_path)
 
-    fill_in_admin_address(values)
-
-    if type == :bill
-      select Spree.t(:billing_address), from: Spree.t(:address_type)
-    elsif type == :ship
-      select Spree.t(:shipping_address), from: Spree.t(:address_type)
-    end
+    fill_in_admin_address(values, type)
 
     click_button Spree.t('actions.create')
 
@@ -224,24 +243,22 @@ module AdminAddresses
   # form with the given +values+ (a Hash passed iteratively to Capybara's
   # #fill_in method, or another Spree::Address to copy), then submits the form.
   # If +expect_success+ is true, then the operation is expected to succeed.
-  # Otherwise, it is expected to fail.
-  def edit_address(order_or_user, address_id, expect_success, values)
-    address_id = address_id.id if address_id.is_a?(Spree::Address)
-
-    visit_addresses(order_or_user)
-
-    click_link "edit-address-#{address_id}"
-    expect(current_path).to eq(spree.edit_admin_address_path(address_id))
-
-    fill_in_admin_address(values)
+  # Otherwise, it is expected to fail.  If +type+ is :user, :bill, or :ship,
+  # then the address type field (for order addresses) will be set to User,
+  # Billing, or Shipping, respectively (see #assign_order_address in
+  # Spree::Admin::AddressesController).
+  def edit_address(order_or_user, address_id, expect_success, values, type=nil)
+    visit_edit_address(order_or_user, address_id)
+    fill_in_admin_address(values, type)
     click_button Spree.t('actions.update')
 
     if expect_success
       expect(path_with_query).to eq(spree.admin_addresses_path(user_id: @user_id, order_id: @order_id))
       expect(page).to have_content(Spree.t(:account_updated))
     else
-      # TODO/FIXME - untested
-      expect(path_with_query).to eq(spree.update_admin_address_path(address_id, user_id: @user_id, order_id: @order_id))
+      # TODO Check flash message only?
+      expect(page).to have_no_content(Spree.t(:account_updated))
+      expect(path_with_query).to eq(spree.admin_address_path(address_id, user_id: @user_id, order_id: @order_id))
     end
   end
 end
