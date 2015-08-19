@@ -536,6 +536,21 @@ feature 'Admin UI address editing' do
           expect(completed_order.reload.bill_address_id).to eq(a.id)
           expect(completed_order.ship_address_id).to eq(a.id)
         end
+
+        scenario 'deduplicates addresses upon creation of an identical address' do
+          primary = Spree::AddressBookList.new(user).find(a).id
+
+          expect {
+            create_address(order, true, a, :ship)
+          }.to change{ user.reload.addresses.count }.by(-4)
+          expect(order.reload.ship_address_id).to eq(primary)
+          expect(order.bill_address_id).not_to eq(primary)
+
+          expect {
+            create_address(order, true, a, :bill)
+          }.not_to change{ user.reload.addresses.count }
+          expect(order.reload.bill_address_id).to eq(primary)
+        end
       end
     end
   end
