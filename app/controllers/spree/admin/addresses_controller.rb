@@ -9,6 +9,12 @@ module Spree
       before_filter :find_address, only: [:edit, :update, :destroy]
 
       def new
+        unless @order.try(:can_update_addresses?) || @user.try(:can_update_addresses?)
+          flash[:error] = Spree.t(:addresses_not_editable, resource: (@user || @order).try(:class).try(:model_name).try(:human))
+          redirect_to collection_url
+          return
+        end
+
         country_id = Spree::Address.default.country.id
         @address = Spree::Address.new(:country_id => country_id, user: @user)
       end

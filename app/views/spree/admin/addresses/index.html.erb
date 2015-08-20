@@ -1,4 +1,4 @@
-<% @parent_collection = (@order.class.name.split('::').last.humanize if @order) || (@user.class.name.split('::').last.humanize if @user) %>
+<% @parent_collection = (@order.class.model_name.human if @order) || (@user.class.model_name.human if @user) %>
 <% if @order %>
   <%= render :partial => 'spree/admin/shared/order_tabs', :locals => { :current => 'Addresses' } %>
 <% end %>
@@ -10,7 +10,12 @@
 <% end %>
 
 <% content_for :page_actions do %>
-  <li><%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'plus' %></li>
+  <%# New address button %>
+  <% allow_create = @user.try(:can_update_addresses?) || @order.try(:can_update_addresses?) %>
+  <% if allow_create %>
+    <li><%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'plus', id: 'new_address_link' %></li>
+  <% end %>
+
   <li><%= button_link_to "Back to #{@parent_collection}", redirect_back_admin_addresses_url(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'arrow-left' %></li>
 <% end %>
 
@@ -19,8 +24,13 @@
 
   <% if @addresses.blank? %>
     <div class="alpha twelve columns no-objects-found">
-      No Addresses found,
-      <%= link_to "Add one", new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)) %>!
+      <% msg = Spree.t(:no_resource_found, resource: @parent_collection.pluralize) %>
+      <% if allow_create %>
+        <%= msg %>,
+        <%= link_to "Add one", new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)) %>!
+      <% else %>
+        <%= msg %>
+      <% end %>
     </div>
   <% else %>
     <%= form_for @user || @order, url: update_addresses_admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id)), method: :put do |f| %>
