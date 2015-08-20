@@ -23,79 +23,85 @@
       <%= link_to "Add one", new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)) %>!
     </div>
   <% else %>
-    <table id="addresses">
-      <thead>
-        <tr class="<%= cycle('even', 'odd') %>">
-          <th><%= I18n.t(:address, scope: :address_book) %></th>
-          <% if @user %>
-            <th class="align-center"><%= I18n.t(:def_bill, scope: :address_book) %></th>
-            <th class="align-center"><%= I18n.t(:def_ship, scope: :address_book) %></th>
-          <% end %>
-          <% if @order %>
-            <th class="align-center"><%= I18n.t(:order_bill, scope: :address_book) %></th>
-            <th class="align-center"><%= I18n.t(:order_ship, scope: :address_book) %></th>
-          <% end %>
-          <th class="actions"></th>
-        </tr>
-      </thead>
-
-      <tbody>
-      <%= form_for @user || @order, url: update_addresses_admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id)), method: :put do |f| %>
-        <% @addresses.each do |address| %>
-          <tr class="<%= cycle('even', 'odd') %>" id="address-<%= address.id %>">
-            <td><%= address %></td>
+    <%= form_for @user || @order, url: update_addresses_admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id)), method: :put do |f| %>
+      <div class="row">
+        <div class="alpha twelve columns">
+          <%= f.submit I18n.t(:update_default_addresses, scope: :address_book) %>
+        </div>
+      </div>
+      <table id="addresses">
+        <thead>
+          <tr class="<%= cycle('even', 'odd') %>">
+            <th><%= I18n.t(:address, scope: :address_book) %></th>
             <% if @user %>
-              <td class="align-center">
-                <%= radio_button_tag 'user[bill_address_id]',
-                  address.user_bill.try(:id) || address.id,
-                  address.user_bill.present? %>
-                <%= label_tag "user_bill_address_id_#{address.id}", '' %>
-              </td>
-              <td class="align-center">
-                <%= radio_button_tag 'user[ship_address_id]',
-                  address.user_ship.try(:id) || address.id,
-                  address.user_ship.present? %>
-                <%= label_tag "user_ship_address_id_#{address.id}", '' %>
-              </td>
+              <th class="align-center"><%= I18n.t(:def_bill, scope: :address_book) %></th>
+              <th class="align-center"><%= I18n.t(:def_ship, scope: :address_book) %></th>
             <% end %>
             <% if @order %>
-              <% disable = !@order.can_update_addresses? %>
-
-              <td class="align-center">
-                <%=
-                  radio_button_tag 'order[bill_address_id]',
-                    address.order_bill.try(:id) || address.id,
-                    address.order_bill.present?,
-                    disabled: disable,
-                    readonly: disable
-                %>
-                <%= label_tag "order_bill_address_id_#{address.id}", '' %>
-              </td>
-              <td class="align-center">
-                <%=
-                  radio_button_tag 'order[ship_address_id]',
-                    address.order_ship.try(:id) || address.id,
-                    address.order_ship.present?,
-                    disabled: disable,
-                    readonly: disable
-                %>
-                <%= label_tag "order_ship_address_id_#{address.id}", '' %>
-              </td>
+              <th class="align-center"><%= I18n.t(:order_bill, scope: :address_book) %></th>
+              <th class="align-center"><%= I18n.t(:order_ship, scope: :address_book) %></th>
             <% end %>
-            <td class="actions">
-              <% if address.primary_address.editable? %>
-                <%= link_to_edit_url edit_admin_address_url(address.primary_address, user_id: @user.try(:id), order_id: @order.try(:id)), no_text: true, id: "edit-address-#{address.id}" %>
-              <% end %>
-            </td>
+            <th class="actions"></th>
           </tr>
-        <% end %>
-        <div class="row">
-          <div class="alpha twelve columns">
-            <%= f.submit I18n.t(:update_default_addresses, scope: :address_book) %>
-          </div>
-        </div>
-      <% end %>
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody>
+          <% @addresses.each do |address| %>
+            <tr class="<%= cycle('even', 'odd') %>" id="address-<%= address.id %>">
+              <td><%= address %></td>
+              <% if @user %>
+                <% disable_user = !@user.can_update_addresses? %>
+
+                <td class="align-center">
+                  <%=
+                    radio_button_tag 'user[bill_address_id]',
+                      address.user_bill.try(:id) || address.id,
+                      address.user_bill.present?,
+                      disabled: disable_user
+                    %>
+                  <%= label_tag "user_bill_address_id_#{address.id}", '' %>
+                </td>
+                <td class="align-center">
+                  <%=
+                    radio_button_tag 'user[ship_address_id]',
+                      address.user_ship.try(:id) || address.id,
+                      address.user_ship.present?,
+                      disabled: disable_user
+                    %>
+                  <%= label_tag "user_ship_address_id_#{address.id}", '' %>
+                </td>
+              <% end %>
+              <% if @order %>
+                <% disable_order = !@order.can_update_addresses? %>
+
+                <td class="align-center">
+                  <%=
+                    radio_button_tag 'order[bill_address_id]',
+                      address.order_bill.try(:id) || address.id,
+                      address.order_bill.present?,
+                      disabled: disable_order
+                    %>
+                  <%= label_tag "order_bill_address_id_#{address.id}", '' %>
+                </td>
+                <td class="align-center">
+                  <%=
+                    radio_button_tag 'order[ship_address_id]',
+                      address.order_ship.try(:id) || address.id,
+                      address.order_ship.present?,
+                      disabled: disable_order
+                    %>
+                  <%= label_tag "order_ship_address_id_#{address.id}", '' %>
+                </td>
+              <% end %>
+              <td class="actions">
+                <% if address.primary_address.editable? %>
+                  <%= link_to_edit_url edit_admin_address_url(address.primary_address, user_id: @user.try(:id), order_id: @order.try(:id)), no_text: true, id: "edit-address-#{address.id}" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
   <% end %>
 </fieldset>
