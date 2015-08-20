@@ -189,6 +189,14 @@ feature 'Admin UI address editing' do
             expect(guest_order.bill_address.firstname.downcase).to eq(guest_order.bill_address.firstname)
             expect(guest_order.ship_address).to be_nil
           end
+
+          scenario 'cannot create an address on a completed guest order' do
+            visit_addresses(guest_order)
+            expect(page).to have_content(
+              Regexp.new(Regexp.escape(Spree.t(:addresses_not_editable, resource: Spree::Order.model_name.human)), 'i')
+            )
+            expect(page).to have_no_css('#new_address_link')
+          end
         end
       end
     end

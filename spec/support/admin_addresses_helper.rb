@@ -19,7 +19,7 @@ module AdminAddresses
   # verification of selected addresses.
   def visit_user_addresses(user)
     visit spree.admin_addresses_path(user_id: user.id)
-    expect_new_address_link
+    expect_address_list
 
     expect_user_addresses(user)
   end
@@ -28,7 +28,7 @@ module AdminAddresses
   # verification of selected addresses.
   def visit_order_addresses(order)
     visit spree.admin_addresses_path(order_id: order.id)
-    expect_new_address_link
+    expect_address_list
 
     expect_order_addresses(order)
     expect_user_addresses(order.user) if order.user
@@ -45,9 +45,9 @@ module AdminAddresses
     expect(current_path).to eq(spree.edit_admin_address_path(address))
   end
 
-  # Expects the New Address or NEW ADDRESS link to be present on the page.
-  def expect_new_address_link
-    expect(page).to have_content(/#{Regexp.escape(I18n.t(:new_address, scope: :address_book))}/i)
+  # Expects the page to have an admin address list.
+  def expect_address_list
+    expect(page).to have_css('[data-hook="admin_addresses"]')
   end
 
   # Expects +count+ addresses on the address listing page.
@@ -222,6 +222,7 @@ module AdminAddresses
   def create_address(order_or_user, expect_success, values, type=nil)
     visit_addresses(order_or_user)
 
+    expect(page).to have_css('#new_address_link')
     click_link I18n.t(:new_address, scope: :address_book)
     expect(current_path).to eq(spree.new_admin_address_path)
 
