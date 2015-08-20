@@ -25,7 +25,7 @@
 
   <% if @addresses.blank? %>
     <div class="alpha twelve columns no-objects-found">
-      <% msg = Spree.t(:no_resource_found, resource: @parent_collection.pluralize) %>
+      <% msg = Spree.t(:no_resource_found, resource: @parent_collection.try(:pluralize)) %>
       <% if allow_create %>
         <%= msg %>,
         <%= link_to "Add one", new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)) %>!

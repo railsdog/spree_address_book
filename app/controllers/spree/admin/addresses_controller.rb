@@ -222,6 +222,11 @@ module Spree
 
           authorize! action, @user if @user
           authorize! action, @order if @order
+
+          if @order.nil? && @user.nil?
+            flash[:error] = Spree.t(:no_resource_found, resource: 'order or user')
+            redirect_to admin_path
+          end
         end
 
         # Assigns a new or modified address to the order, if requested by the

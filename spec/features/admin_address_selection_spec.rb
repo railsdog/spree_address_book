@@ -9,6 +9,12 @@ feature 'Admin UI address selection' do
   let(:shipped_order) { create(:shipped_order, user: user) }
   let(:guest_order) { strip_order_address_users(create(:order_with_line_items, user: nil, email: 'guest@example.com')) }
 
+  scenario 'redirects back to the main admin page if no order or user were found' do
+    visit spree.admin_addresses_path
+    expect(page).to have_content(Spree.t(:no_resource_found, resource: 'order or user'))
+    expect(current_path).to eq('/admin')
+  end
+
   describe 'User account address list' do
     scenario 'lists no addresses for a user with no addresses' do
       visit_user_addresses user
