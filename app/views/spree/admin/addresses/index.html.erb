@@ -1,7 +1,5 @@
 <% @parent_collection = (@order.class.model_name.human if @order) || (@user.class.model_name.human if @user) %>
-<% if @order %>
-  <%= render :partial => 'spree/admin/shared/order_tabs', :locals => { :current => 'Addresses' } %>
-<% end %>
+<% allow_create = @user.try(:can_update_addresses?) || @order.try(:can_update_addresses?) %>
 
 <% content_for :page_title do %>
   <% if @user && !@order %>
@@ -11,12 +9,15 @@
 
 <% content_for :page_actions do %>
   <%# New address button %>
-  <% allow_create = @user.try(:can_update_addresses?) || @order.try(:can_update_addresses?) %>
   <% if allow_create %>
     <li><%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'plus', id: 'new_address_link' %></li>
   <% end %>
 
   <li><%= button_link_to "Back to #{@parent_collection}", redirect_back_admin_addresses_url(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'arrow-left' %></li>
+<% end %>
+
+<% if @order %>
+  <%= render :partial => 'spree/admin/shared/order_tabs', :locals => { :current => 'Addresses' } %>
 <% end %>
 
 <fieldset data-hook="admin_addresses" id="admin_user_edit_addresses" class="alpha twelve columns">
@@ -35,10 +36,25 @@
   <% else %>
     <%= form_for @user || @order, url: update_addresses_admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id)), method: :put do |f| %>
       <div class="row">
-        <div class="alpha twelve columns">
-          <%= f.submit I18n.t(:update_default_addresses, scope: :address_book) %>
-        </div>
+        <%# Form submission button %>
+        <% if allow_create %>
+          <div class="alpha five columns">
+            <%= f.submit I18n.t(:update_default_addresses, scope: :address_book) %>
+          </div>
+        <% end %>
+
+        <%# Warnings about disabled address updates %>
+        <% [ @order, @user ].compact.each do |o| %>
+          <% unless o.can_update_addresses? %>
+            <div class="<%= allow_create ? 'omega seven' : cycle('alpha six', 'omega six') %> columns">
+              <div class="alert address_error">
+                <%= Spree.t(:addresses_not_editable, resource: o.class.model_name.human) %>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
       </div>
+
       <table id="addresses">
         <thead>
           <tr class="<%= cycle('even', 'odd') %>">
