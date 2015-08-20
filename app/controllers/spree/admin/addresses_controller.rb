@@ -190,6 +190,8 @@ module Spree
           if @user && @address.try(:user) && @user != @address.user
             raise "Address user does not match user being edited!"
           end
+
+          authorize! action, @address if @address
         end
 
         # Load a deduplicated list of order and user addresses.
@@ -217,6 +219,9 @@ module Spree
           if @order && @user && @user != @order.user
             raise "User ID does not match order's user ID!"
           end
+
+          authorize! action, @user if @user
+          authorize! action, @order if @order
         end
 
         # Assigns a new or modified address to the order, if requested by the
