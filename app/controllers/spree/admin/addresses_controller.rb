@@ -141,11 +141,20 @@ module Spree
       def update_addresses
         uaddrcount(@user, "AAC:ua:b4", order: @order) # XXX
 
-        update_object_addresses(@user, params[:user]) if @user
-        update_object_addresses(@order, params[:order]) if @order
+        errors = []
 
-        if (@user && @user.errors.any?) || (@order && @order.errors.any?)
-          flash[:error] = (@user.errors.full_messages + @order.errors.full_messages).to_sentence
+        if @user
+          update_object_addresses(@user, params[:user])
+          errors.concat @user.errors.full_messages
+        end
+
+        if @order
+          update_object_addresses(@order, params[:order])
+          errors.concat @order.errors.full_messages
+        end
+
+        if errors.any?
+          flash[:error] = (@user.try(:errors).try(:full_messages) + @order.errors.full_messages).to_sentence
         else
           flash[:success] = I18n.t(:default_addresses_updated, scope: :address_book)
         end
