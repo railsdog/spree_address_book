@@ -114,9 +114,23 @@ describe Spree::Order do
 
     it 'should indicate editing is not allowed if the order is complete' do
       expect(order.can_update_addresses?).to eq(true)
-      order.update_attributes!(state: 'complete')
+      order.update_attributes!(state: 'complete', completed_at: Time.now)
       expect(order.can_update_addresses?).to eq(false)
     end
-  end
 
+    it 'should not change its address IDs if saved unmodified when complete' do
+      a = create(:address)
+      order.update_attributes!(state: 'complete', completed_at: Time.now, bill_address: a, ship_address: a)
+
+      5.times do |t|
+        begin
+          expect {
+            order.save!
+          }.not_to change{ [order.reload.bill_address_id, order.ship_address_id] }
+        rescue => e
+          raise e.class, "Loop #{t}: #{e}"
+        end
+      end
+    end
+  end
 end
