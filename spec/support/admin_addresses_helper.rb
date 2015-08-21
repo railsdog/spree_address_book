@@ -302,4 +302,32 @@ RSpec.configure do |c|
       end
     end
   end
+
+  # Sets up before and after blocks that enable or disable address assignment
+  # for users if +enabled+ is true or false, respectively.
+  def force_user_address_updates(enabled)
+    before(:each) do
+      # Allow or disallow user address assignment
+      Spree::User.class_eval do
+        alias_method :orig_can_update_addresses?, :can_update_addresses?
+
+        if enabled
+          def can_update_addresses?
+            true
+          end
+        else
+          def can_update_addresses?
+            false
+          end
+        end
+      end
+    end
+
+    after(:each) do
+      # Restore original #can_update_addresses? method
+      Spree::User.class_eval do
+        alias_method :can_update_addresses?, :orig_can_update_addresses?
+      end
+    end
+  end
 end

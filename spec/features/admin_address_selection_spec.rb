@@ -140,6 +140,32 @@ feature 'Admin UI address selection' do
         expect_address_count 5
       end
     end
+
+    context 'with address updates disabled' do
+      force_user_address_updates(false)
+
+      scenario 'disables user address selection radio buttons' do
+        user.update_attributes!(
+          bill_address: create(:address, user: user),
+          ship_address: create(:address, user: user)
+        )
+
+        visit_addresses user
+
+        expect(page).to have_css(address_radio_selector(user.bill_address, :user, :bill) + '[disabled]')
+        expect(page).to have_css(address_radio_selector(user.ship_address, :user, :ship) + '[disabled]')
+      end
+
+      scenario 'does not allow address creation' do
+        user.addresses.delete_all
+
+        visit_addresses user
+
+        expect(page).to have_content(Spree.t(:no_resource_found, resource: Spree::Address.model_name.human.pluralize))
+        expect(page).to have_content(Spree.t(:addresses_not_editable, resource: Spree::User.model_name.human))
+        expect(page).to have_no_css('#new_address_link')
+      end
+    end
   end
 
 
