@@ -57,15 +57,6 @@ Spree.user_class.class_eval do
     r
   end
 
-  def save_default_addresses(billing, shipping, address)
-    uaddrcount self, "U:sda:b4" # XXX
-    # TODO: is this supposed to set both to the same address ID?
-    r = update_attributes(bill_address_id: address.id) if billing.present?
-    r &= update_attributes(ship_address_id: address.id) if shipping.present?
-    uaddrcount self, "U:sda:aft(#{r.inspect}/#{errors.full_messages})" # XXX
-    r
-  end
-
   # This is the method that Spree calls when the user has requested that the
   # address be their default address. Spree makes a copy from the order. Instead
   # we just want to reference the address so we don't create extra address objects.
