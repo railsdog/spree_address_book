@@ -185,7 +185,10 @@ Spree::Order.class_eval do
       self.bill_address = bill_copy
     end
 
-    if ship_address && (ship_address.user_id || (ship_address.id && ship_address.id == bill_address.try(:id)) || ship_address == bill_address)
+    if ship_address && (
+        ship_address.user_id ||
+        (ship_address.id && ship_address.id == bill_address.try(:id)) ||
+        (ship_address.changed? && ship_address == bill_address))
       ship_copy = ship_address.clone_without_user
       ship_copy.save!
       self.ship_address = ship_copy
