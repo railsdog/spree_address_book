@@ -62,6 +62,8 @@ Spree.user_class.class_eval do
   # we just want to reference the address so we don't create extra address objects.
   def persist_order_address(order)
     uaddrcount self, "U:poa:b4", order: order # XXX
+    return false unless can_update_addresses?
+
     r = update_attributes bill_address_id: order.bill_address_id
 
     # May not be present if delivery step has been removed
