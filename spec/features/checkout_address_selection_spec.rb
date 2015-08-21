@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe "Address selection during checkout" do
-  include_context "support helper"
   include_context "store products"
 
   describe "as guest user" do

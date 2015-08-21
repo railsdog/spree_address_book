@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe "User editing saved address during checkout", :js => true do
-  include_context "support helper"
   include_context "store products"
   include_context "checkout with product"
   include_context "user with address"

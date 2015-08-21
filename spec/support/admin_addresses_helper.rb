@@ -55,7 +55,7 @@ module AdminAddresses
     if count == 0
       expect{page.find('#addresses tbody tr')}.to raise_error(/CSS/i)
     else
-      expect(page.all('#addresses tbody tr').count).to eq(count)
+      expect(page).to have_css('#addresses tbody tr', count: count)
     end
   end
 
@@ -66,7 +66,13 @@ module AdminAddresses
     expect_selected(user.bill_address, :user, :bill)
     expect_selected(user.ship_address, :user, :ship)
 
-    user.addresses.each do |a|
+    expect_list_addresses(user.addresses)
+  end
+
+  # Expects every address in the given +list+ to be displayed on the page,
+  # using #content_regex to match deduplicated addresses.
+  def expect_list_addresses(list)
+    list.each do |a|
       expect(page).to have_content(content_regex(a))
     end
   end
@@ -174,21 +180,20 @@ module AdminAddresses
     "#{uri.path}?#{uri.query}"
   end
 
-  # Fill in an already loaded admin address form with the given +values+
-  # (either a Spree::Address, or a Hash mapping field names to field values).
-  # If +type+ is :user, :bill, or :ship, then the address type field (for order
+  # Fill in an already loaded address form with the given +values+ (either a
+  # Spree::Address, or a Hash mapping field names to field values).  If +type+
+  # is :user, :bill, or :ship, then the address type field (for order
   # addresses) will be set to User, Billing, or Shipping, respectively (see
-  # #assign_order_address in Spree::Admin::AddressesController).
-  #
-  # See also #fill_in_address in support/checkout_with_product.rb.
-  def fill_in_admin_address(values, type=nil)
+  # #assign_order_address in Spree::Admin::AddressesController).  The +type+
+  # parameter only works for admin UI address forms, not frontend.
+  def fill_in_address(values, type=nil)
     if values.is_a?(Spree::Address)
       fill_in Spree.t(:first_name), with: values.firstname
       fill_in Spree.t(:last_name), with: values.lastname
       fill_in Spree.t(:company), with: values.company if Spree::Config[:company]
-      fill_in Spree.t(:street_address), with: values.address1
-      fill_in Spree.t(:street_address_2), with: values.address2
-      select values.country.name, from: Spree.t(:country)
+      fill_in Spree.t(:address1), with: values.address1
+      fill_in Spree.t(:address2), with: values.address2
+      select values.country.name, from: Spree.t(:country) if values.country
       fill_in Spree.t(:city), with: values.city
       fill_in Spree.t(:zip), with: values.zipcode
       select values.state.name, from: Spree.t(:state)
@@ -196,7 +201,11 @@ module AdminAddresses
       fill_in Spree.t(:alternative_phone), with: values.alternative_phone if Spree::Config[:alternative_shipping_phone]
     elsif values.is_a?(Hash)
       values.each do |k, v|
-        fill_in k, with: v
+        if k == Spree.t(:country) || k == Spree.t(:state)
+          select v, from: k
+        else
+          fill_in k, with: v
+        end
       end
     else
       raise "Invalid type #{values.class.name} for values"
@@ -226,7 +235,7 @@ module AdminAddresses
     click_link I18n.t(:new_address, scope: :address_book)
     expect(current_path).to eq(spree.new_admin_address_path)
 
-    fill_in_admin_address(values, type)
+    fill_in_address(values, type)
 
     click_button Spree.t('actions.create')
 
@@ -250,7 +259,7 @@ module AdminAddresses
   # Spree::Admin::AddressesController).
   def edit_address(order_or_user, address_id, expect_success, values, type=nil)
     visit_edit_address(order_or_user, address_id)
-    fill_in_admin_address(values, type)
+    fill_in_address(values, type)
     click_button Spree.t('actions.update')
 
     if expect_success

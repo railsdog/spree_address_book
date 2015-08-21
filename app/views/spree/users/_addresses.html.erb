@@ -1,6 +1,6 @@
 <h3><%= I18n.t(:shipping_addresses, :scope => :address_book) %></h3>
 <% if spree_current_user.addresses.present? %>
-<table id="user_addresses">
+<table id="addresses">
   <tbody>
     <% Spree::AddressBookList.new(spree_current_user).each do |address| %>
       <% a = address.primary_address %>
@@ -9,7 +9,7 @@
         <td>
           <% if spree_current_user.can_update_addresses? %>
             <%= link_to Spree.t(:edit), edit_address_path(a), id: "edit_address_#{a.id}" %>&nbsp;
-            <%= link_to Spree.t(:remove), address_path(a), { :method => :delete, data: {:confirm => Spree.t(:are_you_sure)} } %>
+            <%= link_to Spree.t(:remove), address_path(a), { :method => :delete, id: "remove_address_#{a.id}", data: {:confirm => Spree.t(:are_you_sure)} } %>
           <% end %>
         </td>
       </tr>

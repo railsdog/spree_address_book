@@ -1,19 +1,22 @@
 require 'spec_helper'
 
-describe "User editing addresses for his account" do
-  include_context "support helper"
+feature 'User editing addresses for their account' do
   include_context "user with address"
 
   before(:each) do
-    visit spree.root_path
-    click_link "Login"
-    sign_in!(user)
-    click_link "My Account"
+    visit_account user
   end
 
   it "should see list of addresses saved for account" do
     page.should have_content("Addresses")
-    page.should have_selector("#user_addresses > tbody > tr", :count => user.addresses.count)
+    expect(user.addresses.count).not_to eq(0)
+    expect_address_count(user.addresses.count)
+  end
+
+  it 'should show no addresses for a user with no addresses' do
+    user.addresses.delete_all
+    visit spree.account_path
+    expect_address_count(0)
   end
 
   it 'should deduplicate addresses shown in the account list' do
@@ -21,20 +24,22 @@ describe "User editing addresses for his account" do
       create(:address, user: user).clone.save!
     end
 
-    visit '/account'
-    expect(page).to have_selector('#user_addresses > tbody > tr', count: user.addresses.count - 5)
+    visit spree.account_path # reload
+    expect_address_count(user.addresses.count - 5)
   end
 
-  it "should be able to add address" do
+  scenario 'can create a new address', js: true do
     expect {
-      click_link I18n.t(:add_new_shipping_address, :scope => :address_book)
-      fill_in Spree.t(:first_name), with: 'First'
-      fill_in Spree.t(:last_name), with: 'Last'
-      fill_in Spree.t(:address1), with: '123 Fake'
-      fill_in Spree.t(:city), with: 'Somewhere'
-      fill_in Spree.t(:zipcode), with: '12345'
-      fill_in Spree.t(:phone), with: '555-555-5555'
-      click_button 'Save'
+      create_frontend_address(
+        true,
+        Spree.t(:first_name) => 'First',
+        Spree.t(:last_name) => 'Last',
+        Spree.t(:address1) => '123 Fake',
+        Spree.t(:city) => 'Somewhere',
+        Spree.t(:state) => Spree::State.first.name,
+        Spree.t(:zipcode) => '12345',
+        Spree.t(:phone) => '555-555-5555'
+      )
     }.to change{user.addresses.count}.by(1)
   end
 
@@ -42,36 +47,16 @@ describe "User editing addresses for his account" do
     address = create(:address, user: user)
 
     expect {
-      click_link I18n.t(:add_new_shipping_address, :scope => :address_book)
-      fill_in Spree.t(:first_name), with: address.firstname
-      fill_in Spree.t(:last_name), with: address.lastname
-      fill_in Spree.t(:company), with: address.company
-      fill_in Spree.t(:address1), with: address.address1
-      fill_in Spree.t(:address2), with: address.address2
-      fill_in Spree.t(:city), with: address.city
-      fill_in Spree.t(:zipcode), with: address.zipcode
-      fill_in Spree.t(:phone), with: address.phone
-      select address.state.try(:name) || address.state_name, from: Spree.t(:state)
-      click_button 'Save'
+      create_frontend_address(true, address)
     }.not_to change{user.addresses.count}
   end
 
   it "should be able to edit address", :js => true do
-    bypass_js_confirm
-
-    within("#user_addresses > tbody > tr:first-child") do
-      click_link Spree.t(:edit)
-    end
-    current_path.should == spree.edit_address_path(address)
-
     new_street = Faker::Address.street_address
-    fill_in Spree.t(:address1), :with => new_street
-    click_button "Update"
-    current_path.should == spree.account_path
-    page.should have_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))
+    edit_frontend_address(user.addresses.first, true, Spree.t(:address1) => new_street)
 
-    within("#user_addresses > tbody > tr:first-child") do
-      page.should have_content(new_street)
+    within("#addresses > tbody > tr:first-child") do
+      expect(page).to have_content(new_street)
     end
   end
 
@@ -79,23 +64,11 @@ describe "User editing addresses for his account" do
     address2 = address.clone
     address2.address2 = 'Unique'
     address2.save!
-
     expect(address2).to be_editable
 
-    visit spree.account_path
-
-    within("#user_addresses > tbody > tr:first-child") do
-      click_link Spree.t(:edit)
-    end
-    expect(current_path).to eq(spree.edit_address_path(address2))
-
     expect {
-      fill_in Spree.t(:address2), :with => address.address2
-      click_button "Update"
-    }.to change{ user.addresses.count }.by(-1)
-
-    expect(current_path).to eq(spree.account_path)
-    expect(page).to have_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))
+      edit_frontend_address(nil, true, Spree.t(:address2) => address.address2)
+    }.to change{ user.reload.addresses.count }.by(-1)
 
     expect{address2.reload}.to raise_error
   end
@@ -114,43 +87,25 @@ describe "User editing addresses for his account" do
     expect(address2).not_to be_editable
 
     visit spree.account_path
-
-    expect(page).to have_css('#user_addresses > tbody > tr', count: 2)
-
-    within("#user_addresses > tbody > tr:first-child") do
-      click_link Spree.t(:edit)
-    end
-    expect(current_path).to eq(spree.edit_address_path(address2))
+    expect_address_count(2)
 
     expect {
-      fill_in_address address
-      click_button "Update"
+      edit_frontend_address(address2, true, address)
     }.to change{ user.addresses.count }.by(-1)
 
     expect(address2.reload.user_id).to be_nil
-
-    expect(current_path).to eq(spree.account_path)
-    expect(page).to have_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))
   end
 
   it "should be able to remove address", :js => true do
-    bypass_js_confirm
-
     expect{
-      within("#user_addresses > tbody > tr:first-child") do
-        click_link Spree.t(:remove)
-      end
-      current_path.should == spree.account_path
+      remove_frontend_address(address, true)
     }.to change{ user.addresses.count }.by(-1)
-
-    # flash message
-    page.should have_content("removed")
 
     # header still exists for the area - even if it is blank
     page.should have_content("Addresses")
 
     # table is not displayed unless addresses are available
-    page.should_not have_selector("#user_addresses")
+    page.should_not have_selector("#addresses")
   end
 
   it 'updates orders with deduplicated addresses', js: true do
@@ -170,10 +125,9 @@ describe "User editing addresses for his account" do
     expect(user.addresses.count).to eq(6)
 
     visit spree.account_path
-    expect(page).to have_css('tr.address', count: 1)
-    click_link "edit_address_#{primary}"
-    fill_in Spree.t(:first_name), with: 'First'
-    click_button 'Update'
+    expect_address_count(1)
+
+    edit_frontend_address(primary, true, Spree.t(:first_name) => 'First')
 
     expect(order.reload.bill_address_id).to eq(primary)
     expect(order.ship_address_id).to eq(primary)

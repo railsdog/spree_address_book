@@ -1,4 +1,6 @@
 Spree::Address.class_eval do
+  # This accessor allows the `f.select :address_type` to work in the admin
+  # _address_form partial.
   attr_accessor :address_type
 
   # XXX

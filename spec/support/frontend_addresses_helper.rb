@@ -1,21 +1,100 @@
 module FrontendAddresses
-  # Fills in a frontend checkout or user account address form.  Wrap with
-  # within('#shipping') or within('#billing') to fill out a specific address
-  # type during checkout.
-  def fill_in_address(address)
-    fill_in Spree.t(:first_name), :with => address.firstname
-    fill_in "Last Name", :with => address.lastname
-    fill_in "Company", :with => address.company if Spree::Config[:company]
-    fill_in Spree.t(:address1), :with => address.address1
-    fill_in Spree.t(:address2), :with => address.address2
-    select address.state.name, :from => Spree.t(:state)
-    fill_in Spree.t(:city), :with => address.city
-    fill_in Spree.t(:zip), :with => address.zipcode
-    fill_in Spree.t(:phone), :with => address.phone
-    fill_in Spree.t(:alternative_phone), :with => address.alternative_phone if Spree::Config[:alternative_shipping_phone]
+  # Visits the frontend account page, then clicks the address deletion link for
+  # the given +address+ (numeric ID or Spree::Address).
+  def remove_frontend_address(address, expect_success)
+    address = address.id if address.is_a?(Spree::Address)
+
+    visit spree.account_path
+    click_link "remove_address_#{address}"
+
+    if expect_success
+      expect(current_path).to eq(spree.account_path)
+      expect(page).to have_content(Spree.t(:successfully_removed, :resource => Spree.t(:address1)))
+    else
+      expect(page).to have_no_content(Spree.t(:successfully_removed, :resource => Spree.t(:address1)))
+    end
+  end
+
+  # Visits the frontend account page, clicks the address creation link, fills
+  # in the given +values+ using #fill_in_address, then submits the form.
+  #
+  # If +default_bill+ and/or +default_ship+ are true or false, then the default
+  # billing and/or shipping address checkboxes will be checked or unchecked
+  # before submitting the form.
+  def create_frontend_address(expect_success, values, default_bill=nil, default_ship=nil)
+    visit spree.account_path
+    click_link I18n.t(:add_new_shipping_address, :scope => :address_book)
+    expect(current_path).to eq(spree.new_address_path)
+
+    fill_in_address(values)
+    check_frontend_defaults(default_bill, default_ship)
+
+    click_button Spree.t(:create)
+
+    if expect_success
+      expect(page).to have_content(Spree.t(:successfully_created, :resource => Spree.t(:address1)))
+      expect(current_path).to eq(spree.account_path)
+    else
+      expect(page).to have_no_content(Spree.t(:successfully_created, :resource => Spree.t(:address1)))
+      # TODO: More?
+    end
+  end
+
+  # Visits the frontend account page, clicks the address editing link for the
+  # given +address+ (numeric ID or Spree::Address), fills in the given +values+
+  # using #fill_in_address (spec/support/admin_addresses_helper.rb), then
+  # submits the form.
+  #
+  # If +address+ is nil, then the first address on the page will be edited.
+  #
+  # If +default_bill+ and/or +default_ship+ are true or false, then the default
+  # billing and/or shipping address checkboxes will be checked or unchecked
+  # before submitting the form.
+  def edit_frontend_address(address, expect_success, values, default_bill=nil, default_ship=nil)
+    address = address.id if address.is_a?(Spree::Address)
+
+    visit spree.account_path
+    if address
+      click_link "edit_address_#{address}"
+      expect(current_path).to eq(spree.edit_address_path(address))
+    else
+      within('#addresses > tbody > tr:first-child') do
+        click_link Spree.t(:edit)
+      end
+    end
+
+    fill_in_address(values)
+    check_frontend_defaults(default_bill, default_ship)
+
+    click_button Spree.t(:update)
+
+    if expect_success
+      expect(page).to have_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))
+      expect(current_path).to eq(spree.account_path)
+    else
+      expect(page).to have_no_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))
+      # TODO: More?
+    end
+  end
+
+  # Checks or unchecks default address selection checkboxes if +default_bill+
+  # and/or +default_ship+ are true or false (takes no action for nil
+  # parameters).
+  def check_frontend_defaults(default_bill=nil, default_ship=nil)
+    if default_bill
+      check 'default_bill'
+    elsif default_bill == false
+      uncheck 'default_bill'
+    end
+
+    if default_ship
+      check 'default_ship'
+    elsif default_ship == false
+      uncheck 'default_ship'
+    end
   end
 end
 
 RSpec.configure do |c|
-  c.include FrontendAddresses
+  c.include FrontendAddresses, type: :feature
 end

@@ -37,7 +37,7 @@ feature 'Admin UI address editing' do
           user,
           a.id,
           true,
-          Spree.t(:street_address_2) => 'new_address_two'
+          Spree.t(:address2) => 'new_address_two'
         )
       }.not_to change{user.reload.addresses.count}
 
