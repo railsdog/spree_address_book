@@ -17,6 +17,18 @@ describe Spree::User do
       user.should respond_to(:addresses)
       user.addresses.should eq([address2, address])
     end
+
+    it 'should not change IDs when saving the user' do
+      user.update_attributes!(bill_address: address, ship_address: address)
+
+      5.times do
+        expect {
+          user.save!
+        }.not_to change{ [user.reload.bill_address_id, user.reload.ship_address_id] }
+      end
+
+      expect(user.addresses).to eq([address2, address])
+    end
   end
 
   describe 'address link' do
