@@ -25,13 +25,17 @@
 
   <% if @addresses.blank? %>
     <div class="alpha twelve columns no-objects-found">
-      <% msg = Spree.t(:no_resource_found, resource: @parent_collection.try(:pluralize)) %>
-      <% if allow_create %>
-        <%= msg %>,
-        <%= link_to "Add one", new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)) %>!
-      <% else %>
-        <%= msg %>
-      <% end %>
+      <div class="alpha five columns">
+        <% msg = Spree.t(:no_resource_found, resource: Spree::Address.model_name.human.pluralize) %>
+        <% if allow_create %>
+          <%= msg %>,
+          <%= link_to "Add one", new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)) %>!
+        <% else %>
+          <%= msg %>
+        <% end %>
+      </div>
+
+      <%= render partial: 'spree/admin/addresses/address_warning', locals: { last_column: false } %>
     </div>
   <% else %>
     <%= form_for @user || @order, url: update_addresses_admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id)), method: :put do |f| %>
@@ -43,16 +47,7 @@
           </div>
         <% end %>
 
-        <%# Warnings about disabled address updates %>
-        <% [ @order, @user ].compact.each do |o| %>
-          <% unless o.can_update_addresses? %>
-            <div class="<%= allow_create ? 'omega seven' : cycle('alpha six', 'omega six') %> columns">
-              <div class="alert address_error">
-                <%= Spree.t(:addresses_not_editable, resource: o.class.model_name.human) %>
-              </div>
-            </div>
-          <% end %>
-        <% end %>
+        <%= render partial: 'spree/admin/addresses/address_warning', locals: { last_column: allow_create } %>
       </div>
 
       <table id="addresses">
