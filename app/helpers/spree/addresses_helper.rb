@@ -38,7 +38,7 @@ end
 
 # XXX
 def uaddrcount(user, str=nil, options={})
-  user = Spree::User.find(user.id) if user
+  user = Spree::User.find(user.id) if user && user.id && !user.new_record?
   order = Spree::Order.find_by_id(options[:order].id) || options[:order] if options[:order]
   ids = Spree::AddressBookList.new(user).addresses.map{|a| a.addresses.map(&:id)}
   puts "\e[1;30m-->U#{user.try(:id).inspect} has #{user.reload.addresses.reload.count rescue 0} addrs (#{ids}) [B: #{user.try(:bill_address_id).inspect} S: #{user.try(:ship_address_id).inspect}] at \e[0;1m#{str}\e[0;36m #{caller(1)[0][/dbook.*/]}\e[0m\n" rescue (puts $!, *caller; raise 'foo')
