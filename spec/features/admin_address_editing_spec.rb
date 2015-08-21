@@ -191,7 +191,10 @@ feature 'Admin UI address editing' do
           end
 
           scenario 'cannot create an address on a completed guest order' do
+            guest_order.update_attributes!(state: 'complete', completed_at: Time.now)
+
             visit_addresses(guest_order)
+
             expect(page).to have_content(
               Regexp.new(Regexp.escape(Spree.t(:addresses_not_editable, resource: Spree::Order.model_name.human)), 'i')
             )
