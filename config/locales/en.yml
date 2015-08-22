@@ -15,8 +15,6 @@ en:
     billing_address_type: "Billing"
     default_addresses: "Default Addresses"
     default_addresses_updated: "Default Addresses Updated Successfully"
-    default_billing_address: "Use as Default Billing Address"
-    default_shipping_address: "Use as Default Shipping Address"
     user_addresses: "User Addresses"
     default_user_addresses: "Default User Addresses"
     edit_shipping_address: "Edit Shipping Address"
@@ -50,3 +48,7 @@ en:
     editing_order: Editing Order
     address_type: "Address Type"
     addresses_not_editable: "Addresses cannot be updated for this %{resource}."
+    default_billing_address: "Default Billing Address"
+    default_shipping_address: "Default Shipping Address"
+    make_default_billing_address: "Make this my default billing address"
+    make_default_shipping_address: "Make this my default shipping address"

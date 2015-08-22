@@ -186,6 +186,8 @@ module AdminAddresses
   # addresses) will be set to User, Billing, or Shipping, respectively (see
   # #assign_order_address in Spree::Admin::AddressesController).  The +type+
   # parameter only works for admin UI address forms, not frontend.
+  #
+  # Note that JavaScript is required to fill in the state field.
   def fill_in_address(values, type=nil)
     if values.is_a?(Spree::Address)
       fill_in Spree.t(:first_name), with: values.firstname

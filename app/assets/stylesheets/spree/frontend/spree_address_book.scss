@@ -19,3 +19,19 @@ div#checkout #checkout_form_address {
 }
 
 #save_user_address { margin: 0 0.5em 0 2em }
+
+table#addresses {
+  width: 100%;
+
+  td.actions {
+    width: 7em;
+    white-space: nowrap;
+  }
+
+  .default_address {
+    font-size: 75%;
+    padding: 0;
+    margin: 0;
+    line-height: 133%;
+  }
+}

@@ -1,7 +1,7 @@
 module FrontendAddresses
   # Visits the frontend account page, then clicks the address deletion link for
   # the given +address+ (numeric ID or Spree::Address).
-  def remove_frontend_address(address, expect_success)
+  def remove_frontend_address(user, address, expect_success)
     address = address.id if address.is_a?(Spree::Address)
 
     visit spree.account_path
@@ -10,6 +10,7 @@ module FrontendAddresses
     if expect_success
       expect(current_path).to eq(spree.account_path)
       expect(page).to have_content(Spree.t(:successfully_removed, :resource => Spree.t(:address1)))
+      expect_frontend_addresses(user)
     else
       expect(page).to have_no_content(Spree.t(:successfully_removed, :resource => Spree.t(:address1)))
     end
@@ -21,7 +22,7 @@ module FrontendAddresses
   # If +default_bill+ and/or +default_ship+ are true or false, then the default
   # billing and/or shipping address checkboxes will be checked or unchecked
   # before submitting the form.
-  def create_frontend_address(expect_success, values, default_bill=nil, default_ship=nil)
+  def create_frontend_address(user, expect_success, values, default_bill=nil, default_ship=nil)
     visit spree.account_path
     click_link I18n.t(:add_new_shipping_address, :scope => :address_book)
     expect(current_path).to eq(spree.new_address_path)
@@ -34,6 +35,7 @@ module FrontendAddresses
     if expect_success
       expect(page).to have_content(Spree.t(:successfully_created, :resource => Spree.t(:address1)))
       expect(current_path).to eq(spree.account_path)
+      expect_frontend_addresses(user)
     else
       expect(page).to have_no_content(Spree.t(:successfully_created, :resource => Spree.t(:address1)))
       # TODO: More?
@@ -50,7 +52,7 @@ module FrontendAddresses
   # If +default_bill+ and/or +default_ship+ are true or false, then the default
   # billing and/or shipping address checkboxes will be checked or unchecked
   # before submitting the form.
-  def edit_frontend_address(address, expect_success, values, default_bill=nil, default_ship=nil)
+  def edit_frontend_address(user, address, expect_success, values, default_bill=nil, default_ship=nil)
     address = address.id if address.is_a?(Spree::Address)
 
     visit spree.account_path
@@ -71,6 +73,7 @@ module FrontendAddresses
     if expect_success
       expect(page).to have_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))
       expect(current_path).to eq(spree.account_path)
+      expect_frontend_addresses(user)
     else
       expect(page).to have_no_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))
       # TODO: More?
@@ -91,6 +94,28 @@ module FrontendAddresses
       check 'default_ship'
     elsif default_ship == false
       uncheck 'default_ship'
+    end
+  end
+
+  # Expects the given +user+'s addresses to be listed, with default addresses
+  # annotated.
+  def expect_frontend_addresses(user)
+    expect_list_addresses(user.reload.addresses)
+
+    l = Spree::AddressBookList.new(user)
+    whereami("RSpec:efa(#{l.count}) b=#{l.user_bill.try(:id)} s=#{l.user_ship.try(:id)} rb=#{user.bill_address_id} rs=#{user.ship_address_id}")
+    if l.user_bill
+      within(%Q{tr.address[data-address="#{l.user_bill.id}"]}) do
+        puts "\n\n\n\n\t\tUSER BILL: #{l.user_bill.id}\n\n\n\n" # XXX
+        expect(page).to have_content(Spree.t(:default_billing_address))
+      end
+    end
+
+    if l.user_ship
+      within(%Q{tr.address[data-address="#{l.user_ship.id}"]}) do
+        puts "\n\n\n\n\t\tUSER SHIP: #{l.user_ship.id}\n\n\n\n" # XXX
+        expect(page).to have_content(Spree.t(:default_shipping_address))
+      end
     end
   end
 end

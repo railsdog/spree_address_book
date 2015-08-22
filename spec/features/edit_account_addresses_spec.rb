@@ -19,6 +19,18 @@ feature 'User editing addresses for their account' do
     expect_address_count(0)
   end
 
+  it 'should annotate selected default addresses' do
+    user.update_attributes!(bill_address_id: user.address_ids.first, ship_address_id: nil)
+    visit spree.account_path
+    expect_frontend_addresses(user)
+    expect(page).not_to have_content(Spree.t(:default_shipping_address))
+
+    user.update_attributes!(bill_address_id: nil, ship_address_id: user.address_ids.first)
+    visit spree.account_path
+    expect_frontend_addresses(user)
+    expect(page).not_to have_content(Spree.t(:default_billing_address))
+  end
+
   it 'should deduplicate addresses shown in the account list' do
     5.times do
       create(:address, user: user).clone.save!
@@ -26,11 +38,21 @@ feature 'User editing addresses for their account' do
 
     visit spree.account_path # reload
     expect_address_count(user.addresses.count - 5)
+
+    user.update_attributes!(bill_address_id: user.addresses.first.id, ship_address_id: user.addresses.last.id)
+    expect(user.bill_address).not_to be_nil
+    expect(user.ship_address).not_to be_nil
+
+    visit spree.account_path
+    expect_frontend_addresses(user)
+    expect(page).to have_content(Spree.t(:default_shipping_address))
+    expect(page).to have_content(Spree.t(:default_billing_address))
   end
 
   scenario 'can create a new address', js: true do
     expect {
       create_frontend_address(
+        user,
         true,
         Spree.t(:first_name) => 'First',
         Spree.t(:last_name) => 'Last',
@@ -47,17 +69,50 @@ feature 'User editing addresses for their account' do
     address = create(:address, user: user)
 
     expect {
-      create_frontend_address(true, address)
+      create_frontend_address(user, true, address)
     }.not_to change{user.addresses.count}
   end
 
   it "should be able to edit address", :js => true do
     new_street = Faker::Address.street_address
-    edit_frontend_address(user.addresses.first, true, Spree.t(:address1) => new_street)
+    edit_frontend_address(user, user.addresses.first, true, Spree.t(:address1) => new_street)
 
     within("#addresses > tbody > tr:first-child") do
       expect(page).to have_content(new_street)
     end
+  end
+
+  scenario 'editing an address does not assign it to defaults' do
+    a = create(:address, user: user)
+
+    user.update_attributes!(bill_address_id: nil, ship_address_id: nil)
+    expect {
+      edit_frontend_address(user, a, true, Spree.t(:address1) => '54321 Somewhere')
+    }.not_to change{ [ user.reload.bill_address_id, user.ship_address_id ] }
+
+    user.update_attributes!(bill_address_id: address.id, ship_address_id: address.id)
+    expect {
+      edit_frontend_address(user, a, true, Spree.t(:address1) => '32123 Somewhere')
+    }.not_to change{ [ user.reload.bill_address_id, user.ship_address_id ] }
+  end
+
+  scenario 'editing an address and selecting a type to save assigns it to defaults' do
+    user.update_attributes!(bill_address_id: nil, ship_address_id: nil)
+    edit_frontend_address(user, user.addresses.first, true, {}, false, true)
+    expect(user.reload.bill_address_id).to eq(nil)
+    expect(user.reload.ship_address_id).to eq(user.addresses.first.id)
+
+    edit_frontend_address(user, user.addresses.first, true, {}, true, false)
+    expect(user.reload.bill_address_id).to eq(user.addresses.first.id)
+    expect(user.reload.ship_address_id).to eq(user.addresses.first.id)
+  end
+
+  scenario 'creating an address with a selected type assigns it to defaults', js: true do
+    expect{
+      create_frontend_address(user, true, build(:address), true, true)
+    }.to change{ [user.reload.bill_address_id, user.reload.ship_address_id] }
+    expect(user.reload.bill_address_id).not_to be_nil
+    expect(user.bill_address_id).to eq(user.ship_address_id)
   end
 
   it 'should remove an editable address if it is altered to match an existing address' do
@@ -67,7 +122,7 @@ feature 'User editing addresses for their account' do
     expect(address2).to be_editable
 
     expect {
-      edit_frontend_address(nil, true, Spree.t(:address2) => address.address2)
+      edit_frontend_address(user, nil, true, Spree.t(:address2) => address.address2)
     }.to change{ user.reload.addresses.count }.by(-1)
 
     expect{address2.reload}.to raise_error
@@ -88,9 +143,10 @@ feature 'User editing addresses for their account' do
 
     visit spree.account_path
     expect_address_count(2)
+    expect_frontend_addresses(user)
 
     expect {
-      edit_frontend_address(address2, true, address)
+      edit_frontend_address(user, address2, true, address)
     }.to change{ user.addresses.count }.by(-1)
 
     expect(address2.reload.user_id).to be_nil
@@ -98,7 +154,7 @@ feature 'User editing addresses for their account' do
 
   it "should be able to remove address", :js => true do
     expect{
-      remove_frontend_address(address, true)
+      remove_frontend_address(user, address, true)
     }.to change{ user.addresses.count }.by(-1)
 
     # header still exists for the area - even if it is blank
@@ -127,7 +183,7 @@ feature 'User editing addresses for their account' do
     visit spree.account_path
     expect_address_count(1)
 
-    edit_frontend_address(primary, true, Spree.t(:first_name) => 'First')
+    edit_frontend_address(user, primary, true, Spree.t(:first_name) => 'First')
 
     expect(order.reload.bill_address_id).to eq(primary)
     expect(order.ship_address_id).to eq(primary)

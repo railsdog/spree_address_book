@@ -4,7 +4,7 @@ module Authentication
   def visit_account(user)
     sign_in! user
     click_link Spree.t(:my_account)
-    expect_list_addresses(user.addresses)
+    expect_frontend_addresses(user)
   end
 
   # Visits the Spree root path, clicks the Login link, and signs in as the
