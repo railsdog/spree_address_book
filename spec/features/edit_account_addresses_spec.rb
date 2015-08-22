@@ -10,9 +10,17 @@ feature 'User editing addresses for their account' do
   context 'with a non-updateable user' do
     force_user_address_updates(false)
 
+    before(:each) do
+      visit spree.account_path # reload after redefining #can_update_addresses?
+    end
+
     it 'should not be able to edit or delete an address' do
-      expect(page).to have_no_content(Spree.t(:edit))
-      expect(page).to have_no_content(Spree.t(:remove))
+      expect(user.can_update_addresses?).to eq(false)
+
+      within '#addresses' do
+        expect(page).to have_no_content(Spree.t(:edit))
+        expect(page).to have_no_content(Spree.t(:remove))
+      end
     end
   end
 
