@@ -7,6 +7,15 @@ feature 'User editing addresses for their account' do
     visit_account user
   end
 
+  context 'with a non-updateable user' do
+    force_user_address_updates(false)
+
+    it 'should not be able to edit or delete an address' do
+      expect(page).to have_no_content(Spree.t(:edit))
+      expect(page).to have_no_content(Spree.t(:remove))
+    end
+  end
+
   it "should see list of addresses saved for account" do
     page.should have_content("Addresses")
     expect(user.addresses.count).not_to eq(0)

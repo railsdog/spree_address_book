@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe "Address selection during checkout" do
+feature "Address selection during checkout" do
   include_context "store products"
 
   describe "as guest user" do
@@ -252,6 +252,23 @@ describe "Address selection during checkout" do
           check "Use Billing Address"
           complete_checkout
         end.to change{ user.addresses.count }.by(1)
+      end
+
+      context 'with user address selection disabled' do
+        force_user_address_updates(false)
+
+        scenario 'selecting addresses does not save them to the user defaults' do
+          expect {
+            address = user.addresses.first
+            choose "order_ship_address_id_#{address.id}"
+            within("#billing") do
+              choose I18n.t(:other_address, :scope => :address_book)
+              fill_in_address(billing)
+            end
+            check "Use Billing Address"
+            complete_checkout
+          }.not_to change{ [user.bill_address_id, user.ship_address_id] }
+        end
       end
 
       it "should assign addresses to orders" do
