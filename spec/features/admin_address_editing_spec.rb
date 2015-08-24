@@ -58,10 +58,13 @@ feature 'Admin UI address editing' do
           @a = create(:address, user: user)
           @a.clone.save!
         end
+
+        user.reload
       end
 
       scenario 'editing an address deduplicates it' do
-        id = Spree::AddressBookList.new(user).find(@a).id
+        id = Spree::AddressBookList.new(user).find(@a).try(:id)
+        expect(id).not_to be_nil
 
         expect {
           edit_address(user, id, true, Spree.t(:first_name) => 'NewFirstName')
