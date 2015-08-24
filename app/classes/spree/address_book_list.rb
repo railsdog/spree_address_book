@@ -32,8 +32,8 @@ class Spree::AddressBookList
     addresses = []
 
     if @user
-      @user_ship = check_user_address(user, :ship_address)
-      @user_bill = check_user_address(user, :bill_address)
+      @user_ship = check_user_address(@user, :ship_address)
+      @user_bill = check_user_address(@user, :bill_address)
 
       addresses << @user_ship if @user_ship
       addresses << @user_bill if @user_bill
@@ -41,8 +41,8 @@ class Spree::AddressBookList
     end
 
     if @order
-      @order_ship = check_order_address(user, order, :ship_address)
-      @order_bill = check_order_address(user, order, :bill_address)
+      @order_ship = check_order_address(@user, @order, :ship_address)
+      @order_bill = check_order_address(@user, @order, :bill_address)
       addresses << @order_ship if @order_ship
       addresses << @order_bill if @order_bill
     end
@@ -84,14 +84,16 @@ class Spree::AddressBookList
 
     if addr && addr.user_id != user.id
       Rails.logger.warn "BUG!!!  User #{user.id} does not own their #{type} #{addr.id}.  Cloning it."
+      whereami("SABL:cua:addr=#{addr.id}:user=#{user.id}")
       begin
-        addr = addr.clone.save!
+        addr = addr.clone
+        addr.save!
         addr.update_attributes!(user: user)
-        user.update_attributes(type => addr)
+        user.update_attributes!(type => addr)
       rescue => e
         # Handle any invalid addresses that got saved somehow
-        Rails.logger.error "Error fixing user #{user.id} #{type}.  Clearing it."
-        user.send("#{type}=", nil)
+        Rails.logger.error "Error fixing user #{user.id} #{type}: #{e}.  Clearing it."
+        user.update_attributes(type => nil)
         addr = nil
       end
     end
