@@ -21,17 +21,87 @@ div#checkout #checkout_form_address {
 #save_user_address { margin: 0 0.5em 0 2em }
 
 table#addresses {
+  // based on $color-tbl-even from Spree 2.3
+  $default-bill-color: desaturate(darken(#5498da, 10), 3);
+  $default-ship-color: desaturate(lighten(#5498da, 5), 5);
+
   width: 100%;
+
+  tr.odd {
+    background: #f8f8f8;
+  }
 
   td.actions {
     width: 7em;
     white-space: nowrap;
   }
 
+  address {
+    display: block;
+    float: left;
+    margin-right: 0.5em;
+    min-width: 7em;
+  }
+
   .default_address {
-    font-size: 75%;
+    float: left;
+    font-size: 9px;
     padding: 0;
     margin: 0;
-    line-height: 133%;
+    line-height: 18px;
+
+    .default_bill_address {
+      color: darken($default-bill-color, 10);
+    }
+
+    .default_ship_address {
+      color: darken($default-ship-color, 25);
+    }
+  }
+
+  tr > td:first-child {
+    padding-left: 8px;
+  }
+
+  tr.default_ship_address, tr.default_bill_address {
+    & > td:first-child {
+      position: relative;
+
+      &:before {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        box-sizing: border-box;
+        font-size: 0px;
+      }
+    }
+  }
+
+  tr.default_bill_address {
+    & > td {
+      background: lighten($default-bill-color, 50);
+
+      &:first-child:before {
+        border-left: solid 2px $default-bill-color;
+      }
+    }
+  }
+
+  tr.default_ship_address {
+    & > td {
+      background: lighten($default-ship-color, 50);
+
+      &:first-child:before {
+        border-left: solid 2px $default-ship-color;
+      }
+    }
+  }
+
+  tr.default_ship_address.default_bill_address > td:first-child:before {
+    border-left: solid 2px $default-ship-color;
+    border-right: solid 2px $default-bill-color;
   }
 }

@@ -4,19 +4,22 @@
   <tbody>
     <% Spree::AddressBookList.new(spree_current_user).each do |address| %>
       <% a = address.primary_address %>
-      <tr class="address <%= cycle('even', 'odd') %>" data-address="<%= a.id %>">
+      <% ubill = address.user_bill %>
+      <% uship = address.user_ship %>
+
+      <tr class="address <%= ubill && 'default_bill_address' %> <%= uship && 'default_ship_address' %> <%= cycle('even', 'odd') %>" data-address="<%= a.id %>">
         <td>
-          <%= a %>
+          <address><%= a %></address>
 
-          <% if address.user_bill %>
+          <% if ubill || uship %>
             <div class="default_address">
-              <%= Spree.t(:default_billing_address) %>
-            </div>
-          <% end %>
+              <% if ubill %>
+                <div class="default_bill_address"><%= Spree.t(:default_billing_address) %></div>
+              <% end %>
 
-          <% if address.user_ship %>
-            <div class="default_address">
-              <%= Spree.t(:default_shipping_address) %>
+              <% if uship %>
+                <div class="default_ship_address"><%= Spree.t(:default_shipping_address) %></div>
+              <% end %>
             </div>
           <% end %>
         </td>
