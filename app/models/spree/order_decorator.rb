@@ -212,7 +212,7 @@ Spree::Order.class_eval do
       l = Spree::AddressBookList.new(user)
 
       if self.bill_address
-        uaddrcount(user, "O:mua:BILL", order: self) # XXX
+        uaddrcount(user, "O:mua:BILL(sba=#{self.bill_address_id.inspect})", order: self) # XXX
 
         bill = l.find(self.bill_address)
         if bill
@@ -223,7 +223,9 @@ Spree::Order.class_eval do
             self.bill_address_id = bill.primary_address.id
             oldbill.destroy
           end
-        elsif self.bill_address.user_id.nil?
+        end
+
+        if self.bill_address.user_id.nil?
           puts "GIVE BILL TO USER" # XXX
           whereami('GIVE BILL') # XXX
           result &= self.bill_address.update_attributes(user_id: self.user_id)
@@ -231,7 +233,7 @@ Spree::Order.class_eval do
       end
 
       if self.ship_address
-        uaddrcount(user, "O:mua:SHIP", order: self) # XXX
+        uaddrcount(user, "O:mua:SHIP(ssa=#{self.ship_address_id.inspect})", order: self) # XXX
 
         if self.ship_address.same_as?(self.bill_address)
           puts "SHIP SAME AS BILL ADDRESS; SHARING ID" # XXX
@@ -246,7 +248,9 @@ Spree::Order.class_eval do
               self.ship_address_id = ship.primary_address.id
               oldship.destroy
             end
-          elsif self.ship_address.user_id.nil?
+          end
+
+          if self.ship_address.user_id.nil?
             puts "GIVE SHIP TO USER" # XXX
             whereami('GIVE SHIP') # XXX
             result &= self.ship_address.update_attributes(user_id: self.user_id) # TODO: just use =?
