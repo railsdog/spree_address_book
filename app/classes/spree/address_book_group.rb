@@ -48,7 +48,9 @@ class Spree::AddressBookGroup
       end
     end
 
-    if @user_addresses.any?{|a| a.user != @user_addresses.first.user}
+    user = @user_addresses.detect{|a| a.user_id }.try(:user)
+    if user && @user_addresses.any?{|a| a.user_id && a.user != user }
+      Rails.logger.error "Expected address user #{user.try(:id).inspect}, found users #{@user_addresses.map(&:user_id).uniq}"
       raise "Found addresses from multiple different users!"
     end
 
