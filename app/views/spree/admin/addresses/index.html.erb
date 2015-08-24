@@ -55,8 +55,8 @@
           <tr class="<%= cycle('even', 'odd') %>">
             <th><%= I18n.t(:address, scope: :address_book) %></th>
             <% if @user %>
-              <th class="align-center"><%= I18n.t(:def_bill, scope: :address_book) %></th>
-              <th class="align-center"><%= I18n.t(:def_ship, scope: :address_book) %></th>
+              <th class="align-center"><%= I18n.t(:default_bill, scope: :address_book) %></th>
+              <th class="align-center"><%= I18n.t(:default_ship, scope: :address_book) %></th>
             <% end %>
             <% if @order %>
               <th class="align-center"><%= I18n.t(:order_bill, scope: :address_book) %></th>

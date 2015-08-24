@@ -24,7 +24,7 @@ module FrontendAddresses
   # before submitting the form.
   def create_frontend_address(user, expect_success, values, default_bill=nil, default_ship=nil)
     visit spree.account_path
-    click_link I18n.t(:add_new_shipping_address, :scope => :address_book)
+    click_link I18n.t(:add_new_address, :scope => :address_book)
     expect(current_path).to eq(spree.new_address_path)
 
     fill_in_address(values)
