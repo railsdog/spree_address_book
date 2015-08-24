@@ -85,17 +85,6 @@ class Spree::AddressBookList
     if addr && addr.user_id != user.id
       Rails.logger.warn "BUG!!!  User #{user.id} does not own their #{type} #{addr.id}.  Cloning it."
       whereami("SABL:cua:addr=#{addr.id}:user=#{user.id}")
-      begin
-        addr = addr.clone
-        addr.save!
-        addr.update_attributes!(user: user)
-        user.update_attributes!(type => addr)
-      rescue => e
-        # Handle any invalid addresses that got saved somehow
-        Rails.logger.error "Error fixing user #{user.id} #{type}: #{e}.  Clearing it."
-        user.update_attributes(type => nil)
-        addr = nil
-      end
     end
 
     addr
