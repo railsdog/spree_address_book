@@ -32,7 +32,8 @@ table#addresses {
   }
 
   td.actions {
-    width: 7em;
+    width: 6em;
+    padding-right: 9px;
     white-space: nowrap;
   }
 
@@ -104,5 +105,9 @@ table#addresses {
       color: desaturate(darken($default-ship-color, 17), 5);
     }
   }
+}
 
+#new_address_link {
+  text-align: right;
+  padding: 6px 9px 5px;
 }
