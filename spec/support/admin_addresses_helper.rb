@@ -274,6 +274,28 @@ module AdminAddresses
       expect(path_with_query).to eq(spree.admin_address_path(address_id, user_id: @user_id, order_id: @order_id))
     end
   end
+
+  # Visits the appropriate addresses page for the +order_or_user+, then clicks
+  # the delete link for the given +address_id+.  If +expect_success+ is true,
+  # then expects the address to have been deleted.
+  def delete_address(order_or_user, address_id, expect_success)
+    address_id = address_id.id if address_id.is_a?(Spree::Address)
+
+    visit_addresses(order_or_user)
+
+    begin
+      click_link "delete-address-#{address_id}"
+    rescue => e # XXX
+      puts hl_bt(e, "Click link delete #{address_id}") # XXX
+      raise
+    end
+
+    if expect_success
+      expect(page).to have_content(Spree.t(:successfully_removed, resource: Spree::Address.model_name.human))
+    else
+      expect(page).to have_no_content(Spree.t(:successfully_removed, resource: Spree::Address.model_name.human))
+    end
+  end
 end
 
 RSpec.configure do |c|

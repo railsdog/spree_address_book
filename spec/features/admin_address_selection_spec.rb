@@ -102,8 +102,8 @@ feature 'Admin UI address selection' do
 
         # Set up duplicate addresses
         3.times do
-          a = create(:address, user: user)
-          a.clone.save!
+          @a = create(:address, user: user)
+          @a.clone.save!
         end
       end
 
@@ -138,6 +138,13 @@ feature 'Admin UI address selection' do
         user.update_attributes!(bill_address_id: nil, ship_address_id: nil)
         visit_user_addresses user
         expect_address_count 5
+      end
+
+      scenario 'can destroy a duplicate address' do
+        expect {
+          delete_address(user, Spree::AddressBookList.new(user).find(@a).id, true)
+        }.to change{ user.reload.addresses.count }.by(-2)
+        expect_address_count(4)
       end
     end
 
