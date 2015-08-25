@@ -99,14 +99,15 @@ module Spree
       def destroy
         a = @addresses.find(@address) || @address
 
-        # Only destroys user and guest order addresses, not delinked order
-        # addresses (FIXME?  Should it be possible to destroy an order
-        # address?)
+        whereami("AAC:destroy:start(#{a.class}/#{a.id})") # XXX
+
         if a.destroy
-          flash[:success] = Spree.t(:account_updated)
+          flash[:success] = Spree.t(:successfully_removed, resource: @address.class.model_name.human)
         else
           flash[:error] = @address.errors.full_messages.to_sentence
         end
+
+        whereami("AAC:destroy:end(#{flash.to_hash})") # XXX
 
         redirect_to collection_url
       end

@@ -115,8 +115,9 @@
                 </td>
               <% end %>
               <td class="actions">
-                <% if address.primary_address.editable? %>
+                <% if address.primary_address.editable? && !(disable_user && disable_order) %>
                   <%= link_to_edit_url edit_admin_address_url(address.primary_address, user_id: @user.try(:id), order_id: @order.try(:id)), no_text: true, id: "edit-address-#{address.id}" %>
+                  <%= link_to_delete address.primary_address, no_text: true, method: :delete, id: "delete-address-#{address.id}", url: admin_address_path(address.primary_address, user_id: @user.try(:id), order_id: @order.try(:id)) %>
                 <% end %>
               </td>
             </tr>
