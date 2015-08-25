@@ -68,19 +68,30 @@ def addrmatrix(*addresses)
   end
 end
 
-# Prints a filtered backtrace with a Unicode box around it. XXX
-def whereami(msg=nil)
+# Returns a String of the message and backtrace with ANSI highlighting and an
+# outline in Unicode box drawing characters.  The +backtrace+ can also be an
+# Exception.
+# XXX
+def hl_bt(backtrace, msg=nil)
   require 'io/console'
+
+  if backtrace.is_a?(Exception)
+    msg = [msg, backtrace.message].compact.join(': ')
+    backtrace = backtrace.backtrace
+    color = "\e[31m"
+  else
+    color = "\e[34m"
+  end
 
   width = IO.console.winsize[1]
   divider = "#{"\u2500" * (width - 3)}\u257c\e[0m"
-  leader = "\e[34m\u2502\e[0m"
+  leader = "#{color}\u2502\e[0m"
 
-  puts "\e[34m\u256d#{divider}"
+  str = "#{color}\u256d#{divider}\n"
 
-  puts "#{leader}\e[1m#{msg}\e[0m" if msg
+  str << "#{leader}\e[1m#{msg}\e[0m\n" if msg
 
-  bt = caller(1).reject{|l|
+  str << backtrace.reject{|l|
     # Skip gems we don't care about
     l =~ %r{(gems/(act|factory|rack|rail|state|warden|capybara|rspec)|webrick)}
   }.map{|l|
@@ -91,10 +102,16 @@ def whereami(msg=nil)
     # Highlight the line
     "#{leader}  \e[36m" + l.sub(
       %r{/([^:/]+):(\d+):in `([^']*)'},
-      "/\e[1;33m\\1\e[0m:\e[34m\\2\e[0m:in `\e[1;35m\\3\e[0m'"
+      "/\e[1;33m\\1\e[0m:\e[34m\\2\e[0m:in `\e[1;35m\\3\e[0m'\n"
     )
-  }
+  }.join
 
-  puts bt
-  puts "\e[34m\u2514#{divider}"
+  str << "#{color}\u2514#{divider}\n"
+
+  str
+end
+
+# Prints a filtered backtrace with a Unicode box around it. XXX
+def whereami(msg=nil)
+  puts hl_bt(caller(1), msg)
 end

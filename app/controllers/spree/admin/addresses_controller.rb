@@ -186,6 +186,8 @@ module Spree
         end
 
         def set_user_or_order
+          whereami("AAC:suoo(#{params.to_hash}) U=#{@user.try(:id)} O=#{@order.try(:id)} ref=#{request.referrer}") # XXX
+
           @user ||= Spree::User.find(params[:user_id]) if params[:user_id]
           @order ||= Spree::Order.find(params[:order_id]) if params[:order_id]
           @user ||= @order.user if @order
