@@ -105,16 +105,23 @@ class Spree::AddressBookGroup
     result
   end
 
-  # Destroys all editable user addresses in the group.
+  # Destroys all editable user and deletable order addresses in the group.
   def destroy
     result = true
 
     @user_addresses.each do |a|
       next unless a.editable?
       result &= a.destroy
-      @addresses.delete a
+      @addresses.reject!{|addr| addr.id == a.id }
     end
     @user_addresses.reject!(&:editable?)
+
+    @order_addresses.each do |a|
+      next unless a.can_be_deleted?
+      result &= a.destroy
+      @addresses.reject!{|addr| addr.id == a.id }
+    end
+    @order_addresses.reject!(&:can_be_deleted?)
 
     result
   end
