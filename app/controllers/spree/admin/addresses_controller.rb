@@ -48,7 +48,7 @@ module Spree
           flash[:error] = errors.uniq.to_sentence
           render :new
         else
-          flash[:success] = Spree.t(:account_updated)
+          flash[:success] = Spree.t(:successfully_created, resource: @address.class.model_name.human)
           redirect_to collection_url
         end
       end
@@ -89,7 +89,7 @@ module Spree
           flash[:error] = @address.errors.full_messages.uniq.to_sentence
           render :edit
         else
-          flash[:success] = Spree.t(:account_updated)
+          flash[:success] = Spree.t(:successfully_updated, resource: @address.class.model_name.human)
           redirect_to collection_url
         end
 

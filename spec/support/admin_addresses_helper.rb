@@ -243,14 +243,15 @@ module AdminAddresses
 
     if expect_success
       expect(path_with_query).to eq(spree.admin_addresses_path(user_id: @user_id, order_id: @order_id))
-      expect(page).to have_content(Spree.t(:account_updated))
+      expect(page).to have_content(Spree.t(:successfully_created, resource: Spree::Address.model_name.human))
     else
       # TODO/FIXME - untested
       expect(path_with_query).to eq(spree.update_admin_address_path(address_id, user_id: @user_id, order_id: @order_id))
+      expect(page).to have_no_content(Spree.t(:successfully_created, resource: Spree::Address.model_name.human))
     end
   end
 
-  # Visits the appropriate addresses page based on whether +target+ is a user
+  # Visits the appropriate addresses page based on whether the target is a user
   # or an order, clicks the edit link for the given +address_id+, updates the
   # form with the given +values+ (a Hash passed iteratively to Capybara's
   # #fill_in method, or another Spree::Address to copy), then submits the form.
@@ -266,10 +267,10 @@ module AdminAddresses
 
     if expect_success
       expect(path_with_query).to eq(spree.admin_addresses_path(user_id: @user_id, order_id: @order_id))
-      expect(page).to have_content(Spree.t(:account_updated))
+      expect(page).to have_content(Spree.t(:successfully_updated, resource: Spree::Address.model_name.human))
     else
       # TODO Check flash message only?
-      expect(page).to have_no_content(Spree.t(:account_updated))
+      expect(page).to have_no_content(Spree.t(:successfully_updated, resource: Spree::Address.model_name.human))
       expect(path_with_query).to eq(spree.admin_address_path(address_id, user_id: @user_id, order_id: @order_id))
     end
   end
