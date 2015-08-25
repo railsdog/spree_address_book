@@ -107,6 +107,14 @@ table#addresses {
   }
 }
 
+#user_address_list_empty {
+  opacity: 0.5;
+  font-style: italic;
+  font-size: 150%;
+  padding: 125px 10px;
+  text-align: center;
+}
+
 #new_address_link {
   text-align: right;
   padding: 6px 9px 5px;
