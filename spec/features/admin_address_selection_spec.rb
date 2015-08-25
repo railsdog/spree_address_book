@@ -93,6 +93,18 @@ feature 'Admin UI address selection' do
       expect(page.all('#addresses thead tr:first-child th').count).to eq(4)
     end
 
+    scenario 'can delete an address' do
+      5.times do
+        create(:address, user: user)
+      end
+
+      expect(user.reload.addresses.count).not_to eq(0)
+
+      expect {
+        delete_address(user, user.addresses.first, true)
+      }.to change{ user.reload.addresses.count }.by(-1)
+    end
+
     context 'with duplicate addresses' do
       before(:each) do
         user.update_attributes!(
@@ -140,11 +152,24 @@ feature 'Admin UI address selection' do
         expect_address_count 5
       end
 
-      scenario 'can destroy a duplicate address' do
+      scenario 'can destroy a duplicate address, removing all duplicates' do
         expect {
           delete_address(user, Spree::AddressBookList.new(user).find(@a).id, true)
         }.to change{ user.reload.addresses.count }.by(-2)
         expect_address_count(4)
+      end
+
+      scenario 'can destroy all addresses' do
+        expect(user.reload.addresses.count).not_to eq(0)
+
+        l = Spree::AddressBookList.new(user)
+        l.each do |a|
+          expect {
+            delete_address(user, a.id, true)
+          }.to change{ user.reload.addresses.count }.by(-a.count)
+        end
+
+        expect(user.reload.addresses.count).to eq(0)
       end
     end
 
@@ -171,6 +196,15 @@ feature 'Admin UI address selection' do
         expect(page).to have_content(Spree.t(:no_resource_found, resource: Spree::Address.model_name.human.pluralize))
         expect(page).to have_content(Spree.t(:addresses_not_editable, resource: Spree::User.model_name.human))
         expect(page).to have_no_css('#new_address_link')
+      end
+
+      scenario 'does not allow address deletion' do
+        visit_addresses user
+
+        user.addresses.each do |a|
+          expect(page).to have_css("tr.address[data-address='#{a.id}']")
+          expect(page).to have_no_css("delete-address-#{a.id}")
+        end
       end
     end
   end
@@ -252,6 +286,27 @@ feature 'Admin UI address selection' do
         expect_selected(ship, :order, :bill)
         expect(bill.id).to eq(guest_order.ship_address_id)
         expect(ship.id).to eq(guest_order.bill_address_id)
+      end
+
+      scenario 'can delete an address on an incomplete order' do
+        expect(guest_order.reload.bill_address).not_to be_nil
+        delete_address(guest_order, guest_order.bill_address, true)
+        expect(guest_order.reload.bill_address).to be_nil
+
+        expect(guest_order.reload.ship_address).not_to be_nil
+        delete_address(guest_order, guest_order.ship_address, true)
+        expect(guest_order.reload.ship_address).to be_nil
+      end
+
+      scenario 'cannot edit or delete an address on a complete order' do
+        guest_order.update_attributes!(state: 'complete', completed_at: Time.now)
+        visit_addresses(guest_order)
+        expect(page).to have_css("tr.address[data-address='#{guest_order.bill_address_id}']")
+        expect(page).to have_css("tr.address[data-address='#{guest_order.ship_address_id}']")
+        expect(page).to have_no_css("edit-address-#{guest_order.bill_address_id}")
+        expect(page).to have_no_css("edit-address-#{guest_order.ship_address_id}")
+        expect(page).to have_no_css("delete-address-#{guest_order.bill_address_id}")
+        expect(page).to have_no_css("delete-address-#{guest_order.ship_address_id}")
       end
     end
 
@@ -381,6 +436,20 @@ feature 'Admin UI address selection' do
               raise "#{e.message} on loop #{t}"
             end
           end
+        end
+
+        scenario 'deletes addresses on user and an incomplete order' do
+          user.addresses.delete_all
+          user.update_attributes!(bill_address_id: create(:address, user: user).id)
+          order.bill_address.update_attributes!(user.reload.addresses.first.attributes.except('id', 'user_id'))
+
+          expect(user.reload.addresses.count).to eq(1)
+          expect(order.reload.bill_address).not_to be_nil
+          expect(user.bill_address.comparison_attributes.except('user_id')).to eq(order.bill_address.comparison_attributes.except('user_id'))
+
+          delete_address(order, Spree::AddressBookList.new(user, order).find(order.bill_address).id, true)
+          expect(user.reload.addresses.count).to eq(0)
+          expect(order.reload.bill_address).to be_nil
         end
       end
     end
@@ -529,13 +598,16 @@ feature 'Admin UI address selection' do
               submit_addresses(false)
             end
 
-            scenario 'order addresses do not have an edit link' do
+            scenario 'order addresses do not have an edit or delete link' do
               a = create(:address, user: order.user)
               visit_addresses(order)
 
               expect(page).to have_no_css("#edit-address-#{order.bill_address_id}")
-              expect(page).to have_no_css("#edit-address-#{order.ship_address_id}")
+              expect(page).to have_no_css("#delete-address-#{order.ship_address_id}")
+              expect(page).to have_no_css("#edit-address-#{order.bill_address_id}")
+              expect(page).to have_no_css("#delete-address-#{order.ship_address_id}")
               expect(page).to have_css("#edit-address-#{user.addresses.first.id}")
+              expect(page).to have_css("#delete-address-#{user.addresses.first.id}")
             end
           end
 

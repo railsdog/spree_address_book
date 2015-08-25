@@ -68,7 +68,7 @@
 
         <tbody>
           <% @addresses.each do |address| %>
-            <tr class="<%= cycle('even', 'odd') %>" id="address-<%= address.id %>">
+            <tr class="address <%= cycle('even', 'odd') %>" id="address-<%= address.id %>" data-address="<%= address.id %>">
               <td><%= address %></td>
               <% if @user %>
                 <% disable_user = !@user.can_update_addresses? %>
