@@ -83,33 +83,6 @@ module Spree
         ap params
         # XXX
 
-        # FIXME: This seems wrong and incomplete TODO: tests don't trigger reassignment
-        # TODO: Is some of this block rendered irrelevant by order and user decorators?
-        if @order && (@order.bill_address.try(:editable?) || @order.ship_address.try(:editable?))
-          # The order's before_validation #delink_addresses hook will take care
-          # of assigning/cloning addresses, so just set the address IDs.
-
-          if Spree::Address.find_by_id(@order.bill_address_id).nil? || @order.bill_address.try(:deleted_at)
-            if old_match.try(:order_bill) || new_match.try(:order_bill)
-              puts "\n\n\n   \e[1mReassigning order bill\e[0m\n\n\n" # XXX
-              @order.bill_address.destroy unless @order.bill_address.user_id
-              @order.bill_address_id = @address.id
-            end
-          end
-
-          if Spree::Address.find_by_id(@order.ship_address_id).nil? || @order.ship_address.try(:deleted_at)
-            if old_match.try(:order_ship) || new_match.try(:order_ship)
-              puts "\n\n\n   \e[1mReassigning order ship\e[0m\n\n\n" # XXX
-              @order.ship_address.destroy unless @order.ship_address.user_id
-              @order.ship_address_id = @address.id
-            end
-          end
-
-          if @order.errors.any?
-            @address.errors.add(:order, @order.errors.full_messages.to_sentence)
-          end
-        end
-
         assign_order_address if @order && @address.errors.empty?
 
         if @address.errors.any?
