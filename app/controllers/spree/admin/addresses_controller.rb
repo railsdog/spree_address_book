@@ -5,7 +5,7 @@ module Spree
       include Spree::AddressUpdateHelper
 
       before_filter :set_user_or_order
-      before_filter :get_address_list
+      before_filter :load_address_list
       before_filter :find_address, only: [:edit, :update, :destroy]
 
       def new
@@ -115,25 +115,8 @@ module Spree
       def update_addresses
         uaddrcount(@user, "AAC:ua:b4", order: @order) # XXX
 
-        errors = []
-
-        if @user
-          update_object_addresses(@user, params[:user])
-          errors.concat @user.errors.full_messages
-        end
-
-        if @order
-          update_object_addresses(@order, params[:order])
-          errors.concat @order.errors.full_messages
-        end
-
-        if errors.any?
-          flash[:error] = (@user.try(:errors).try(:full_messages) + @order.errors.full_messages).to_sentence
-        else
-          flash[:success] = I18n.t(:default_addresses_updated, scope: :address_book)
-        end
-
-        redirect_to collection_url
+        update_address_selection
+        redirect_to :back
 
         uaddrcount(@user, "AAC:ua:aft(#{flash.to_hash})", order: @order) # XXX
       end
@@ -169,20 +152,8 @@ module Spree
         end
 
         # Load a deduplicated list of order and user addresses.
-        def get_address_list
-          if @order and @user
-            # Non-guest order
-            @addresses = Spree::AddressBookList.new(@user, @order)
-          elsif @order
-            # Guest order
-            @addresses = Spree::AddressBookList.new(@order)
-          elsif @user
-            # User account
-            @addresses = Spree::AddressBookList.new(@user)
-          else
-            # Nothing; set a blank list
-            @addresses = Spree::AddressBookList.new(nil)
-          end
+        def load_address_list
+          @addresses = get_address_list(@order, @user)
         end
 
         def set_user_or_order

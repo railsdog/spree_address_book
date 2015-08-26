@@ -73,6 +73,34 @@ module Spree::AddressUpdateHelper
     return address, new_match, old_match
   end
 
+  # Assigns addresses for the @user if params[:user] is set and @order if
+  # params[:order] is set.  Returns true on success, false on error, and sets
+  # the error and success flashes appropriately.
+  def update_address_selection
+    uaddrcount(@user, "AUH:uas(u=#{params[:user].to_hash},o=#{params[:order].to_hash})", order: @order) # XXX
+    whereami('update_address_selection')
+
+    errors = []
+
+    if @user
+      update_object_addresses(@user, params[:user])
+      errors.concat @user.errors.full_messages
+    end
+
+    if @order
+      update_object_addresses(@order, params[:order])
+      errors.concat @order.errors.full_messages
+    end
+
+    if errors.any?
+      flash[:error] = (@user.try(:errors).try(:full_messages) + @order.errors.full_messages).to_sentence
+      false
+    else
+      flash[:success] = I18n.t(:default_addresses_updated, scope: :address_book)
+      true
+    end
+  end
+
   # Assigns address IDs from +attrs+ (an ActionController::Parameters instance)
   # to the given +object+ (an order or user).  Callbacks on the order decorator
   # will ensure that addresses are deduplicated.  Does nothing and adds errors
