@@ -4,7 +4,6 @@ Locals:
               content.  If false, adds it to content_for :page_actions.
 %>
 
-<% @parent_collection = (@order.class.model_name.human if @order) || (@user.class.model_name.human if @user) %>
 <% allow_create = @user.try(:can_update_addresses?) || @order.try(:can_update_addresses?) %>
 
 <% if new_address_inline %>

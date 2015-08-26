@@ -16,6 +16,12 @@ feature 'Admin UI address selection' do
   end
 
   describe 'User account address list' do
+    scenario 'can return to the user' do
+      visit_user_addresses user
+      click_link Spree.t(:back_to_user)
+      expect(current_path).to eq(spree.edit_admin_user_path(user))
+    end
+
     scenario 'lists no addresses for a user with no addresses' do
       visit_user_addresses user
       expect_address_count 0
@@ -212,6 +218,12 @@ feature 'Admin UI address selection' do
 
   describe 'Order address list' do
     context 'with a guest order' do
+      scenario 'can return to the guest order' do
+        visit_order_addresses guest_order
+        click_link Spree.t(:back_to_order)
+        expect(current_path).to eq(spree.edit_admin_order_path(guest_order))
+      end
+
       scenario 'shows only two columns for guest order address selection' do
         expect(guest_order.user).to be_nil
 
@@ -311,6 +323,12 @@ feature 'Admin UI address selection' do
     end
 
     context 'with a logged-in order' do
+      scenario 'can return to the logged-in order' do
+        visit_order_addresses order
+        click_link Spree.t(:back_to_order)
+        expect(current_path).to eq(spree.edit_admin_order_path(order))
+      end
+
       scenario 'shows four columns for logged-in user order address selection' do
         visit_order_addresses(order)
         expect(page.all('#addresses thead tr:first-child th').count).to eq(6)

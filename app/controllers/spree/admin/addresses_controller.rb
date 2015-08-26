@@ -8,6 +8,16 @@ module Spree
       before_filter :load_address_list
       before_filter :find_address, only: [:edit, :update, :destroy]
 
+      def redirect_back
+        if params[:order_id]
+          redirect_to edit_admin_order_path(Spree::Order.find(params[:order_id]))
+        elsif params[:user_id]
+          redirect_to edit_admin_user_path(Spree.user_class.find(params[:user_id]))
+        else
+          redirect_to admin_path
+        end
+      end
+
       def new
         unless @order.try(:can_update_addresses?) || @user.try(:can_update_addresses?)
           flash[:error] = Spree.t(:addresses_not_editable, resource: (@user || @order).try(:class).try(:model_name).try(:human))

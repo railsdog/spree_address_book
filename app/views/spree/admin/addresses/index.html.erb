@@ -6,7 +6,8 @@
 
 <% content_for :page_actions do %>
   <%# Link back to order or user address list %>
-  <li><%= button_link_to "Back to #{@parent_collection}", redirect_back_admin_addresses_url(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'arrow-left' %></li>
+  <% return_link_text = (Spree.t(:back_to_order) if @order) || (Spree.t(:back_to_user) if @user) %>
+  <li><%= button_link_to return_link_text, redirect_back_admin_addresses_url(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'arrow-left' %></li>
 <% end %>
 
 <% if @order %>

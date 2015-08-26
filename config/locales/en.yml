@@ -22,6 +22,8 @@ en:
     save_my_address: "Make these addresses my default"
     address_type: "Address Type"
     addresses_not_editable: "Addresses cannot be updated for this %{resource}."
+    back_to_order: "Back To Order"
+    back_to_user: "Back To User"
     default_billing_address: "Default Billing Address"
     default_shipping_address: "Default Shipping Address"
     make_default_billing_address: "Make this my default billing address"
