@@ -145,4 +145,22 @@ module Spree::AddressUpdateHelper
       end
     end
   end
+
+  # Returns a Spree::AddressBookList for the given order and user, both of
+  # which may be nil.
+  def get_address_list(order, user)
+    if @order and @user
+      # Non-guest order
+      Spree::AddressBookList.new(@user, @order)
+    elsif @order
+      # Guest order
+      Spree::AddressBookList.new(@order)
+    elsif @user
+      # User account
+      Spree::AddressBookList.new(@user)
+    else
+      # Nothing; return a blank list
+      Spree::AddressBookList.new(nil)
+    end
+  end
 end

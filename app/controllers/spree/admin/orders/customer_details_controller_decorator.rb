@@ -1,6 +1,8 @@
 # Adds @user and @addresses to the customer details controller so the address
 # list can be embedded on the order's customer details page.
 Spree::Admin::Orders::CustomerDetailsController.class_eval do
+  include Spree::AddressUpdateHelper
+
   before_filter :set_user
   before_filter :load_address_list
 
