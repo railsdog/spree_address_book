@@ -1,12 +1,22 @@
-<%# Renders an order/user address selection form; uses @user, @order, @addresses %>
+<%# Renders an order/user address selection form; uses @user, @order, @addresses
+Locals:
+  :new_address_inline - If true, shows the new address link inline with the
+              content.  If false, adds it to content_for :page_actions.
+%>
 
 <% @parent_collection = (@order.class.model_name.human if @order) || (@user.class.model_name.human if @user) %>
 <% allow_create = @user.try(:can_update_addresses?) || @order.try(:can_update_addresses?) %>
 
-<% content_for :page_actions do %>
-  <%# New address button %>
-  <% if allow_create %>
-    <li><%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'plus', id: 'new_address_link' %></li>
+<% if new_address_inline %>
+  <div class="alpha omega twelve columns align-right">
+    <%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), icon: 'plus', id: 'new_address_link' %>
+  </div>
+<% else %>
+  <% content_for :page_actions do %>
+    <%# New address button %>
+    <% if allow_create %>
+      <li><%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'plus', id: 'new_address_link' %></li>
+    <% end %>
   <% end %>
 <% end %>
 
@@ -117,3 +127,9 @@
     <% end %>
   <% end %>
 </fieldset>
+
+<% if new_address_inline %>
+  <div class="alpha omega twelve columns align-right">
+    <%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), icon: 'plus', id: 'new_address_link_bottom' %>
+  </div>
+<% end %>
