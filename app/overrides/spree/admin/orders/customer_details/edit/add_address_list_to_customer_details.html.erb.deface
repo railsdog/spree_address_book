@@ -1,7 +1,4 @@
-<!-- insert_after "erb" enabled -->
+<!-- insert_after "erb:contains('render'):contains('form'):contains(':f') + erb:contains('end')" enabled -->
 <%# Replaces the customer billing/shipping address forms with an address selection list %>
 
-<fieldset data-hook="customer_details_address_list" class="no-border-bottom">
-  <legend align="center"><%= Spree::Address.model_name.human.pluralize %></legend>
-  <%= render partial: 'spree/admin/addresses/list', locals: { new_address_link: true } %>
-</fieldset>
+<%= render partial: 'spree/admin/addresses/list', locals: { new_address_inline: true } %>
