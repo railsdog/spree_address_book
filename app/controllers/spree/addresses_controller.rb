@@ -32,7 +32,7 @@ class Spree::AddressesController < Spree::StoreController
   end
 
   def edit
-    session["spree_user_return_to"] = request.env['HTTP_REFERER']
+    save_referrer
   end
 
   def new

@@ -19,9 +19,11 @@ module Spree
       end
 
       def new
+        save_referrer
+
         unless @order.try(:can_update_addresses?) || @user.try(:can_update_addresses?)
           flash[:error] = Spree.t(:addresses_not_editable, resource: (@user || @order).try(:class).try(:model_name).try(:human))
-          redirect_to collection_url
+          redirect_back_or_default(collection_url)
           return
         end
 
@@ -59,19 +61,22 @@ module Spree
           render :new
         else
           flash[:success] = Spree.t(:successfully_created, resource: @address.class.model_name.human)
-          redirect_to collection_url
+          redirect_back_or_default(collection_url)
         end
       end
 
       def edit
+        save_referrer
+
         if !@address.editable?
           flash[:error] = I18n.t(:address_not_editable, scope: [:address_book])
-          redirect_to collection_url
+          redirect_back_or_default(collection_url)
           return
         end
       end
 
       def update
+        whereami("AAC:u(ref=#{request.referrer} back=#{session['spree_user_return_to']})") # XXX
         uaddrcount(@user, "AAC:u:b4(aid=#{@address.try(:id).inspect})", order: @order) # XXX
 
         @address, new_match, old_match = update_and_merge(@address, @addresses)
@@ -100,7 +105,9 @@ module Spree
           render :edit
         else
           flash[:success] = Spree.t(:successfully_updated, resource: @address.class.model_name.human)
-          redirect_to collection_url
+
+          whereami("AAC:u:redir(#{collection_url} OR saved: #{session['spree_user_return_to']}") # XXX
+          redirect_back_or_default(collection_url)
         end
 
         uaddrcount(@user, "AAC:u:aft(#{flash.to_hash})", order: @order) # XXX
@@ -119,7 +126,7 @@ module Spree
 
         whereami("AAC:destroy:end(#{flash.to_hash})") # XXX
 
-        redirect_to collection_url
+        redirect_back_or_default(collection_url)
       end
 
       def update_addresses

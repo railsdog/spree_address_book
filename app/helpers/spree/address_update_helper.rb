@@ -1,4 +1,11 @@
 module Spree::AddressUpdateHelper
+  # Saves request.referrer into session['spree_user_return_to'] for use by
+  # Spree's #redirect_back_or_default method.
+  def save_referrer
+    whereami("SET BACK: #{request.referrer}") # XXX
+    session['spree_user_return_to'] = request.referrer
+  end
+
   # Returns params, requiring/permitting address-related parameters.
   def address_params
     @addr_attrs ||= params.require(:address).permit(Spree::PermittedAttributes.address_attributes)
