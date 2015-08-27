@@ -8,7 +8,7 @@ Spree::Admin::Orders::CustomerDetailsController.class_eval do
 
   private
   def set_user
-    if params[:user_id] && params[:user_id].to_i != @order.user_id
+    if params[:user_id].present? && params[:user_id].to_i != @order.user_id
       @user = Spree::User.find(params[:user_id])
     end
 
