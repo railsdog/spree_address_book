@@ -93,7 +93,7 @@ def hl_bt(backtrace, msg=nil)
 
   str << backtrace.reject{|l|
     # Skip gems we don't care about
-    l =~ %r{(gems/(act|factory|rack|rail|state|warden|capybara|rspec)|webrick)}
+    l =~ %r{(gems/(act|factory|rack|rail|state|warden|capybara|rspec|unicorn|newrelic|quiet_assets|meta_request|bullet)|webrick)}
   }.map{|l|
     # Skip leading paths
     l = l[/(dbook|rubies|gems).*/] || l
