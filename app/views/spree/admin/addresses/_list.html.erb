@@ -40,7 +40,7 @@ Locals:
         <%# Form submission button %>
         <% if allow_create %>
           <div class="alpha five columns">
-            <%= f.submit I18n.t(:update_default_addresses, scope: :address_book) %>
+            <%= f.submit I18n.t(:save_address_selection, scope: :address_book) %>
           </div>
         <% end %>
 
@@ -58,8 +58,8 @@ Locals:
           <tr class="<%= cycle('even', 'odd') %>">
             <th><%= I18n.t(:address, scope: :address_book) %></th>
             <% if @user %>
-              <th class="align-center"><%= I18n.t(:default_bill, scope: :address_book) %></th>
-              <th class="align-center"><%= I18n.t(:default_ship, scope: :address_book) %></th>
+              <th class="align-center"><%= I18n.t(:user_default_bill, scope: :address_book) %></th>
+              <th class="align-center"><%= I18n.t(:user_default_ship, scope: :address_book) %></th>
             <% end %>
             <% if @order %>
               <th class="align-center"><%= I18n.t(:order_bill, scope: :address_book) %></th>
@@ -132,7 +132,7 @@ Locals:
         <%# Form submission button %>
         <% if allow_create %>
           <div class="alpha six columns">
-            <%= f.submit I18n.t(:update_default_addresses, scope: :address_book) %>
+            <%= f.submit I18n.t(:save_address_selection, scope: :address_book) %>
           </div>
         <% end %>
 

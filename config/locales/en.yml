@@ -13,9 +13,9 @@ en:
     other_address: "Other address"
     saved_address: "Saved Address"
     saved_addresses: "Saved Addresses"
-    update_default_addresses: "Update Default Addresses"
-    default_bill: "Default Billing"
-    default_ship: "Default Shipping"
+    save_address_selection: "Save Address Selection"
+    user_default_bill: "User Default Billing"
+    user_default_ship: "User Default Shipping"
     order_bill: "Order Billing"
     order_ship: "Order Shipping"
   spree:

@@ -143,7 +143,7 @@ module AdminAddresses
   # expects to find a success message.  If false, it expects not to find a
   # success message.  Otherwise, success or failure is not checked.
   def submit_addresses(success=true)
-    click_button I18n.t(:update_default_addresses, scope: :address_book)
+    click_button I18n.t(:save_address_selection, scope: :address_book)
 
     if success == true
       expect(page).to have_content(I18n.t(:default_addresses_updated, scope: :address_book))
