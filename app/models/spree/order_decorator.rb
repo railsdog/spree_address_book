@@ -7,9 +7,11 @@ Spree::Order.class_eval do
   before_validation :delink_addresses_validation, if: :complete?
   before_validation :merge_user_addresses, unless: :complete?
 
-  before_validation { uaddrcount(user, "O:B4VALIDATION #{state} #{id.inspect}", order: self) } # XXX
-  before_save { uaddrcount(user, "O:B4SAVE #{state} #{id.inspect}", order: self) } # XXX
-  after_save { uaddrcount(user, "O:AftSAVE #{state} #{id.inspect}", order: self) } # XXX
+  before_validation { uaddrcount(user, "O:B4VALIDATION #{state} #{id.inspect} #{number}", order: self) } # XXX
+  before_save { uaddrcount(user, "O:B4SAVE #{state} #{id.inspect} #{number}", order: self) } # XXX
+  after_save { uaddrcount(user, "O:AftSAVE #{state} #{id.inspect} #{number}", order: self) } # XXX
+  before_destroy { uaddrcount(user, "O:B4DEST #{state} #{id.inspect} #{number}", order: self); whereami("O:b4dest:#{number}") } # XXX
+  after_destroy { uaddrcount(user, "O:AFTDEST #{state} #{id.inspect} #{number}", order: self); whereami("O:aftdest:#{number}") } # XXX
 
   # XXX / TODO: Probably want to get rid of this validation before deploying to
   # production because there is old invalid data.  Alternatively, limit
