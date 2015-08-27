@@ -27,10 +27,6 @@ class Spree::AddressesController < Spree::StoreController
     end
   end
 
-  def show
-    redirect_to account_path
-  end
-
   def edit
     save_referrer
   end
