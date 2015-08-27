@@ -143,6 +143,8 @@ class Spree::AddressBookGroup
         o.bill_address_id = primary_id if o.bill_address_id == a.id
         o.ship_address_id = primary_id if o.ship_address_id == a.id
         result &= o.save if o.changed?
+
+        o.shipments.where(address_id: o.ship_address_id).update_all(address_id: primary_id)
       end
 
       result &= a.destroy
