@@ -84,7 +84,7 @@ module Spree::AddressUpdateHelper
   # params[:order] is set.  Returns true on success, false on error, and sets
   # the error and success flashes appropriately.
   def update_address_selection
-    uaddrcount(@user, "AUH:uas(u=#{params[:user].to_hash},o=#{params[:order].to_hash})", order: @order) # XXX
+    uaddrcount(@user, "AUH:uas(u=#{params[:user].try(:to_hash)},o=#{params[:order].try(:to_hash)})", order: @order) # XXX
     whereami('update_address_selection')
 
     errors = []
