@@ -27,7 +27,7 @@ module AdminAddresses
   # Visits the address listing page for the given order and performs basic
   # verification of selected addresses.
   def visit_order_addresses(order)
-    visit spree.admin_addresses_path(order_id: order.id)
+    visit spree.admin_addresses_path(order_id: order.id, user_id: order.user_id)
     expect_address_list
 
     expect_order_addresses(order)
