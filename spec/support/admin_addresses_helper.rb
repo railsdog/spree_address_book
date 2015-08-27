@@ -35,13 +35,22 @@ module AdminAddresses
   end
 
   # Clicks the editing link for the given +address+ (numeric ID or address
-  # object), using the addresses page for the given +order_or_user+.  Verifies
-  # that the link led to the correct path.
-  def visit_edit_address(order_or_user, address)
+  # object), using the addresses page for the given +order_or_user+.  If
+  # +direct+ is true, then goes directly to the editing URL instead of visiting
+  # the addresses page and clicking the link.  Verifies that the link led to
+  # the correct path.
+  def visit_edit_address(order_or_user, address, direct=false)
     address = address.id if address.is_a?(Spree::Address)
 
-    visit_addresses(order_or_user)
-    click_link "edit-address-#{address}"
+    if direct
+      order_id = order_or_user.is_a?(Spree::Order) ? order_or_user.id : nil
+      user_id = order_or_user.is_a?(Spree::User) ? order_or_user.id : order_or_user.user_id
+      visit spree.edit_admin_address_path(address, order_id: order_id, user_id: user_id)
+    else
+      visit_addresses(order_or_user)
+      click_link "edit-address-#{address}"
+    end
+
     expect(current_path).to eq(spree.edit_admin_address_path(address))
   end
 

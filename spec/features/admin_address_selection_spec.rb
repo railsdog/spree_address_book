@@ -624,8 +624,6 @@ feature 'Admin UI address selection' do
               expect(page).to have_no_css("#delete-address-#{order.ship_address_id}")
               expect(page).to have_no_css("#edit-address-#{order.bill_address_id}")
               expect(page).to have_no_css("#delete-address-#{order.ship_address_id}")
-              expect(page).to have_css("#edit-address-#{user.addresses.first.id}")
-              expect(page).to have_css("#delete-address-#{user.addresses.first.id}")
             end
           end
 

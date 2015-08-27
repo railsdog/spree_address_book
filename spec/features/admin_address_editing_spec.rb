@@ -306,7 +306,7 @@ feature 'Admin UI address editing' do
 
               scenario 'the address type controls are not visible on a completed order' do
                 order.update_attributes!(state: 'complete', completed_at: Time.now)
-                visit_edit_address(order, create(:address, user: order.user))
+                visit_edit_address(order, create(:address, user: order.user), true)
                 expect(page).to have_no_css('#address_address_type')
               end
             end
