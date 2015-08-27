@@ -106,6 +106,11 @@ Spree::Address.class_eval do
     a
   end
 
+  # Returns orders linked to this address, using the with_address order scope.
+  def orders
+    Spree::Order.with_address(self)
+  end
+
   private
   def h(str)
     (str ? CGI::escapeHTML(str.to_s) : str).try(:html_safe)
