@@ -48,7 +48,10 @@ Spree::Address.class_eval do
 
     a = attributes.except(*except_list)
     a.each{|k, v|
-      a[k] = v.downcase.strip.gsub(/\s+/, ' ') if v.is_a?(String)
+      if v.is_a?(String)
+        v = v.downcase.strip.gsub(/\s+/, ' ')
+        a[k] = v.present? ? v : nil
+      end
     }
     a['state_name'] = nil if a['state_name'].blank?
     a

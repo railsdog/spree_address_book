@@ -133,6 +133,13 @@ describe Spree::Address do
         expect(address_upper.same_as?(address_lower)).to eq(true)
       end
 
+      it 'returns true for blank vs. nil' do
+        a1 = address.clone
+        a1.update_attributes!(address2: '')
+        address.update_attributes!(address2: nil)
+        expect(a1).to be_same_as(address)
+      end
+
       it 'returns true regardless of spacing' do
         a1 = address.clone
         a2 = address_copy.clone
