@@ -202,8 +202,15 @@ module AdminAddresses
       fill_in Spree.t(:first_name), with: values.firstname
       fill_in Spree.t(:last_name), with: values.lastname
       fill_in Spree.t(:company), with: values.company if Spree::Config[:company]
-      fill_in Spree.t(:address1), with: values.address1
-      fill_in Spree.t(:address2), with: values.address2
+
+      if page.has_content?(/#{Regexp.escape(Spree.t(:street_address_2))}/i)
+        fill_in Spree.t(:street_address), with: values.address1
+        fill_in Spree.t(:street_address_2), with: values.address2
+      else
+        fill_in Spree.t(:address1), with: values.address1
+        fill_in Spree.t(:address2), with: values.address2
+      end
+
       select values.country.name, from: Spree.t(:country) if values.country
       fill_in Spree.t(:city), with: values.city
       fill_in Spree.t(:zip), with: values.zipcode
