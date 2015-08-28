@@ -17,7 +17,7 @@ feature 'Admin UI address selection' do
 
   describe 'User account address list' do
     scenario 'can return to the user' do
-      visit_user_addresses user
+      visit spree.admin_addresses_path(user_id: user)
       click_link Spree.t(:back_to_user)
       expect(current_path).to eq(spree.edit_admin_user_path(user))
     end
@@ -219,7 +219,7 @@ feature 'Admin UI address selection' do
   describe 'Order address list' do
     context 'with a guest order' do
       scenario 'can return to the guest order' do
-        visit_order_addresses guest_order
+        visit spree.admin_addresses_path(order_id: guest_order.id)
         click_link Spree.t(:back_to_order)
         expect(current_path).to eq(spree.edit_admin_order_path(guest_order))
       end
@@ -324,7 +324,7 @@ feature 'Admin UI address selection' do
 
     context 'with a logged-in order' do
       scenario 'can return to the logged-in order' do
-        visit_order_addresses order
+        visit spree.admin_addresses_path(order_id: order.id, user_id: user.id)
         click_link Spree.t(:back_to_order)
         expect(current_path).to eq(spree.edit_admin_order_path(order))
       end

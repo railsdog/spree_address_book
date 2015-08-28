@@ -82,8 +82,8 @@ class Spree::AddressBookList
   def check_user_address(user, type)
     addr = user.send(type)
 
-    if addr && addr.user_id != user.id
-      Rails.logger.warn "BUG!!!  User #{user.id} does not own their #{type} #{addr.id}.  Cloning it."
+    if addr && addr.user_id && addr.user_id != user.id
+      Rails.logger.warn "BUG!!!  User #{user.id} does not own their #{type} #{addr.id}."
       whereami("SABL:cua:addr=#{addr.id}:user=#{user.id}")
     end
 

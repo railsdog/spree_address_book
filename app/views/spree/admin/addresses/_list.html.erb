@@ -26,7 +26,7 @@ Locals:
         <% msg = Spree.t(:no_resource_found, resource: Spree::Address.model_name.human.pluralize) %>
         <% if allow_create %>
           <%= msg %>,
-          <%= link_to "Add one", new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)) %>!
+          <%= link_to "Add one", new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), id: 'new_address_link' %>!
         <% else %>
           <%= msg %>
         <% end %>

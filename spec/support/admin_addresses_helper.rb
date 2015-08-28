@@ -18,7 +18,7 @@ module AdminAddresses
   # Visits the address listing page for the given user and performs basic
   # verification of selected addresses.
   def visit_user_addresses(user)
-    visit spree.admin_addresses_path(user_id: user.id)
+    visit spree.edit_admin_user_path(user)
     expect_address_list
 
     expect_user_addresses(user)
@@ -27,7 +27,7 @@ module AdminAddresses
   # Visits the address listing page for the given order and performs basic
   # verification of selected addresses.
   def visit_order_addresses(order)
-    visit spree.admin_addresses_path(order_id: order.id, user_id: order.user_id)
+    visit spree.admin_order_customer_path(order)
     expect_address_list
 
     expect_order_addresses(order)
@@ -186,7 +186,7 @@ module AdminAddresses
   # Returns the current Capybara page path plus query string (e.g. "/a?b=c").
   def path_with_query
     uri = URI.parse(page.current_url)
-    "#{uri.path}?#{uri.query}"
+    [uri.path, uri.query].map{|s| s if s.present? }.compact.join('?')
   end
 
   # Fill in an already loaded address form with the given +values+ (either a
@@ -232,6 +232,18 @@ module AdminAddresses
     end
   end
 
+  # Expects the current path and query string to match the order customer
+  # details path for an order, or the user account details path for a user.
+  def expect_address_collection_path(order_or_user)
+    if order_or_user.is_a?(Spree::Order)
+      path = spree.admin_order_customer_path(order_or_user)
+    else
+      path = spree.edit_admin_user_path(order_or_user)
+    end
+
+    expect(path_with_query).to eq(path)
+  end
+
   # Visits the addresses pages for the given order or user, clicks the New
   # Address link, then fills out and submits the address form with +values+.
   # If +expect_success+ is true, the operation is expected to succeed.
@@ -243,7 +255,7 @@ module AdminAddresses
     visit_addresses(order_or_user)
 
     expect(page).to have_css('#new_address_link')
-    click_link I18n.t(:new_address, scope: :address_book)
+    click_link 'new_address_link'
     expect(current_path).to eq(spree.new_admin_address_path)
 
     fill_in_address(values, type)
@@ -251,7 +263,7 @@ module AdminAddresses
     click_button Spree.t('actions.create')
 
     if expect_success
-      expect(path_with_query).to eq(spree.admin_addresses_path(user_id: @user_id, order_id: @order_id))
+      expect_address_collection_path(order_or_user)
       expect(page).to have_content(Spree.t(:successfully_created, resource: Spree::Address.model_name.human))
     else
       # TODO/FIXME - untested
@@ -275,7 +287,7 @@ module AdminAddresses
     click_button Spree.t('actions.update')
 
     if expect_success
-      expect(path_with_query).to eq(spree.admin_addresses_path(user_id: @user_id, order_id: @order_id))
+      expect_address_collection_path(order_or_user)
       expect(page).to have_content(Spree.t(:successfully_updated, resource: Spree::Address.model_name.human))
     else
       # TODO Check flash message only?
