@@ -1,4 +1,5 @@
 <% address_id = address_type.chars.first %>
+<% show_make_default = true if show_make_default.nil? %>
 
 <% ADDRESS_FIELDS.each do |field| %>
   <% if field == "country" %>
@@ -22,11 +23,13 @@
   </p>
 <% end %>
 
-<p class="field" id="<%= "#{address_id}default_bill" %>">
-  <%= check_box_tag 'default_bill', '1', address.id && spree_current_user.bill_address_id == address.id %>
-  <%= label_tag 'default_bill', Spree.t(:make_default_billing_address) %>
-</p>
-<p class="field" id="<%= "#{address_id}default_ship" %>">
-  <%= check_box_tag 'default_ship', '1', address.id && spree_current_user.ship_address_id == address.id %>
-  <%= label_tag 'default_ship', Spree.t(:make_default_shipping_address) %>
-</p>
+<% if show_make_default %>
+  <p class="field" id="<%= "#{address_id}default_bill" %>">
+    <%= check_box_tag 'default_bill', '1', address.id && spree_current_user.bill_address_id == address.id %>
+    <%= label_tag 'default_bill', Spree.t(:make_default_billing_address) %>
+  </p>
+  <p class="field" id="<%= "#{address_id}default_ship" %>">
+    <%= check_box_tag 'default_ship', '1', address.id && spree_current_user.ship_address_id == address.id %>
+    <%= label_tag 'default_ship', Spree.t(:make_default_shipping_address) %>
+  </p>
+<% end %>
