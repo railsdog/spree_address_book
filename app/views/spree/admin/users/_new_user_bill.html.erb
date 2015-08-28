@@ -1,0 +1,11 @@
+<div class="row new-user-bill-address" data-hook="new_user_bill_address">
+  <div class="alpha omega twelve columns">
+    <fieldset class="no-border-bottom">
+      <legend align="center"><%= Spree.t(:billing_address) %></legend>
+      <%= f.fields_for :bill_address, (@user.bill_address || Spree::Address.default(@user, "bill")) do |ba_form| %>
+        <% ba_form.object ||= Spree::Address.new(country: Spree::Country.new) %>
+        <%= render :partial => 'spree/admin/shared/address_form', :locals => { :f => ba_form, :type => "billing" } %>
+      <% end %>
+    </fieldset>
+  </div>
+</div>
