@@ -54,6 +54,8 @@ table#addresses {
         bottom: 0;
         box-sizing: border-box;
         font-size: 0px;
+        padding: 0;
+        margin: 0;
       }
     }
   }
@@ -81,6 +83,7 @@ table#addresses {
   tr.default_ship_address.default_bill_address > td:first-child:before {
     border-left: solid 2px $default-ship-color;
     border-right: solid 2px $default-bill-color;
+    padding-left: 1px;
   }
 
   address {
