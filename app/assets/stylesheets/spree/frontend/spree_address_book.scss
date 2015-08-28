@@ -7,14 +7,34 @@ div.inner {
   }
 }
 
-div#checkout #checkout_form_address {
-  #billing, #shipping {
-    .select_address label {
-      float: none;
-    }
-    input[type="radio"] {
-      width: auto;
-    }
+#checkout_form_address {
+  .field {
+    margin-bottom: 10px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  label {
+    float: none;
+    vertical-align: top;
+  }
+
+  input[type="radio"], input[type="checkbox"] {
+    width: auto;
+    vertical-align: top;
+    margin-top: 1px;
+  }
+
+  .address {
+    display: inline-block;
+    min-width: 60%;
+  }
+  .address_edit_link {
+    display: block;
+  }
+
+  p[data-hook="use_billing"] {
+    float: none;
   }
 }
 

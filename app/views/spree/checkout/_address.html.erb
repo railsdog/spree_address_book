@@ -9,28 +9,30 @@
       <legend><%= Spree.t(address_type + "_address")%></legend>
 
       <% if address_type == 'shipping' && !Spree::AddressBook::Config[:disable_bill_address] %>
-        <p class="field checkbox"  data-hook="use_billing">
+        <div class="field checkbox"  data-hook="use_billing">
           <%= check_box_tag 'order[use_billing]', '1', (!(@order.bill_address.blank? && @order.ship_address.blank?) && @order.bill_address.same_as?(@order.ship_address)) %>
           <%= label_tag :order_use_billing, Spree.t(:use_billing_address), :id => 'use_billing' %>
-        </p>
+        </div>
       <% end %>
 
-      <% if @addresses && @addresses.count > 0 %>
+      <% if @addresses.present? %>
         <% default_addr = @addresses.public_send("order_#{prefix}") || @addresses.public_send("user_#{prefix}") %>
         <div class="select_address">
-          <p class="field">
-            <% @addresses.each_with_index do |address, idx| %>
+          <% @addresses.each_with_index do |address, idx| %>
+            <div class="field radio">
               <% a = address.primary_address %>
-              <span id="<%= "#{address_type}_#{dom_id(a)}" %>">
-                <label><%= form.radio_button "#{address_name}_id", a.id, checked: address == default_addr %>
-                  <%= a %>
+              <div id="<%= "#{address_type}_#{dom_id(a)}" %>">
+                <label>
+                  <%= form.radio_button "#{address_name}_id", a.id, checked: address == default_addr %>
+                  <span class="address">
+                    <%= raw(a) %>
+                    <span class="address_edit_link"><%= link_to Spree.t(:edit), edit_address_path(a) %></span>
+                  </span>
                 </label>
-                <%= link_to Spree.t(:edit), edit_address_path(a) %>
-                <br />
-              </span>
-            <% end %>
-            <label><%= form.radio_button "#{address_name}_id", 0 %> <%= I18n.t(:other_address, :scope => :address_book) %></label>
-          </p>
+              </div>
+            </div>
+          <% end %>
+          <label><%= form.radio_button "#{address_name}_id", 0 %> <%= I18n.t(:other_address, :scope => :address_book) %></label>
         </div>
       <% end %>
       <%= form.fields_for address_name, Spree::Address.default do |address_form| %>
