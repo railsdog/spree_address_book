@@ -23,7 +23,7 @@ div#checkout #checkout_form_address {
 table#addresses {
   // based on $color-tbl-even from Spree 2.3
   $default-bill-color: desaturate(darken(#5498da, 10), 3);
-  $default-ship-color: desaturate(lighten(#5498da, 8), 5);
+  $default-ship-color: lighten(#5498da, 8);
 
   width: 100%;
 
@@ -61,6 +61,8 @@ table#addresses {
   }
 
   tr.default_bill_address {
+    background: lighten($default-bill-color, 43);
+
     & > td {
       background: lighten($default-bill-color, 43);
 
@@ -71,8 +73,10 @@ table#addresses {
   }
 
   tr.default_ship_address {
+    background: saturate(saturate(lighten($default-ship-color, 29), 99), 99);
+
     & > td {
-      background: lighten($default-ship-color, 29);
+      background: saturate(saturate(lighten($default-ship-color, 29), 99), 99);
 
       &:first-child:before {
         border-left: solid 2px $default-ship-color;
