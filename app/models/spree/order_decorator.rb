@@ -13,6 +13,8 @@ Spree::Order.class_eval do
   before_destroy { uaddrcount(user, "O:B4DEST #{state} #{id.inspect} #{number}", order: self); whereami("O:b4dest:#{number}") } # XXX
   after_destroy { uaddrcount(user, "O:AFTDEST #{state} #{id.inspect} #{number}", order: self); whereami("O:aftdest:#{number}") } # XXX
 
+  after_save :touch_addresses
+
   # XXX / TODO: Probably want to get rid of this validation before deploying to
   # production because there is old invalid data.  Alternatively, limit
   # validation to orders created after a certain date (override in user of gem)
@@ -39,6 +41,23 @@ Spree::Order.class_eval do
           "Shipping address user #{ship_address.user_id.inspect} does not match order #{user_id.inspect}"
         )
       end
+    end
+  end
+
+  # Updates the updated_at columns of the order's addresses, if they changed.
+  def touch_addresses
+    whereami("O:ta #{changes} #{previous_changes} b=#{self.bill_address.present?} s=#{self.ship_address.present?}") # XXX
+    puts "cib=#{changes.include?(:bill_address_id)} cis=#{changes.include?(:ship_address_id)}" # XXX
+    puts "pcib=#{previous_changes.include?(:bill_address_id)} pcis=#{previous_changes.include?(:ship_address_id)}" # XXX
+
+    if changes.include?(:bill_address_id) && self.bill_address.present?
+      puts "touchbill" # XXX
+      self.bill_address.touch
+    end
+
+    if changes.include?(:ship_address_id) && self.ship_address.present?
+      puts "touchship" # XXX
+      self.ship_address.touch
     end
   end
 

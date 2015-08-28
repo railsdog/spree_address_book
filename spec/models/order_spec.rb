@@ -131,4 +131,17 @@ describe Spree::Order do
       end
     end
   end
+
+  it 'touches addresses if assignments are changed' do
+    a = create(:address)
+
+    expect {
+      order.bill_address = a
+      order.save!
+    }.to change{ a.reload.updated_at }
+
+    expect {
+      order.update_attributes!(ship_address_id: a.id)
+    }.to change{ a.reload.updated_at }
+  end
 end

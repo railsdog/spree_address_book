@@ -27,7 +27,7 @@ describe Spree::User do
         }.not_to change{ [user.reload.bill_address_id, user.reload.ship_address_id] }
       end
 
-      expect(user.addresses).to eq([address2, address])
+      expect(user.addresses).to eq([address.reload, address2.reload])
     end
   end
 
@@ -56,4 +56,16 @@ describe Spree::User do
     end
   end
 
+  it 'touches addresses if assignments are changed' do
+    a = create(:address)
+
+    expect {
+      user.bill_address = a
+      user.save!
+    }.to change{ a.reload.updated_at }
+
+    expect {
+      user.update_attributes!(ship_address_id: a.id)
+    }.to change{ a.reload.updated_at }
+  end
 end

@@ -12,6 +12,8 @@ Spree.user_class.class_eval do
   # user to limit to new orders)
   validate :verify_address_owners
 
+  after_save :touch_addresses
+
   # XXX
   # Validates that the default addresses are owned by the user.
   def verify_address_owners
@@ -24,6 +26,22 @@ Spree.user_class.class_eval do
     end
   end
 
+  # Updates the updated_at columns of the user's addresses, if they changed.
+  def touch_addresses
+    whereami("U:ta #{changes} #{previous_changes} b=#{self.bill_address.present?} s=#{self.ship_address.present?}") # XXX
+    puts "cib=#{changes.include?(:bill_address_id)} cis=#{changes.include?(:ship_address_id)}" # XXX
+    puts "pcib=#{previous_changes.include?(:bill_address_id)} pcis=#{previous_changes.include?(:ship_address_id)}" # XXX
+
+    if changes.include?(:bill_address_id) && self.bill_address.present?
+      puts "touchbill" # XXX
+      self.bill_address.touch
+    end
+
+    if changes.include?(:ship_address_id) && self.ship_address.present?
+      puts "touchship" # XXX
+      self.ship_address.touch
+    end
+  end
 
   # Pre-validation hook that adds user_id to addresses that are assigned to the
   # user's default address slots.
