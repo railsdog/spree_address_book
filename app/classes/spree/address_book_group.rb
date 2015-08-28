@@ -147,6 +147,9 @@ class Spree::AddressBookGroup
         o.shipments.where(address_id: o.ship_address_id).update_all(address_id: primary_id)
       end
 
+      Spree::User.where(bill_address_id: a.id).update_all(bill_address_id: primary_id)
+      Spree::User.where(ship_address_id: a.id).update_all(ship_address_id: primary_id)
+
       result &= a.destroy
       @addresses.reject!{|addr| addr.id == a.id}
       puts "------------------ Removed address #{a.id} from @addresses" # XXX

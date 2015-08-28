@@ -94,6 +94,10 @@ Spree::Address.class_eval do
     Spree::Order.incomplete.with_bill_address(self).update_all(bill_address_id: nil)
     Spree::Order.incomplete.with_ship_address(self).update_all(ship_address_id: nil)
 
+    # Remove the address from any users' default slots
+    Spree::User.where(bill_address_id: self.id).update_all(bill_address_id: nil)
+    Spree::User.where(ship_address_id: self.id).update_all(ship_address_id: nil)
+
     if can_be_deleted?
       super
     else

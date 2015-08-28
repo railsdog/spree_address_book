@@ -132,15 +132,20 @@ feature 'User editing addresses for their account' do
     expect(user.bill_address_id).to eq(user.ship_address_id)
   end
 
-  it 'should remove an editable address if it is altered to match an existing address' do
+  it 'should remove an editable address if it is altered to match an existing address', js: true do
     address2 = address.clone
     address2.address2 = 'Unique'
     address2.save!
     expect(address2).to be_editable
 
+    user.update_attributes!(bill_address_id: address2.id, ship_address_id: address.id)
+
     expect {
-      edit_frontend_address(user, nil, true, Spree.t(:address2) => address.address2)
+      edit_frontend_address(user, address2, true, address)
     }.to change{ user.reload.addresses.count }.by(-1)
+
+    expect(user.bill_address_id).to eq(address.id)
+    expect(user.ship_address_id).to eq(address.id)
 
     expect{address2.reload}.to raise_error
   end
