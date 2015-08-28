@@ -129,7 +129,14 @@ table#addresses {
   text-align: center;
 }
 
-#new_address_link {
+.new_address_link {
   text-align: right;
-  padding: 6px 9px 5px;
+  padding: 0 8px;
+  line-height: 32px;
+  height: 32px;
+
+  &.top {
+    margin-top: -29px;
+    border-bottom: solid 1px $border-color;
+  }
 }

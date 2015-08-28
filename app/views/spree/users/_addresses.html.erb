@@ -1,6 +1,10 @@
 <h3 id="user_address_list_title"><%= I18n.t(:saved_addresses, :scope => :address_book) %></h3>
 
 <% if spree_current_user.addresses.present? %>
+  <div class="new_address_link top">
+    <%= link_to I18n.t(:add_new_address, :scope => :address_book), :controller => :addresses, :action => :new %>
+  </div>
+
   <table id="addresses">
     <tbody>
       <% Spree::AddressBookList.new(spree_current_user).each do |address| %>
@@ -41,6 +45,6 @@
   </div>
 <% end %>
 
-<div id="new_address_link">
+<div class="new_address_link bottom">
   <%= link_to I18n.t(:add_new_address, :scope => :address_book), :controller => :addresses, :action => :new %>
 </div>
