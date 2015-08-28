@@ -1,21 +1,7 @@
-<%# Renders an order/user address selection form; uses @user, @order, @addresses
-Locals:
-  :new_address_inline - If true, shows the new address link inline with the
-              content.  If false, adds it to content_for :page_actions.
-%>
+<%# Renders an order/user address selection form; uses @user, @order, @addresses %>
 
-<% new_address_inline ||= false %>
 <% allow_create = @user.try(:can_update_addresses?) || @order.try(:can_update_addresses?) %>
 <% allow_all_create = @order.try(:can_update_addresses?) != false && @user.try(:can_update_addresses?) != false %>
-
-<% unless new_address_inline %>
-  <% content_for :page_actions do %>
-    <%# New address button %>
-    <% if allow_create %>
-      <li><%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'plus', id: 'new_address_link' %></li>
-    <% end %>
-  <% end %>
-<% end %>
 
 <fieldset data-hook="admin_addresses" id="admin_user_edit_addresses" class="alpha omega twelve columns">
   <legend align="center"><%= Spree.t('addresses', :scope => 'admin.user') %></legend>
@@ -46,7 +32,8 @@ Locals:
 
         <%= render partial: 'spree/admin/addresses/address_warning', locals: { last_column: allow_create } %>
 
-        <% unless !new_address_inline || !allow_all_create %>
+        <%# Address creation button %>
+        <% if allow_all_create %>
           <div class="omega seven columns align-right">
             <%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), icon: 'plus', id: 'new_address_link' %>
           </div>
@@ -137,7 +124,7 @@ Locals:
         <% end %>
 
         <%# Address creation button %>
-        <% if new_address_inline %>
+        <% if allow_all_create %>
           <div class="omega six columns align-right">
             <%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), icon: 'plus', id: 'new_address_link_bottom' %>
           </div>

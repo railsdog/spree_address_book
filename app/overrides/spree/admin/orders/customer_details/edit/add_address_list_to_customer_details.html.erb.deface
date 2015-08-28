@@ -1,4 +1,4 @@
 <!-- insert_after "erb:contains('render'):contains('form'):contains(':f') + erb:contains('end')" enabled -->
 <%# Replaces the customer billing/shipping address forms with an address selection list %>
 
-<%= render partial: 'spree/admin/addresses/list', locals: { new_address_inline: true } %>
+<%= render partial: 'spree/admin/addresses/list' %>
