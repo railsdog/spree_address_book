@@ -1,7 +1,0 @@
-<!-- insert_bottom "[data-hook='admin_order_tabs']" -->
-<% if can?(:update, @order) %>
-  <li<%== ' class="active"' if current == 'Addresses' %> data-hook='admin_order_tabs_addresses'>
-    <%= link_to_with_icon 'envelope-o', I18n.t(:addresses, scope: 'address_book'), admin_addresses_url(user_id: @user.try(:id), order_id: @order.try(:id)) %>
-  </li>
-<% end %>
-<!-- enabled -->
