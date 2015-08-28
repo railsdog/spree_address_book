@@ -2,6 +2,11 @@
   <div class="alpha omega twelve columns">
     <fieldset class="no-border-bottom">
       <legend align="center"><%= Spree.t(:billing_address) %></legend>
+
+      <div class="alpha omega twelve columns align-center">
+        <%= Spree.t(:billing_address_is_optional) %>
+      </div>
+
       <%= f.fields_for :bill_address, (@user.bill_address || Spree::Address.default(@user, "bill")) do |ba_form| %>
         <% ba_form.object ||= Spree::Address.new(country: Spree::Country.new) %>
         <%= render :partial => 'spree/admin/shared/address_form', :locals => { :f => ba_form, :type => "billing" } %>
