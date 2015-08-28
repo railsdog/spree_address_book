@@ -5,10 +5,21 @@ Spree::Admin::UsersController.class_eval do
 
   before_filter :load_address_list
 
-  # UPDATE WITH SPREE (modified to change render :edit to redirect_to)
+  # UPDATE WITH SPREE
+  # Changed `render :edit` to `redirect_to edit_admin_user_path(@user)`
+  # Changed flash translation
+  # Removed bill address params if the main params are blank
   def create
     if params[:user]
       roles = params[:user].delete("spree_role_ids")
+
+      # Don't try to create a billing address if it was left blank
+      addr = params[:user][:bill_address_attributes]
+      if addr
+        if addr[:firstname].blank? && addr[:lastname].blank? && addr[:address1].blank?
+          params[:user].delete(:bill_address_attributes)
+        end
+      end
     end
 
     @user = Spree.user_class.new(user_params)
