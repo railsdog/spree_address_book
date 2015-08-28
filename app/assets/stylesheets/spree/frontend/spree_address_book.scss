@@ -3,7 +3,8 @@ $border-color: #d9d9db;
 
 div.inner {
   input[type="text"], select {
-    width: 80%; }
+    width: 100%;
+  }
 }
 
 div#checkout #checkout_form_address {
