@@ -1,6 +1,11 @@
 // based on Spree's $border-color
 $border-color: #d9d9db;
 
+// based on $color-tbl-even from Spree 2.3
+$default-bill-color: desaturate(darken(#5498da, 10), 3);
+$default-ship-color: lighten(#5498da, 8);
+
+
 div.inner {
   input[type="text"], select {
     width: 100%;
@@ -17,12 +22,32 @@ div.inner {
   label {
     float: none;
     vertical-align: top;
+    padding: 5px;
+
+    &:after {
+      clear: both;
+    }
   }
 
   input[type="radio"], input[type="checkbox"] {
+    float: left;
     width: auto;
     vertical-align: top;
-    margin-top: 1px;
+    display: block;
+    margin: 6px;
+
+    & + label {
+      display: block;
+    }
+  }
+
+  input[type="radio"]:checked {
+    & + label {
+      border-radius: 3px;
+      border: solid 1px $default-ship-color;
+      background: lighten($default-ship-color, 31);
+      margin: -1px;
+    }
   }
 
   .address {
@@ -33,8 +58,9 @@ div.inner {
     display: block;
   }
 
-  p[data-hook="use_billing"] {
-    float: none;
+  #default_address_checkbox_wrapper {
+    white-space: nowrap;
+    display: inline-block;
   }
 }
 
@@ -45,10 +71,6 @@ div.inner {
 #save_user_address { margin: 0 0.5em 0 2em }
 
 table#addresses {
-  // based on $color-tbl-even from Spree 2.3
-  $default-bill-color: desaturate(darken(#5498da, 10), 3);
-  $default-ship-color: lighten(#5498da, 8);
-
   width: 100%;
   border-collapse: separate;
 

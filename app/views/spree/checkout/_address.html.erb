@@ -22,8 +22,8 @@
             <div class="field radio">
               <% a = address.primary_address %>
               <div id="<%= "#{address_type}_#{dom_id(a)}" %>">
-                <label>
-                  <%= form.radio_button "#{address_name}_id", a.id, checked: address == default_addr %>
+                <%= form.radio_button "#{address_name}_id", a.id, checked: address == default_addr %>
+                <label for="<%= "order_#{address_name}_id_#{a.id}" %>">
                   <span class="address">
                     <%= raw(a) %>
                     <span class="address_edit_link"><%= link_to Spree.t(:edit), edit_address_path(a) %></span>
@@ -32,7 +32,9 @@
               </div>
             </div>
           <% end %>
-          <label><%= form.radio_button "#{address_name}_id", 0 %> <%= I18n.t(:other_address, :scope => :address_book) %></label>
+
+          <%= form.radio_button "#{address_name}_id", 0 %>
+          <label for="order_<%= address_name %>_id_0"><%= I18n.t(:other_address, :scope => :address_book) %></label>
         </div>
       <% end %>
       <% addr = Spree::Address.default(@user, prefix) %>
@@ -53,5 +55,7 @@
 <hr class="clear" />
 <div class="form-buttons" data-hook="buttons">
   <%= submit_tag Spree.t(:save_and_continue), :class => 'continue button primary' %>
-  <%= save_default_address_check_box %>
+  <div id="default_address_checkbox_wrapper">
+    <%= save_default_address_check_box %>
+  </div>
 </div>
