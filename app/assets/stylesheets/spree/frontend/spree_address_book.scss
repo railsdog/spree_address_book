@@ -17,7 +17,12 @@ div.inner {
     margin-bottom: 10px;
     padding-top: 0;
     padding-bottom: 0;
+
+    &.radio > div {
+      box-sizing: border-box;
+    }
   }
+
 
   label {
     float: none;
@@ -35,9 +40,12 @@ div.inner {
     vertical-align: top;
     display: block;
     margin: 6px;
+    position: static;
 
     & + label {
       display: block;
+      border: solid 1px transparent;
+      box-sizing: border-box;
     }
   }
 
@@ -46,7 +54,6 @@ div.inner {
       border-radius: 3px;
       border: solid 1px $default-ship-color;
       background: lighten($default-ship-color, 31);
-      margin: -1px;
     }
   }
 
