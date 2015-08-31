@@ -49,11 +49,13 @@ div.inner {
     }
   }
 
-  input[type="radio"]:checked {
-    & + label {
-      border-radius: 3px;
-      border: solid 1px $default-ship-color;
-      background: lighten($default-ship-color, 31);
+  [data-use="address_wrapper"] {
+    input[type="radio"], input[type="checkbox"] {
+      &:checked + label {
+        border-radius: 3px;
+        border: solid 1px $default-ship-color;
+        background: lighten($default-ship-color, 31);
+      }
     }
   }
 
