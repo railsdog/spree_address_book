@@ -1,58 +1,61 @@
-<% ['billing', 'shipping'].each do |address_type|
-  next if address_type == 'billing' && Spree::AddressBook::Config[:disable_bill_address]
-  prefix = address_type[0...4]
-  address_name = "#{prefix}_address" %>
+<div class="row">
+  <% ['billing', 'shipping'].each do |address_type|
+    next if address_type == 'billing' && Spree::AddressBook::Config[:disable_bill_address]
+    prefix = address_type[0...4]
+    address_name = "#{prefix}_address" %>
 
-  <div class="columns alpha six" data-hook="<%= address_type %>_fieldset_wrapper">
-    <fieldset id="<%= address_type %>">
+    <div class="columns alpha six" data-hook="<%= address_type %>_fieldset_wrapper">
+      <fieldset id="<%= address_type %>">
 
-      <legend><%= Spree.t(address_type + "_address")%></legend>
+        <legend><%= Spree.t(address_type + "_address")%></legend>
 
-      <% if address_type == 'shipping' && !Spree::AddressBook::Config[:disable_bill_address] %>
-        <div class="field checkbox"  data-hook="use_billing">
-          <%= check_box_tag 'order[use_billing]', '1', (!(@order.bill_address.blank? && @order.ship_address.blank?) && @order.bill_address.same_as?(@order.ship_address)) %>
-          <%= label_tag :order_use_billing, Spree.t(:use_billing_address), :id => 'use_billing' %>
-        </div>
-      <% end %>
+        <% if address_type == 'shipping' && !Spree::AddressBook::Config[:disable_bill_address] %>
+          <div class="field checkbox"  data-hook="use_billing">
+            <%= check_box_tag 'order[use_billing]', '1', (!(@order.bill_address.blank? && @order.ship_address.blank?) && @order.bill_address.same_as?(@order.ship_address)) %>
+            <%= label_tag :order_use_billing, Spree.t(:use_billing_address), :id => 'use_billing' %>
+          </div>
+        <% end %>
 
-      <% if @addresses.present? %>
-        <% default_addr = @addresses.public_send("order_#{prefix}") || @addresses.public_send("user_#{prefix}") %>
-        <div class="select_address">
-          <% @addresses.each_with_index do |address, idx| %>
-            <div class="field radio">
-              <% a = address.primary_address %>
-              <div id="<%= "#{address_type}_#{dom_id(a)}" %>">
-                <%= form.radio_button "#{address_name}_id", a.id, checked: address == default_addr %>
-                <label for="<%= "order_#{address_name}_id_#{a.id}" %>">
-                  <span class="address">
-                    <%= raw(a) %>
-                    <span class="address_edit_link"><%= link_to Spree.t(:edit), edit_address_path(a) %></span>
-                  </span>
-                </label>
+        <% if @addresses.present? %>
+          <% default_addr = @addresses.public_send("order_#{prefix}") || @addresses.public_send("user_#{prefix}") %>
+          <div class="select_address">
+            <% @addresses.each_with_index do |address, idx| %>
+              <div class="field radio">
+                <% a = address.primary_address %>
+                <div id="<%= "#{address_type}_#{dom_id(a)}" %>">
+                  <%= form.radio_button "#{address_name}_id", a.id, checked: address == default_addr %>
+                  <label for="<%= "order_#{address_name}_id_#{a.id}" %>">
+                    <span class="address">
+                      <%= raw(a) %>
+                      <span class="address_edit_link"><%= link_to Spree.t(:edit), edit_address_path(a) %></span>
+                    </span>
+                  </label>
+                </div>
               </div>
-            </div>
-          <% end %>
+            <% end %>
 
-          <%= form.radio_button "#{address_name}_id", 0 %>
-          <label for="order_<%= address_name %>_id_0"><%= I18n.t(:other_address, :scope => :address_book) %></label>
-        </div>
-      <% end %>
-      <% addr = Spree::Address.default(@user, prefix) %>
-      <%= form.fields_for address_name, addr do |address_form| %>
-        <div class="inner" data-hook=<%="#{address_type}_inner" %>>
-          <%= render :partial => 'spree/addresses/form', :locals => {
-            :address_form => address_form,
-            :address_type => address_type,
-            :show_make_default => false,
-            :address => addr
-          } %>
-        </div>
-      <% end %>
-    </fieldset>
-  </div>
-<% end %>
+            <%= form.radio_button "#{address_name}_id", 0 %>
+            <label for="order_<%= address_name %>_id_0"><%= I18n.t(:other_address, :scope => :address_book) %></label>
+          </div>
+        <% end %>
 
-<hr class="clear" />
+        <% addr = Spree::Address.default(@user, prefix) %>
+        <%= form.fields_for address_name, addr do |address_form| %>
+          <div class="inner" data-hook=<%="#{address_type}_inner" %>>
+            <%= render :partial => 'spree/addresses/form', :locals => {
+              :address_form => address_form,
+              :address_type => address_type,
+              :show_make_default => false,
+              :address => addr
+            } %>
+          </div>
+        <% end %>
+      </fieldset>
+    </div>
+  <% end %>
+</div>
+
+<hr />
 <div class="form-buttons" data-hook="buttons">
   <%= submit_tag Spree.t(:save_and_continue), :class => 'continue button primary' %>
   <div id="default_address_checkbox_wrapper">
