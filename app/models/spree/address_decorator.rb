@@ -3,6 +3,16 @@ Spree::Address.class_eval do
   # _address_form partial.
   attr_accessor :address_type
 
+  # User associations
+  belongs_to :user, class_name: Spree.user_class
+  has_many :bill_users, class_name: Spree.user_class, foreign_key: :bill_address_id, inverse_of: :bill_address
+  has_many :ship_users, class_name: Spree.user_class, foreign_key: :ship_address_id, inverse_of: :ship_address
+
+  # Order associations
+  has_many :bill_orders, class_name: Spree::Order, foreign_key: :bill_address_id, inverse_of: :bill_address
+  has_many :ship_orders, class_name: Spree::Order, foreign_key: :ship_address_id, inverse_of: :ship_address
+
+
   # XXX
   before_validation ->{debug_addr(:before_validation)}
   before_save ->{debug_addr(:before_save)}
@@ -17,8 +27,6 @@ Spree::Address.class_eval do
       whereami(step)
     end
   end
-
-  belongs_to :user, :class_name => Spree.user_class.to_s
 
   def self.required_fields
     Spree::Address.validators.map do |v|
