@@ -7,7 +7,11 @@ Spree::CheckoutController.class_eval do
   protected
 
   def get_address_list
-    @addresses = spree_current_user && Spree::AddressBookList.new(spree_current_user)
+    if spree_current_user
+      @addresses = Spree::AddressBookList.new(spree_current_user, @order)
+    else
+      @addresses = Spree::AddressBookList.new(@order)
+    end
   end
 
   def set_addresses

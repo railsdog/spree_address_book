@@ -18,6 +18,10 @@
 
         <% if @addresses.present? %>
           <% default_addr = @addresses.public_send("order_#{prefix}") || @addresses.public_send("user_#{prefix}") %>
+
+          <%# XXX %>
+          <% puts "\n\n\033[0;42m\n\n\033[0;1mDefault(#{prefix})=#{default_addr.try(:id).inspect} order_bill=#{@addresses.order_bill.try(:id).inspect} order_ship=#{@addresses.order_ship.try(:id).inspect} user_bill=#{@addresses.user_bill.try(:id).inspect} user_ship=#{@addresses.user_bill.try(:id).inspect} real_order_bill=#{@order.try(:bill_address_id).inspect} real_order_ship=#{@order.try(:ship_address_id).inspect} real_user_bill=#{spree_current_user.try(:bill_address_id).inspect} real_user_ship=#{spree_current_user.try(:ship_address_id).inspect}\033[0m\n\033[1mAddresses order=#{@addresses.order.try(:id).inspect} user=#{@addresses.user.try(:id).inspect}\n\n" %>
+
           <div class="select_address">
             <% @addresses.each_with_index do |address, idx| %>
               <div class="field radio">

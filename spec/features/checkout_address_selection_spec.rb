@@ -205,7 +205,7 @@ feature "Address selection during checkout" do
         end.to_not change{ user.addresses.count }
       end
 
-      it 'should select the user default addresses' do
+      it 'should select the user default addresses if the order has no addresses' do
         user.update_attributes!(
           bill_address_id: user.addresses.first.id,
           ship_address_id: create(:address, user: user).id
@@ -220,6 +220,25 @@ feature "Address selection during checkout" do
 
         expect_selected(user.bill_address, :order, :bill)
         expect_selected(user.ship_address, :order, :ship)
+      end
+
+      it 'should select the existing order addresses' do
+        user.update_attributes!(
+          bill_address_id: user.addresses.first.id,
+          ship_address_id: create(:address, user: user).id
+        )
+
+        user.orders.delete_all
+        add_mug_to_cart
+        restart_checkout
+
+        bill = create(:address, user: user)
+        ship = create(:address, user: user)
+        user.orders.reload.last.update_attributes!(bill_address_id: bill.id, ship_address_id: ship.id)
+
+        visit '/checkout/addresses'
+        expect_selected(bill, :order, :bill)
+        expect_selected(ship, :order, :ship)
       end
 
       it 'should deduplicate listed addresses, only showing the newest' do
