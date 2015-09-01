@@ -1,27 +1,29 @@
 <% address_id = address_type.chars.first %>
 <% show_make_default = true if show_make_default.nil? %>
 
-<% ADDRESS_FIELDS.each do |field| %>
-  <% if field == "country" %>
-    <p class="field" id="<%= "#{address_id}country" %>">
-      <%= address_form.label :country_id, Spree.t(:country) %><span class="required">*</span><br />
-      <span id="<%= "#{address_id}country-selection" %>">
-        <%= address_form.collection_select :country_id, available_countries, :id, :name, {}, {:class => 'required form-control input-sm'} %>
-      </span>
-    </p>
-  <% elsif field == "state" && Spree::Config[:address_requires_state] %>
-    <%= address_field(address_form, :state, address_id) { address_state(address_form, address.country, address_id) } %>
-  <% else %>
-    <% next if field == "company" && !Spree::Config[:company] %>
-    <%= address_field(address_form, field.to_sym, address_id) %>
+<div class="address_fields">
+  <% ADDRESS_FIELDS.each do |field| %>
+    <% if field == "country" %>
+      <div class="field" id="<%= "#{address_id}country" %>">
+        <%= address_form.label :country_id, Spree.t(:country) %><span class="required">*</span><br />
+        <span id="<%= "#{address_id}country-selection" %>">
+          <%= address_form.collection_select :country_id, available_countries, :id, :name, {}, {:class => 'required form-control input-sm'} %>
+        </span>
+      </div>
+    <% elsif field == "state" && Spree::Config[:address_requires_state] %>
+      <%= address_field(address_form, :state, address_id) { address_state(address_form, address.country, address_id) } %>
+    <% else %>
+      <% next if field == "company" && !Spree::Config[:company] %>
+      <%= address_field(address_form, field.to_sym, address_id) %>
+    <% end %>
   <% end %>
-<% end %>
-<% if Spree::Config[:alternative_shipping_phone] %>
-  <p class="field" id=<%="#{address_id}altphone" %>>
-    <%= address_form.label :alternative_phone, Spree.t(:alternative_phone) %><br />
-    <%= address_form.phone_field :alternative_phone %>
-  </p>
-<% end %>
+  <% if Spree::Config[:alternative_shipping_phone] %>
+    <div class="field" id=<%="#{address_id}altphone" %>>
+      <%= address_form.label :alternative_phone, Spree.t(:alternative_phone) %><br />
+      <%= address_form.phone_field :alternative_phone %>
+    </div>
+  <% end %>
+</div>
 
 <% if show_make_default %>
   <p class="field" id="<%= "#{address_id}default_bill" %>">
