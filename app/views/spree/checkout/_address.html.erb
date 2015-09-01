@@ -27,15 +27,17 @@
                   <label for="<%= "order_#{address_name}_id_#{a.id}" %>">
                     <span class="address">
                       <%= raw(a) %>
-                      <span class="address_edit_link"><%= link_to Spree.t(:edit), edit_address_path(a) %></span>
                     </span>
+                      <span class="address_edit_link"><%= link_to Spree.t(:edit), edit_address_path(a) %></span>
                   </label>
                 </div>
               </div>
             <% end %>
 
-            <%= form.radio_button "#{address_name}_id", 0 %>
-            <label for="order_<%= address_name %>_id_0"><%= I18n.t(:other_address, :scope => :address_book) %></label>
+            <div class="field radio">
+              <%= form.radio_button "#{address_name}_id", 0 %>
+              <label for="order_<%= address_name %>_id_0"><%= I18n.t(:other_address, :scope => :address_book) %></label>
+            </div>
           </div>
         <% end %>
 

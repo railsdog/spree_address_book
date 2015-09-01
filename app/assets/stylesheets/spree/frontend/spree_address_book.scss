@@ -44,15 +44,27 @@ div.inner {
 
     & + label {
       display: block;
-      border: solid 1px transparent;
       box-sizing: border-box;
     }
   }
 
   [data-use="address_wrapper"] {
+    // Inactive address styles
+    input[type="radio"], input[type="checkbox"] {
+      & + label {
+        border: solid 1px #f2f2f2;
+        border-radius: 3px;
+
+        &:hover {
+          border: solid 1px #ccc;
+        }
+      }
+
+    }
+
+    // Active address styles
     input[type="radio"], input[type="checkbox"] {
       &:checked + label {
-        border-radius: 3px;
         border: solid 1px $default-ship-color;
         background: lighten($default-ship-color, 31);
       }
@@ -64,7 +76,9 @@ div.inner {
     min-width: 60%;
   }
   .address_edit_link {
-    display: block;
+    display: inline-block;
+    float: right;
+    vertical-align: top;
   }
 
   #default_address_checkbox_wrapper {
