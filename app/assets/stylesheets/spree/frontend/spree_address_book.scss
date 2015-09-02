@@ -85,6 +85,17 @@ div.inner {
     white-space: nowrap;
     display: inline-block;
   }
+
+  // Improve inline address error message formatting
+  #errorExplanation {
+    h2 {
+      display: none;
+    }
+
+    p {
+      margin-top: 0;
+    }
+  }
 }
 
 .hidden {

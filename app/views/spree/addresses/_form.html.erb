@@ -2,6 +2,8 @@
 <% show_make_default = true if show_make_default.nil? %>
 
 <div class="address_fields">
+  <%= render partial: 'spree/shared/error_messages', locals: { target: address } %>
+
   <% ADDRESS_FIELDS.each do |field| %>
     <% if field == "country" %>
       <div class="field" id="<%= "#{address_id}country" %>">
