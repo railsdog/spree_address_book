@@ -100,6 +100,14 @@ feature "Address selection during checkout" do
           expect(page).to have_content("field is required")
         end
       end
+
+      it 'should preserve a selected address and select other ship address if the ship address fails validation' do
+        skip # TODO
+      end
+
+      it 'should show an error message if a new address fails validation' do
+        skip # TODO
+      end
     end
 
     describe "entering 2 new addresses" do
@@ -222,7 +230,7 @@ feature "Address selection during checkout" do
         expect_selected(user.ship_address, :order, :ship)
       end
 
-      it 'should select the existing order addresses' do
+      it 'should select the existing order addresses if the order has saved addresses' do
         user.update_attributes!(
           bill_address_id: user.addresses.first.id,
           ship_address_id: create(:address, user: user).id
@@ -239,6 +247,23 @@ feature "Address selection during checkout" do
         visit '/checkout/addresses'
         expect_selected(bill, :order, :bill)
         expect_selected(ship, :order, :ship)
+      end
+
+      it 'should select the first address if the user and order have no addresses' do
+        user.update_attributes!(bill_address_id: nil, ship_address_id: nil)
+        order.update_attributes!(bill_address_id: nil, ship_address_id: nil)
+
+        create_list(:address, 3, user: user)
+        expect(order.bill_address).to be_nil
+        expect(order.ship_address).to be_nil
+        expect(user.bill_address).to be_nil
+        expect(user.ship_address).to be_nil
+
+        l = Spree::AddressBookList.new(order, user.reload)
+
+        visit '/checkout/addresses'
+        expect_selected(l.first, :order, :bill)
+        expect_selected(l.first, :order, :ship)
       end
 
       it 'should deduplicate listed addresses, only showing the newest' do

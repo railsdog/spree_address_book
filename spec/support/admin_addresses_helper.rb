@@ -103,6 +103,8 @@ module AdminAddresses
   #   user_or_order - :user or :order
   #   bill_or_ship - :bill or :ship
   def expect_selected(address, user_or_order, bill_or_ship)
+    address = address.id if address.is_a?(Spree::Address) || address.is_a?(Spree::AddressBookGroup)
+
     group_selector = "//input[@type='radio' and @name='#{user_or_order}[#{bill_or_ship}_address_id]' and @checked]"
     item_selector = address_radio_selector(address, user_or_order, bill_or_ship)
 
