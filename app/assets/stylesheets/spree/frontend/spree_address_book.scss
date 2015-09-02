@@ -7,7 +7,7 @@ $default-ship-color: lighten(#5498da, 8);
 
 
 div.inner {
-  input[type="text"], select {
+  input[type="text"], input[type="tel"], input[type="number"], input[type="email"], textarea, select {
     width: 100%;
   }
 }
