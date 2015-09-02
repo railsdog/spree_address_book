@@ -1,8 +1,12 @@
+<%# TODO: Find a better structure for this code; move logic into controller and/or model where possible %>
+<% @bill_address, @ship_address = get_selected_addresses %>
+
 <div class="row">
   <% ['billing', 'shipping'].each do |address_type| %>
     <% next if address_type == 'billing' && Spree::AddressBook::Config[:disable_bill_address] %>
     <% prefix = address_type[0...4] %>
     <% address_name = "#{prefix}_address" %>
+    <% addr_with_id = "#{address_name}_id" %>
 
     <div data-use="address_wrapper" class="columns <%= address_type == 'billing' ? 'alpha' : 'omega' %> six" data-hook="<%= address_type %>_fieldset_wrapper">
       <fieldset id="<%= address_type %>">
@@ -17,17 +21,18 @@
         <% end %>
 
         <% if @addresses.present? %>
-          <% default_addr = @addresses.public_send("order_#{prefix}") || @addresses.public_send("user_#{prefix}") %>
+          <% default_addr = instance_variable_get("@#{address_name}") %>
 
           <%# XXX %>
-          <% puts "\n\n\033[0;42m\n\n\033[0;1mDefault(#{prefix})=#{default_addr.try(:id).inspect} order_bill=#{@addresses.order_bill.try(:id).inspect} order_ship=#{@addresses.order_ship.try(:id).inspect} user_bill=#{@addresses.user_bill.try(:id).inspect} user_ship=#{@addresses.user_bill.try(:id).inspect} real_order_bill=#{@order.try(:bill_address_id).inspect} real_order_ship=#{@order.try(:ship_address_id).inspect} real_user_bill=#{spree_current_user.try(:bill_address_id).inspect} real_user_ship=#{spree_current_user.try(:ship_address_id).inspect}\033[0m\n\033[1mAddresses order=#{@addresses.order.try(:id).inspect} user=#{@addresses.user.try(:id).inspect}\n\n" %>
+          <% puts "\n\n\033[1;42m\n#{address_type}\n\033[0;1mDefault(#{prefix})=#{default_addr.try(:id).inspect} order_bill=#{@addresses.order_bill.try(:id).inspect} order_ship=#{@addresses.order_ship.try(:id).inspect} user_bill=#{@addresses.user_bill.try(:id).inspect} user_ship=#{@addresses.user_bill.try(:id).inspect} real_order_bill=#{@order.try(:bill_address_id).inspect} real_order_ship=#{@order.try(:ship_address_id).inspect} real_user_bill=#{spree_current_user.try(:bill_address_id).inspect} real_user_ship=#{spree_current_user.try(:ship_address_id).inspect}\033[0m\n\033[1mAddresses order_id=#{@addresses.order.try(:id).inspect} user_id=#{@addresses.user.try(:id).inspect}\n\n" %>
+          <% uaddrcount spree_current_user, 'view', order: @order %>
 
           <div class="select_address">
             <% @addresses.each_with_index do |address, idx| %>
               <div class="field radio">
                 <% a = address.primary_address %>
                 <div id="<%= "#{address_type}_#{dom_id(a)}" %>">
-                  <%= form.radio_button "#{address_name}_id", a.id, checked: address == default_addr %>
+                  <%= form.radio_button addr_with_id, a.id, checked: a.id == default_addr.try(:id), autocomplete: 'off' %>
                   <label for="<%= "order_#{address_name}_id_#{a.id}" %>">
                     <span class="address">
                       <%= raw(a) %>
@@ -39,7 +44,7 @@
             <% end %>
 
             <div class="field radio">
-              <%= form.radio_button "#{address_name}_id", 0 %>
+              <%= form.radio_button addr_with_id, 0, checked: default_addr.try(:id).to_i == 0 %>
               <label for="order_<%= address_name %>_id_0"><%= I18n.t(:other_address, :scope => :address_book) %></label>
             </div>
           </div>
