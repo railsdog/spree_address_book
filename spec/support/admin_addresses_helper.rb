@@ -394,4 +394,24 @@ RSpec.configure do |c|
       end
     end
   end
+
+  # Sets up before and after blocks that temporarily add a numerical validation
+  # to Spree::Address#zipcode.
+  def force_address_zipcode_numeric
+    before(:each) do
+      Spree::Address.class_eval do
+        validates_numericality_of :zipcode
+      end
+    end
+
+    after(:each) do
+      # http://stackoverflow.com/a/11268726/737303 was useful
+      Spree::Address._validators[:zipcode].reject!{|z| z.is_a?(ActiveModel::Validations::NumericalityValidator) }
+      cb = Spree::Address._validate_callbacks.find{|z|
+        # TODO: is this right?
+        z.raw_filter.is_a?(ActiveModel::Validations::NumericalityValidator) && z.raw_filter.attributes.include?(:zipcode)
+      }
+      Spree::Address._validate_callbacks.delete(cb)
+    end
+  end
 end

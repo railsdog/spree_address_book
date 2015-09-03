@@ -86,10 +86,14 @@ feature "Address selection during checkout" do
       end
 
       it "should show address form with error" do
+        visit '/checkout/address'
+
         within("#billing") do
+          choose I18n.t(:other_address, scope: :address_book)
           fill_in_address(address)
         end
         within("#shipping") do
+          choose I18n.t(:other_address, scope: :address_book)
           fill_in_address(address)
         end
         click_button "Save and Continue"
@@ -101,12 +105,41 @@ feature "Address selection during checkout" do
         end
       end
 
-      it 'should preserve a selected address and select other ship address if the ship address fails validation' do
-        skip # TODO
-      end
+      context 'with invalid zipcodes' do
+        force_address_zipcode_numeric
 
-      it 'should show an error message if a new address fails validation' do
-        skip # TODO
+        before(:each) do
+          @a = create_list(:address, 5, user: user).first
+          user.reload
+          visit '/checkout/address'
+        end
+
+        it 'should preserve a selected address and select other ship address if the ship address fails validation' do
+          choose "order_bill_address_id_#{@a.id}"
+
+          within '#shipping' do
+            begin # XXX
+              choose I18n.t(:other_address, scope: :address_book)
+            rescue => e
+              whereami(e)
+              puts page.html
+              raise
+            end
+            fill_in_address(address)
+            fill_in Spree.t(:zipcode), with: 'notnumber'
+          end
+
+          click_button Spree.t(:save_and_continue)
+
+          expect(page).to have_text('is not a number')
+          expect(current_path).to eq('/checkout/update/address')
+          expect_selected(@a, :order, :bill)
+          expect_selected(0, :order, :ship)
+
+          within '#shipping' do
+            expect(find_field(Spree.t(:zipcode)).value).to eq('notnumber')
+          end
+        end
       end
     end
 
