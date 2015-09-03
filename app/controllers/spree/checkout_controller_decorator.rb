@@ -52,7 +52,7 @@ Spree::CheckoutController.class_eval do
       @ship_address = @order.ship_address
     elsif @addresses.order_ship
       puts "SELECTING saved order ship #{@addresses.order_ship.id}\n\n" # XXX
-      @ship_address = @addresses.order_bill
+      @ship_address = @addresses.order_ship
     elsif @addresses.user_ship
       puts "SELECTING saved user ship #{@addresses.user_ship.try(:id).inspect}\n\n" # XXX
       @ship_address = @addresses.user_ship
@@ -63,6 +63,7 @@ Spree::CheckoutController.class_eval do
 
     puts '!' * 72 # XXX
 
+    puts "Returning #{@bill_address.try(:id).inspect}, #{@ship_address.try(:id).inspect}"
     return @bill_address, @ship_address
   end
 

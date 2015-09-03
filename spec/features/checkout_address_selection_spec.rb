@@ -86,14 +86,10 @@ feature "Address selection during checkout" do
       end
 
       it "should show address form with error" do
-        visit '/checkout/address'
-
         within("#billing") do
-          choose I18n.t(:other_address, scope: :address_book)
           fill_in_address(address)
         end
         within("#shipping") do
-          choose I18n.t(:other_address, scope: :address_book)
           fill_in_address(address)
         end
         click_button "Save and Continue"
@@ -105,13 +101,59 @@ feature "Address selection during checkout" do
         end
       end
 
-      context 'with invalid zipcodes' do
+      context 'with saved addresses and forced zipcode invalidation' do
         force_address_zipcode_numeric
 
+        let(:address1) { build(:address, zipcode: 'INVALID ZIP CODE HEY') }
+        let(:address2) { build(:address, zipcode: 'HEY SOME BROKEN ZIP CODE') }
+
         before(:each) do
+          expect(address1).not_to be_valid
+          expect(address2).not_to be_valid
+
           @a = create_list(:address, 5, user: user).first
           user.reload
           visit '/checkout/address'
+        end
+
+        it 'reloads form with errors for invalid addresses' do
+          within '#billing' do
+            choose I18n.t(:other_address, scope: :address_book)
+            fill_in_address(address1)
+          end
+
+          within '#shipping' do
+            choose I18n.t(:other_address, scope: :address_book)
+            fill_in_address(address2)
+          end
+
+          expect(find_field('order_bill_address_attributes_zipcode').value).to eq(address1.zipcode)
+          expect(find_field('order_ship_address_attributes_zipcode').value).to eq(address2.zipcode)
+
+          # XXX
+          expect(address1.id).to be_nil
+          expect(address2.id).to be_nil
+
+          click_button "Save and Continue"
+          expect(current_path).to eq('/checkout/update/address')
+
+          expect(user.orders.last.reload.bill_address_id).to be_nil
+          expect(user.orders.last.ship_address_id).to be_nil
+
+          puts page.html # XXX
+
+          expect_selected(0, :order, :bill)
+          expect_selected(0, :order, :ship)
+
+          expect(find_field('order_bill_address_attributes_zipcode').value).to eq(address1.zipcode)
+          within '#billing' do
+            expect(page).to have_content("is not a number")
+          end
+
+          expect(find_field('order_ship_address_attributes_zipcode').value).to eq(address2.zipcode)
+          within '#shipping' do
+            expect(page).to have_content("is not a number")
+          end
         end
 
         it 'should preserve a selected address and select other ship address if the ship address fails validation' do
@@ -125,20 +167,35 @@ feature "Address selection during checkout" do
               puts page.html
               raise
             end
-            fill_in_address(address)
+            fill_in_address(address1)
             fill_in Spree.t(:zipcode), with: 'notnumber'
           end
 
-          click_button Spree.t(:save_and_continue)
+          # Making sure address was filled in
+          expect(find_field('order_ship_address_attributes_firstname').value).to eq(address1.firstname)
+          expect(find_field('order_ship_address_attributes_zipcode').value).to eq('notnumber')
 
-          expect(page).to have_text('is not a number')
-          expect(current_path).to eq('/checkout/update/address')
+          begin # XXX
+            click_button Spree.t(:save_and_continue)
+
+            # Making sure address is still there after reloading
+            expect(find_field('order_ship_address_attributes_firstname').value).to eq(address1.firstname)
+            expect(find_field('order_ship_address_attributes_zipcode').value).to eq('notnumber')
+
+            expect(page).to have_text('is not a number')
+            expect(current_path).to eq('/checkout/update/address')
+          rescue => e
+            whereami(e) # XXX
+            puts page.html # XXX
+
+            byebug # XXX
+
+            raise
+          end
+
           expect_selected(@a, :order, :bill)
           expect_selected(0, :order, :ship)
 
-          within '#shipping' do
-            expect(find_field(Spree.t(:zipcode)).value).to eq('notnumber')
-          end
         end
       end
     end
@@ -246,7 +303,7 @@ feature "Address selection during checkout" do
         end.to_not change{ user.addresses.count }
       end
 
-      it 'should select the user default addresses if the order has no addresses' do
+      it 'should assign the the user default addresses to the order' do
         user.update_attributes!(
           bill_address_id: user.addresses.first.id,
           ship_address_id: create(:address, user: user).id
@@ -256,8 +313,25 @@ feature "Address selection during checkout" do
         add_mug_to_cart
         restart_checkout
 
-        expect(user.orders.reload.last.bill_address_id).to eq(user.bill_address_id)
+        expect(user.orders.reload.last.bill_address_id).to eq(user.reload.bill_address_id)
         expect(user.orders.last.ship_address_id).to eq(user.ship_address_id)
+
+        expect_selected(user.bill_address, :order, :bill)
+        expect_selected(user.ship_address, :order, :ship)
+      end
+
+      it 'should select user addresses if the order has no saved addresses' do
+        user.update_attributes!(
+          bill_address_id: user.addresses.first.id,
+          ship_address_id: create(:address, user: user).id
+        )
+
+        user.orders.last.update_attributes!(bill_address_id: nil, ship_address_id: nil)
+
+        visit '/checkout/addresses'
+
+        expect(user.orders.reload.last.bill_address_id).to be_nil
+        expect(user.orders.last.ship_address_id).to be_nil
 
         expect_selected(user.bill_address, :order, :bill)
         expect_selected(user.ship_address, :order, :ship)
@@ -310,6 +384,21 @@ feature "Address selection during checkout" do
         visit '/checkout/address'
         expect(page.all(:xpath, "//input[@type='radio' and @name='order[ship_address_id]']").count).to eq(6)
         expect(page.all(:xpath, "//input[@type='radio' and @name='order[bill_address_id]']").count).to eq(6)
+      end
+
+      it 'should not fill in the Other Address fields' do
+        visit '/checkout/address'
+
+        within '#billing' do
+          choose I18n.t(:other_address, scope: :address_book)
+        end
+
+        within '#shipping' do
+          choose I18n.t(:other_address, scope: :address_book)
+        end
+
+        expect(find_field('order_bill_address_attributes_firstname').value).to be_blank
+        expect(find_field('order_ship_address_attributes_firstname').value).to be_blank
       end
     end
 
