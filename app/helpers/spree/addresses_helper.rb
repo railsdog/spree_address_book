@@ -83,7 +83,7 @@ def hl_bt(backtrace, msg=nil)
     color = "\e[34m"
   end
 
-  width = IO.console.winsize[1]
+  width = IO.console.winsize[1] rescue 80
   divider = "#{"\u2500" * (width - 3)}\u257c\e[0m"
   leader = "#{color}\u2502\e[0m"
 
