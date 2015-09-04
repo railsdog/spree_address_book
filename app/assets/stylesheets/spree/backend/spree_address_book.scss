@@ -1,5 +1,16 @@
 // Admin addresses form
 table#addresses {
+  th, td {
+    width: 17%;
+    &:first-child {
+      width: 26%;
+    }
+    &.actions {
+      width: 1%;
+      white-space: nowrap;
+    }
+  }
+
   tbody td {
     position: relative;
 
