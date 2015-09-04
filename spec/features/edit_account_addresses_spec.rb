@@ -132,6 +132,33 @@ feature 'User editing addresses for their account' do
     expect(user.bill_address_id).to eq(user.ship_address_id)
   end
 
+  context 'with invalid zipcode' do
+    force_address_zipcode_numeric
+
+    scenario 'creating an invalid address displays an error message without creation', js: true do
+      expect {
+        create_frontend_address(user, false, build(:address, zipcode: 'Invalid Zip'), true, true)
+      }.not_to change{ [user.bill_address_id, user.ship_address_id, Spree::Address.count] }
+
+      expect(current_path).to eq(spree.addresses_path)
+      expect(page).to have_content('is not a number')
+      expect(find_field(Spree.t(:zipcode)).value).to eq('Invalid Zip')
+    end
+
+    scenario 'editing an address to become invalid displays an error message without updating', js: true do
+      a = create(:address, user: user)
+      user.reload
+
+      expect {
+        edit_frontend_address(user, a, false, { Spree.t(:zipcode) => 'Not Valid' }, true, true)
+      }.not_to change{ [user.bill_address_id, user.ship_address_id, Spree::Address.count] }
+
+      expect(current_path).to eq(spree.address_path(a))
+      expect(page).to have_content('is not a number')
+      expect(find_field(Spree.t(:zipcode)).value).to eq('Not Valid')
+    end
+  end
+
   it 'should remove an editable address if it is altered to match an existing address', js: true do
     address2 = address.clone
     address2.address2 = 'Unique'
