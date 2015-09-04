@@ -391,13 +391,8 @@ feature 'Admin UI address editing' do
 
           context 'with one address object' do
             before(:each) do
-              $show_addr_creation = true # XXX
               order.update_columns(bill_address_id: order.ship_address_id)
               expect(order.bill_address_id).to eq(order.ship_address_id)
-            end
-
-            after(:each) do
-              $show_addr_creation = false # XXX
             end
 
             scenario 'editing the address creates two identical addresses without linking to user' do

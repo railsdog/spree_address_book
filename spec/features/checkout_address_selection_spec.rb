@@ -117,6 +117,9 @@ feature "Address selection during checkout" do
         end
 
         it 'reloads form with errors for invalid addresses' do
+          expect(address1.id).to be_nil
+          expect(address2.id).to be_nil
+
           within '#billing' do
             choose I18n.t(:other_address, scope: :address_book)
             fill_in_address(address1)
@@ -130,17 +133,11 @@ feature "Address selection during checkout" do
           expect(find_field('order_bill_address_attributes_zipcode').value).to eq(address1.zipcode)
           expect(find_field('order_ship_address_attributes_zipcode').value).to eq(address2.zipcode)
 
-          # XXX
-          expect(address1.id).to be_nil
-          expect(address2.id).to be_nil
-
           click_button "Save and Continue"
           expect(current_path).to eq('/checkout/update/address')
 
           expect(user.orders.last.reload.bill_address_id).to be_nil
           expect(user.orders.last.ship_address_id).to be_nil
-
-          puts page.html # XXX
 
           expect_selected(0, :order, :bill)
           expect_selected(0, :order, :ship)
@@ -480,8 +477,6 @@ feature "Address selection during checkout" do
     describe "entering address that is already saved" do
       it "should not save address for user" do
         expect{
-          $show_addr_creation = true # XXX
-
           address = user.addresses.first
           choose "order_ship_address_id_#{address.id}"
           within("#billing") do
@@ -491,8 +486,6 @@ feature "Address selection during checkout" do
           check "Use Billing Address"
           uaddrcount(user, 'RSPEC b4 checkout') # XXX
           complete_checkout
-
-          $show_addr_creation = false # XXX
         }.not_to change { user.addresses.count }
       end
     end

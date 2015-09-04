@@ -69,7 +69,7 @@ Spree::CheckoutController.class_eval do
 
   # Changes address parameters to prevent duplicate addresses.
   def set_address_params
-    whereami("SCC:sa:#{params}")
+    whereami("SCC:sa:#{params}") # XXX
     return unless params[:order] && params[:state] == "address"
 
     check_address(:ship)

@@ -7,12 +7,6 @@ Spree::Order.class_eval do
   before_validation :delink_addresses_validation, if: :complete?
   before_validation :merge_user_addresses, unless: :complete?
 
-  before_validation { uaddrcount(user, "O:B4VALIDATION #{state} #{id.inspect} #{number}", order: self) } # XXX
-  before_save { uaddrcount(user, "O:B4SAVE #{state} #{id.inspect} #{number}", order: self) } # XXX
-  after_save { uaddrcount(user, "O:AftSAVE #{state} #{id.inspect} #{number}", order: self) } # XXX
-  before_destroy { uaddrcount(user, "O:B4DEST #{state} #{id.inspect} #{number}", order: self); whereami("O:b4dest:#{number}") } # XXX
-  after_destroy { uaddrcount(user, "O:AFTDEST #{state} #{id.inspect} #{number}", order: self); whereami("O:aftdest:#{number}") } # XXX
-
   after_save :touch_addresses
 
   # XXX / TODO: Probably want to get rid of this validation before deploying to
@@ -46,9 +40,7 @@ Spree::Order.class_eval do
 
   # Updates the updated_at columns of the order's addresses, if they changed.
   def touch_addresses
-    whereami("O:ta #{changes} #{previous_changes} b=#{self.bill_address.present?} s=#{self.ship_address.present?}") # XXX
-    puts "cib=#{changes.include?(:bill_address_id)} cis=#{changes.include?(:ship_address_id)}" # XXX
-    puts "pcib=#{previous_changes.include?(:bill_address_id)} pcis=#{previous_changes.include?(:ship_address_id)}" # XXX
+    whereami("O:ta #{changes} b=#{self.bill_address.present?} s=#{self.ship_address.present?}") # XXX
 
     if changes.include?(:bill_address_id) && self.bill_address.present?
       puts "touchbill" # XXX
@@ -247,8 +239,7 @@ Spree::Order.class_eval do
         end
 
         if self.bill_address.user_id.nil?
-          puts "GIVE BILL TO USER" # XXX
-          whereami('GIVE BILL') # XXX
+          puts "\e[1mGIVE BILL TO USER\e[0m" # XXX
           result &= self.bill_address.update_attributes(user_id: self.user_id)
         end
       end
@@ -272,8 +263,7 @@ Spree::Order.class_eval do
           end
 
           if self.ship_address.user_id.nil?
-            puts "GIVE SHIP TO USER" # XXX
-            whereami('GIVE SHIP') # XXX
+            puts "\e[1mGIVE SHIP TO USER\e[0m" # XXX
             result &= self.ship_address.update_attributes(user_id: self.user_id) # TODO: just use =?
           end
         end

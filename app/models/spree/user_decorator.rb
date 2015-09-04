@@ -1,18 +1,13 @@
 Spree.user_class.class_eval do
   has_many :addresses, -> { where(:deleted_at => nil).order("updated_at DESC") }, :class_name => 'Spree::Address'
 
-  before_validation { uaddrcount(self.id ? self : nil, "U:B4VALIDATION") } # XXX
-  before_save { uaddrcount(self.id ? self : nil, "U:B4SAVE") } # XXX
-  after_save { uaddrcount(self.id ? self : nil, "U:AftSAVE"); whereami('U:AftSAVE') } # XXX
-
   before_validation :link_address
+  after_save :touch_addresses
 
   # XXX / TODO: Probably want to get rid of this validation before deploying to
   # production because there is old invalid data. (Or override logic in gem
   # user to limit to new orders)
   validate :verify_address_owners
-
-  after_save :touch_addresses
 
   # XXX
   # Validates that the default addresses are owned by the user.
@@ -28,9 +23,7 @@ Spree.user_class.class_eval do
 
   # Updates the updated_at columns of the user's addresses, if they changed.
   def touch_addresses
-    whereami("U:ta #{changes} #{previous_changes} b=#{self.bill_address.present?} s=#{self.ship_address.present?}") # XXX
-    puts "cib=#{changes.include?(:bill_address_id)} cis=#{changes.include?(:ship_address_id)}" # XXX
-    puts "pcib=#{previous_changes.include?(:bill_address_id)} pcis=#{previous_changes.include?(:ship_address_id)}" # XXX
+    whereami("U:ta #{changes} b=#{self.bill_address.present?} s=#{self.ship_address.present?}") # XXX
 
     if changes.include?(:bill_address_id) && self.bill_address.present?
       puts "touchbill" # XXX

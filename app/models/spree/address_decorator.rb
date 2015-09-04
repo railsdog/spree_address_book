@@ -13,21 +13,6 @@ Spree::Address.class_eval do
   has_many :ship_orders, class_name: Spree::Order, foreign_key: :ship_address_id, inverse_of: :ship_address
 
 
-  # XXX
-  before_validation ->{debug_addr(:before_validation)}
-  before_save ->{debug_addr(:before_save)}
-  # Too verbose XXX after_initialize ->{debug_addr(:after_initialize)}
-  after_create ->{debug_addr(:after_create)}
-
-  # XXX
-  def debug_addr(step)
-    $show_addr_creation ||= false
-    if (self.user && $show_addr_creation) || step == :destroy
-      puts "\e[32m==|#{step} address #{id.inspect} for user #{user_id.inspect}\e[0m"
-      whereami(step)
-    end
-  end
-
   def self.required_fields
     Spree::Address.validators.map do |v|
       v.kind_of?(ActiveModel::Validations::PresenceValidator) ? v.attributes : []
@@ -89,8 +74,6 @@ Spree::Address.class_eval do
 
   # UPGRADE_CHECK if future versions of spree have a custom destroy function, this will break
   def destroy
-    debug_addr(:destroy) # XXX
-
     # Remove the address from its user's default address slots
     if user && self.id
       user.bill_address_id = nil if user.bill_address_id == self.id
