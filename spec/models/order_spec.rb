@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe Spree::Order do
+  let(:user) { create :user_with_addreses }
   let(:order) { FactoryGirl.create(:order) }
   let(:address) { FactoryGirl.create(:address, :user => order.user) }
 
@@ -36,7 +37,6 @@ describe Spree::Order do
   end
 
   describe 'address referencing' do
-    let(:user) { create :user_with_addreses }
     let(:order) do
       create(:order_with_line_items, user: user, bill_address: nil, ship_address: nil).tap do |order|
         create :payment, amount: order.total, order: order, state: 'completed'
@@ -143,5 +143,21 @@ describe Spree::Order do
     expect {
       order.update_attributes!(ship_address_id: a.id)
     }.to change{ a.reload.updated_at }
+  end
+
+  it 'fails validation if it has invalid addresses' do
+    o = create(:completed_order_with_pending_payment, user: user)
+    expect(o).to be_valid
+
+    # Make the addresses invalid and force the order to try to unlink them
+    o.bill_address.update_columns(firstname: nil, lastname: nil, zipcode: nil, user_id: user.id)
+    o.ship_address.update_columns(firstname: nil, lastname: nil, zipcode: nil, user_id: user.id)
+    o.reload
+
+    expect(o.bill_address.firstname).to be_blank
+    expect(o.ship_address.firstname).to be_blank
+
+    expect(o.save).to eq(false)
+    expect(o.errors.full_messages.to_sentence).to match(/zip/i)
   end
 end
