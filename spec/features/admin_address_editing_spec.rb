@@ -29,6 +29,30 @@ feature 'Admin UI address editing' do
       end
     end
 
+    context 'with invalid zipcodes' do
+      force_address_zipcode_numeric
+
+      scenario 'creating an invalid user address shows an error' do
+        a = build(:fake_address, zipcode: 'invalid')
+        expect {
+          create_address(user, false, a)
+        }.not_to change{ [Spree::Address.count, user.reload.addresses.count] }
+
+        expect(current_path).to eq(spree.admin_addresses_path)
+        expect(page).to have_content('is not a number')
+      end
+
+      scenario 'editing a user address to be invalid shows an error' do
+        a = create(:fake_address, user: user, zipcode: 12345)
+        expect {
+          edit_address(user, a, false, Spree.t(:zipcode) => 'invalid zip')
+        }.not_to change{ [a.reload.updated_at] }
+
+        expect(current_path).to eq(spree.admin_address_path(a))
+        expect(page).to have_content('is not a number')
+      end
+    end
+
     scenario 'can edit a single address' do
       a = create(:address, user: user)
 
@@ -531,6 +555,30 @@ feature 'Admin UI address editing' do
           end
 
           user.addresses.reload
+        end
+
+        context 'with invalid zipcodes' do
+          force_address_zipcode_numeric
+
+          scenario 'creating an invalid order address shows an error' do
+            a = build(:fake_address, zipcode: 'invalid')
+            expect {
+              create_address(order, false, a)
+            }.not_to change{ [Spree::Address.count, user.reload.addresses.count] }
+
+            expect(current_path).to eq(spree.admin_addresses_path)
+            expect(page).to have_content('is not a number')
+          end
+
+          scenario 'editing an order address to be invalid shows an error' do
+            a = create(:fake_address, user: user, zipcode: 12345)
+            expect {
+              edit_address(order, a, false, Spree.t(:zipcode) => 'invalid zip')
+            }.not_to change{ [a.reload.updated_at] }
+
+            expect(current_path).to eq(spree.admin_address_path(a))
+            expect(page).to have_content('is not a number')
+          end
         end
 
         scenario 'deletes duplicates when editing an address' do

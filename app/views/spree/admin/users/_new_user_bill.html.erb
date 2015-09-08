@@ -9,7 +9,7 @@
 
       <%= f.fields_for :bill_address, (@user.bill_address || Spree::Address.default(@user, "bill")) do |ba_form| %>
         <% ba_form.object ||= Spree::Address.new(country: Spree::Country.new) %>
-        <%= render :partial => 'spree/admin/shared/address_form', :locals => { :f => ba_form, :type => "billing" } %>
+        <%= render :partial => 'spree/admin/addresses/address_form', :locals => { :f => ba_form, :type => "billing" } %>
       <% end %>
     </fieldset>
   </div>

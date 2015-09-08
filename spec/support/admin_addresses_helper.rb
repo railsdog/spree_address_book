@@ -215,7 +215,7 @@ module AdminAddresses
 
       select values.country.name, from: Spree.t(:country) if values.country
       fill_in Spree.t(:city), with: values.city
-      fill_in Spree.t(:zip), with: values.zipcode
+      fill_in Spree.t(:zipcode), with: values.zipcode
       select values.state.name, from: Spree.t(:state)
       fill_in Spree.t(:phone), with: values.phone
       fill_in Spree.t(:alternative_phone), with: values.alternative_phone if Spree::Config[:alternative_shipping_phone]
@@ -275,8 +275,7 @@ module AdminAddresses
       expect_address_collection_path(order_or_user)
       expect(page).to have_content(Spree.t(:successfully_created, resource: Spree::Address.model_name.human))
     else
-      # TODO/FIXME - untested
-      expect(path_with_query).to eq(spree.update_admin_address_path(address_id, user_id: @user_id, order_id: @order_id))
+      expect(path_with_query).to eq(spree.admin_addresses_path(user_id: @user_id, order_id: @order_id))
       expect(page).to have_no_content(Spree.t(:successfully_created, resource: Spree::Address.model_name.human))
     end
   end
@@ -299,7 +298,6 @@ module AdminAddresses
       expect_address_collection_path(order_or_user)
       expect(page).to have_content(Spree.t(:successfully_updated, resource: Spree::Address.model_name.human))
     else
-      # TODO Check flash message only?
       expect(page).to have_no_content(Spree.t(:successfully_updated, resource: Spree::Address.model_name.human))
       expect(path_with_query).to eq(spree.admin_address_path(address_id, user_id: @user_id, order_id: @order_id))
     end

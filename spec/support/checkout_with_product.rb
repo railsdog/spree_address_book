@@ -52,7 +52,7 @@ shared_context "checkout with product" do
     expect(page).to have_field(Spree.t(:address1))
     expect(page).to have_field("City")
     expect(page).to have_field("Country")
-    expect(page).to have_field(Spree.t(:zip))
+    expect(page).to have_field(Spree.t(:zipcode))
     expect(page).to have_field(Spree.t(:phone))
   end
 
