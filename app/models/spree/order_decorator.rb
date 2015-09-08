@@ -185,7 +185,7 @@ Spree::Order.class_eval do
   # in the address book be changed or removed.
   def delink_addresses
     delink_addresses_validation
-    save!
+    save
   end
 
   # Delinks addresses without validating, for use in a before_validation
@@ -194,7 +194,7 @@ Spree::Order.class_eval do
     uaddrcount(user, "O:dav:b4", order: self) # XXX
     if bill_address.try(:user_id)
       bill_copy = bill_address.clone_without_user
-      bill_copy.save!
+      bill_copy.save
       self.bill_address = bill_copy
     end
 
@@ -203,7 +203,7 @@ Spree::Order.class_eval do
         (ship_address.id && ship_address.id == bill_address.try(:id)) ||
         (ship_address.changed? && ship_address == bill_address))
       ship_copy = ship_address.clone_without_user
-      ship_copy.save!
+      ship_copy.save
       self.ship_address = ship_copy
       shipments.update_all address_id: ship_address_id
     end
