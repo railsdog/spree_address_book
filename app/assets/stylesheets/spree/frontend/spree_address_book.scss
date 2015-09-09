@@ -32,6 +32,11 @@ div.inner {
     &:after {
       clear: both;
     }
+
+    &.error {
+      margin-top: 0;
+      padding-top: 0;
+    }
   }
 
   input[type="radio"], input[type="checkbox"] {
