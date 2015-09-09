@@ -159,6 +159,27 @@ feature 'User editing addresses for their account' do
     end
   end
 
+  context "editing another user's address, even as admin" do
+    let(:user2) { create(:user) }
+
+    before(:each) do
+      admin_role = Spree::Role.find_or_create_by!(name: 'admin')
+      user.spree_roles = [admin_role]
+    end
+
+    scenario "cannot edit a different user's address" do
+      a2 = create(:fake_address, user: user2)
+      visit spree.edit_address_path(a2)
+      expect(page.status_code).to eq(404)
+    end
+
+    scenario "cannot edit a guest address" do
+      a2 = create(:fake_address)
+      visit spree.edit_address_path(a2)
+      expect(page.status_code).to eq(404)
+    end
+  end
+
   it 'should remove an editable address if it is altered to match an existing address', js: true do
     address2 = address.clone
     address2.address2 = 'Unique'

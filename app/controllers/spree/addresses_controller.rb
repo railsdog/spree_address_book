@@ -5,6 +5,7 @@ class Spree::AddressesController < Spree::StoreController
   rescue_from ActiveRecord::RecordNotFound, :with => :render_404
   load_and_authorize_resource :class => Spree::Address
 
+  before_filter :reject_unowned_addresses
   before_filter :load_addresses, only: [:index, :create, :update]
 
   def create
@@ -73,6 +74,14 @@ class Spree::AddressesController < Spree::StoreController
   # Loads a deduplicated address list (Spree::AddressBookList) into @addresses.
   def load_addresses
     @addresses = Spree::AddressBookList.new(spree_current_user)
+  end
+
+  # Raises ActiveRecord::NotFound if the address has no user or a different
+  # user from the current user.
+  def reject_unowned_addresses
+    if @address && @address.user_id.nil? || @address.user_id != spree_current_user.try(:id)
+      raise ActiveRecord::RecordNotFound, Spree.t(:no_resource_found, resource: Spree::Address.model_name.human)
+    end
   end
 
   # Sets @address as the current user's default billing and/or shipping
