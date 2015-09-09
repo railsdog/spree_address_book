@@ -79,7 +79,7 @@ class Spree::AddressesController < Spree::StoreController
   # Raises ActiveRecord::NotFound if the address has no user or a different
   # user from the current user.
   def reject_unowned_addresses
-    if @address && @address.user_id.nil? || @address.user_id != spree_current_user.try(:id)
+    if @address && !@address.new_record? && @address.user_id.nil? || @address.user_id != spree_current_user.try(:id)
       raise ActiveRecord::RecordNotFound, Spree.t(:no_resource_found, resource: Spree::Address.model_name.human)
     end
   end
