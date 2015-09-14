@@ -99,16 +99,20 @@ feature 'Admin UI address selection' do
       expect(page.all('#addresses thead tr:first-child th').count).to eq(4)
     end
 
-    scenario 'can delete an address' do
+    scenario 'can delete an address', js: true do
       5.times do
         create(:address, user: user)
       end
 
       expect(user.reload.addresses.count).not_to eq(0)
 
+      a = user.addresses.first
+
       expect {
-        delete_address(user, user.addresses.first, true)
+        delete_address(user, a, true)
       }.to change{ user.reload.addresses.count }.by(-1)
+
+      expect_list_addresses([a], false)
     end
 
     context 'with duplicate addresses' do
@@ -158,14 +162,16 @@ feature 'Admin UI address selection' do
         expect_address_count 5
       end
 
-      scenario 'can destroy a duplicate address, removing all duplicates' do
+      scenario 'can destroy a duplicate address, removing all duplicates', js: true do
         expect {
           delete_address(user, Spree::AddressBookList.new(user).find(@a).id, true)
         }.to change{ user.reload.addresses.count }.by(-2)
         expect_address_count(4)
+
+        expect_list_addresses([@a], false)
       end
 
-      scenario 'can destroy all addresses' do
+      scenario 'can destroy all addresses', js: true do
         expect(user.reload.addresses.count).not_to eq(0)
 
         l = Spree::AddressBookList.new(user)
@@ -174,6 +180,8 @@ feature 'Admin UI address selection' do
             delete_address(user, a.id, true)
           }.to change{ user.reload.addresses.count }.by(-a.count)
         end
+
+        expect_list_addresses(l.addresses, false)
 
         expect(user.reload.addresses.count).to eq(0)
       end

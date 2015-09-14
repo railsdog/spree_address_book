@@ -79,10 +79,15 @@ module AdminAddresses
   end
 
   # Expects every address in the given +list+ to be displayed on the page,
-  # using #content_regex to match deduplicated addresses.
-  def expect_list_addresses(list)
+  # using #content_regex to match deduplicated addresses.  If +present+ is
+  # false, then the addresses are expected *not* to be displayed.
+  def expect_list_addresses(list, present=true)
     list.each do |a|
-      expect(page).to have_content(content_regex(a))
+      if present
+        expect(page).to have_content(content_regex(a))
+      else
+        expect(page).to have_no_content(content_regex(a))
+      end
     end
   end
 
