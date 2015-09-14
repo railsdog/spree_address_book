@@ -92,8 +92,8 @@ module Spree
         #ap @new_match.try(:addresses)
         #ap @old_match.try(:addresses)
         #ap @addresses.try(:addresses).try(:map, &:addresses)
-        ap @address
-        ap params
+        ap @address unless Rails.env.production? || Rails.env.stage?
+        ap params unless Rails.env.production? || Rails.env.stage?
         # XXX
 
         assign_order_address if @order && @address.errors.empty?
