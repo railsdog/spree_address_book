@@ -8,6 +8,8 @@ module Spree
       before_filter :load_address_list
       before_filter :find_address, only: [:edit, :update, :destroy]
 
+      before_action :save_referrer, only: [:new, :edit, :destroy] # TODO: use redirect_to :back instead?
+
       def redirect_back
         if params[:order_id]
           redirect_to edit_admin_order_path(Spree::Order.find(params[:order_id]))
@@ -19,8 +21,6 @@ module Spree
       end
 
       def new
-        save_referrer
-
         unless @order.try(:can_update_addresses?) || @user.try(:can_update_addresses?)
           flash[:error] = Spree.t(:addresses_not_editable, resource: (@user || @order).try(:class).try(:model_name).try(:human))
           redirect_back_or_default(collection_url)
@@ -66,8 +66,6 @@ module Spree
       end
 
       def edit
-        save_referrer
-
         if !@address.editable?
           flash[:error] = I18n.t(:address_not_editable, scope: [:address_book])
           redirect_back_or_default(collection_url)
@@ -125,6 +123,7 @@ module Spree
         end
 
         whereami("AAC:destroy:end(#{flash.to_hash})") # XXX
+        uaddrcount(@user, "AAC:destroy:aft(#{flash.to_hash})", order: @order)
 
         redirect_back_or_default(collection_url)
       end
