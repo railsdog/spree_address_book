@@ -30,12 +30,12 @@ class Spree::AddressBookGroup
       assignments = assignments.select{|k, v| v.id && v.address1 }
 
       if @user_ship = assignments[:user_ship]
-        Rails.logger.warn 'BUG: User shipping address should belong to a user' if @user_ship.user.nil?
+        Rails.logger.warn 'WARN/BUG: User shipping address should belong to a user' if @user_ship.user.nil?
         @user_addresses << @user_ship
       end
 
       if @user_bill = assignments[:user_bill]
-        Rails.logger.warn 'BUG: User billing address should belong to a user' if @user_bill.user.nil?
+        Rails.logger.warn 'WARN/BUG: User billing address should belong to a user' if @user_bill.user.nil?
         @user_addresses << @user_bill
       end
 

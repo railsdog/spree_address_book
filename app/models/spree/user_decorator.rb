@@ -37,7 +37,8 @@ Spree.user_class.class_eval do
   end
 
   # Pre-validation hook that adds user_id to addresses that are assigned to the
-  # user's default address slots.
+  # user's default address slots, and makes sure addresses are not shared with
+  # completed orders.
   def link_address
     uaddrcount self.id && self, "U:la:b4(#{changes})" # XXX
     r = true
@@ -45,22 +46,44 @@ Spree.user_class.class_eval do
     puts "Bill present: #{self.bill_address.present?}" # XXX
     puts "Ship present: #{self.ship_address.present?}" # XXX
 
-    if self.bill_address && !self.bill_address.user
-      uaddrcount self.id && self, "U:la:bill(#{!self.bill_address.nil?}/#{self.bill_address.try(:id).inspect})" # XXX
-      unless self.bill_address.editable?
+    # TODO: Deduplicate here, and with merge_user_addresses on the order model?
+
+    if self.bill_address
+      if !self.bill_address.new_record? && self.bill_address.orders.complete.any?
+        puts "Bill address #{self.bill_address_id} has complete orders; cloning for user" # XXX
         self.bill_address = self.bill_address.clone
       end
-      self.bill_address.user = self
-      r &= self.bill_address.save unless self.bill_address.new_record?
+
+      if !self.bill_address.user
+        uaddrcount self.id && self, "U:la:bill(#{!self.bill_address.nil?}/#{self.bill_address.try(:id).inspect})" # XXX
+        unless self.bill_address.editable?
+          self.bill_address = self.bill_address.clone
+        end
+        self.bill_address.user = self
+        r &= self.bill_address.save unless self.bill_address.new_record?
+      end
     end
 
-    if self.ship_address && !self.ship_address.user
-      uaddrcount self.id && self, "U:la:ship(#{!self.ship_address.nil?}/#{self.ship_address.try(:id).inspect})" # XXX
-      unless self.ship_address.editable?
-        self.ship_address = self.ship_address.clone
+    if self.ship_address
+      if !self.ship_address.new_record? && self.ship_address.orders.complete.any?
+        puts "Ship address #{self.ship_address_id} has complete orders; cloning for user" # XXX
+
+        if self.ship_address.same_as?(self.bill_address)
+          puts "Ship address is same as bill address; sharing" # XXX
+          self.ship_address = self.bill_address
+        else
+          self.ship_address = self.ship_address.clone
+        end
       end
-      self.ship_address.user = self
-      r &= self.ship_address.save unless self.ship_address.new_record?
+
+      if !self.ship_address.user
+        uaddrcount self.id && self, "U:la:ship(#{!self.ship_address.nil?}/#{self.ship_address.try(:id).inspect})" # XXX
+        unless self.ship_address.editable?
+          self.ship_address = self.ship_address.clone
+        end
+        self.ship_address.user = self
+        r &= self.ship_address.save unless self.ship_address.new_record?
+      end
     end
 
     uaddrcount self.id && self, "U:la:aft(#{r.inspect}/#{bill_address.try(:errors).try(:full_messages)}/#{ship_address.try(:errors).try(:full_messages)})" # XXX

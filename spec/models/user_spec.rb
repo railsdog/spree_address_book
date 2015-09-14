@@ -40,6 +40,26 @@ describe Spree::User do
 
       expect( address.user_id ).to eq user.id
     end
+
+    it 'clones addresses that are shared with a completed order' do
+      o = create(:shipped_order, user: user)
+
+      id = o.bill_address_id
+
+      user.bill_address_id = id
+      user.ship_address_id = id
+
+      expect(user.bill_address_id).to eq(id)
+      expect(user.ship_address_id).to eq(id)
+
+      user.save!
+
+      expect(user.reload.bill_address_id).not_to eq(id)
+      expect(user.ship_address_id).not_to eq(id)
+      expect(user.bill_address_id).to eq(user.ship_address_id)
+      expect(user.bill_address.user_id).to eq(user.id)
+      expect(user.bill_address.comparison_attributes.except('user_id')).to eq(o.bill_address.comparison_attributes.except('user_id'))
+    end
   end
 
   describe 'default assignment' do
