@@ -125,7 +125,7 @@ module Spree
         whereami("AAC:destroy:end(#{flash.to_hash})") # XXX
         uaddrcount(@user, "AAC:destroy:aft(#{flash.to_hash})", order: @order)
 
-        redirect_back_or_default(collection_url)
+        redirect_back_or_default(collection_url) unless request.xhr?
       end
 
       def update_addresses
