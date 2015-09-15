@@ -10,14 +10,9 @@ module Spree
 
       before_action :save_referrer, only: [:new, :edit, :destroy] # TODO: use redirect_to :back instead?
 
+      # TODO: Get rid of this action, since the generic addresses list is no longer used.
       def redirect_back
-        if params[:order_id]
-          redirect_to edit_admin_order_path(Spree::Order.find(params[:order_id]))
-        elsif params[:user_id]
-          redirect_to edit_admin_user_path(Spree.user_class.find(params[:user_id]))
-        else
-          redirect_to admin_path
-        end
+        redirect_to collection_url
       end
 
       def new
@@ -132,7 +127,7 @@ module Spree
         uaddrcount(@user, "AAC:ua:b4", order: @order) # XXX
 
         update_address_selection
-        redirect_to :back
+        redirect_to :back unless request.xhr?
 
         uaddrcount(@user, "AAC:ua:aft(#{flash.to_hash})", order: @order) # XXX
       end
@@ -140,8 +135,17 @@ module Spree
       protected
         # Override Spree::Admin::ResourceController#collection_url to include user_id and order_id.
         def collection_url(options={})
+          order_id = options[:order_id] || @order.try(:id) || params[:order_id]
+          user_id = options[:user_id] || @user.try(:id) || params[:user_id]
+
           # TODO: Use more "resourceful" routing under Order and/or User
-          super({order_id: @order.try(:id), user_id: @user.try(:id)}.merge!(options))
+          if order_id
+            admin_order_customer_path(Spree::Order.find(params[:order_id]))
+          elsif user_id
+            edit_admin_user_path(Spree.user_class.find(params[:user_id]))
+          else
+            admin_path
+          end
         end
 
       private
@@ -188,7 +192,7 @@ module Spree
 
           if @order.nil? && @user.nil?
             flash[:error] = Spree.t(:no_resource_found, resource: 'order or user')
-            redirect_to admin_path
+            redirect_to admin_path unless request.xhr?
           end
         end
 

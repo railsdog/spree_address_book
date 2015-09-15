@@ -230,7 +230,7 @@ feature 'Admin UI address selection' do
       scenario 'can return to the guest order' do
         visit spree.admin_addresses_path(order_id: guest_order.id)
         click_link Spree.t(:back_to_order)
-        expect(current_path).to eq(spree.edit_admin_order_path(guest_order))
+        expect(current_path).to eq(spree.admin_order_customer_path(guest_order))
       end
 
       scenario 'shows only two columns for guest order address selection' do
@@ -335,7 +335,7 @@ feature 'Admin UI address selection' do
       scenario 'can return to the logged-in order' do
         visit spree.admin_addresses_path(order_id: order.id, user_id: user.id)
         click_link Spree.t(:back_to_order)
-        expect(current_path).to eq(spree.edit_admin_order_path(order))
+        expect(current_path).to eq(spree.admin_order_customer_path(order))
       end
 
       scenario 'shows four columns for logged-in user order address selection' do
