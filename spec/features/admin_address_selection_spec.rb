@@ -178,6 +178,7 @@ feature 'Admin UI address selection' do
         l.each do |a|
           expect {
             delete_address(user, a.id, true)
+            expect_list_addresses(a.addresses, false)
           }.to change{ user.reload.addresses.count }.by(-a.count)
         end
 
