@@ -23,11 +23,15 @@
           </div>
         <% end %>
 
-        <% if @addresses.present? %>
-          <% default_addr = instance_variable_get("@#{address_name}") %>
+        <% default_addr = instance_variable_get("@#{address_name}") %>
 
+        <%# XXX %>
+        <% puts "\n\n\033[1;41m\nDefault #{address_type}=#{default_addr.to_s.gsub('<br', "\n<br").inspect}\nAddresses=#{@addresses}\033[0m" %>
+
+        <% if @addresses.present? %>
           <%# XXX %>
           <% puts "\n\n\033[1;42m\n#{address_type} #{address_name}\n\033[0;1mDefault(#{prefix})=#{default_addr.try(:id).inspect} order_bill=#{@addresses.order_bill.try(:id).inspect} order_ship=#{@addresses.order_ship.try(:id).inspect} user_bill=#{@addresses.user_bill.try(:id).inspect} user_ship=#{@addresses.user_ship.try(:id).inspect} real_order_bill=#{@order.try(:bill_address_id).inspect} real_order_ship=#{@order.try(:ship_address_id).inspect} real_user_bill=#{spree_current_user.try(:bill_address_id).inspect} real_user_ship=#{spree_current_user.try(:ship_address_id).inspect}\033[0m\n\033[1mAddresses order_id=#{@addresses.order.try(:id).inspect} user_id=#{@addresses.user.try(:id).inspect}\n\n" %>
+          <% puts "\033[1;33m#{default_addr.to_s.gsub('<br', "\n<br")}\033[0m" %>
           <% uaddrcount spree_current_user, 'view', order: @order %>
 
           <div class="select_address">

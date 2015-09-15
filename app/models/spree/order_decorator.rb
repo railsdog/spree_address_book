@@ -240,7 +240,8 @@ Spree::Order.class_eval do
 
         if self.bill_address.user_id.nil?
           puts "\e[1mGIVE BILL TO USER\e[0m" # XXX
-          result &= self.bill_address.update_attributes(user_id: self.user_id)
+          self.bill_address.user = self.user
+          result &= self.bill_address.save
         end
       end
 
@@ -248,8 +249,8 @@ Spree::Order.class_eval do
         uaddrcount(user, "O:mua:SHIP(ssa=#{self.ship_address_id.inspect})", order: self) # XXX
 
         if self.ship_address.same_as?(self.bill_address)
-          puts "SHIP SAME AS BILL ADDRESS; SHARING ID" # XXX
-          self.ship_address_id = self.bill_address_id
+          puts "SHIP SAME AS BILL ADDRESS; SHARING" # XXX
+          self.ship_address = self.bill_address
         else
           ship = l.find(self.ship_address)
           if ship
@@ -264,7 +265,8 @@ Spree::Order.class_eval do
 
           if self.ship_address.user_id.nil?
             puts "\e[1mGIVE SHIP TO USER\e[0m" # XXX
-            result &= self.ship_address.update_attributes(user_id: self.user_id) # TODO: just use =?
+            self.ship_address.user = self.user
+            result &= self.ship_address.save
           end
         end
       end
@@ -281,10 +283,10 @@ Spree::Order.class_eval do
   # if the address already exists it will only update its attributes
   # in case the address is +editable?+
   def update_or_create_address(attributes)
-    uaddrcount(user, "O:uoca:b4", order: self) # XXX
-    whereami('O:uoca:b4')
+    uaddrcount(user, "O:uoca:b4(#{attributes})", order: self) # XXX
 
     if attributes[:id]
+      whereami("O:uoca:b4:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Updating an address with an ID %%%%%%%%%%%%%") # XXX
       address = Spree::Address.find(attributes[:id])
       if address.editable?
         address.update_attributes(attributes)
@@ -292,7 +294,7 @@ Spree::Order.class_eval do
         address.errors.add(:base, I18n.t(:address_not_editable, scope: [:address_book]))
       end
     else
-      address = Spree::Address.create(attributes)
+      address = Spree::Address.new(attributes)
     end
     uaddrcount(user, "O:uoca:aft", order: self) # XXX
     address

@@ -56,16 +56,19 @@ shared_context "checkout with product" do
     expect(page).to have_field(Spree.t(:phone))
   end
 
+  # Completes checkout if currently on the address step.
   def complete_checkout
-    uaddrcount(user, "Ck1") # XXX
-    click_button Spree.t(:save_and_continue)
-    uaddrcount(user, 'Ck2') # XXX
-    choose "UPS Ground"
-    click_button Spree.t(:save_and_continue)
-    uaddrcount(user, 'Ck3') # XXX
-    choose "Check"
-    click_button Spree.t(:save_and_continue)
-    uaddrcount(user, 'Ck4') # XXX
+    begin
+      click_button Spree.t(:save_and_continue)
+      choose "UPS Ground"
+      click_button Spree.t(:save_and_continue)
+      choose "Check"
+      click_button Spree.t(:save_and_continue)
+    rescue => e
+      puts "Error checking out: #{e}; current path: #{current_path}"
+      puts page.html
+      raise
+    end
   end
 
   def expected_address_format(address)

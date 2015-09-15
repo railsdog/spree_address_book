@@ -3,8 +3,12 @@ require 'spec_helper'
 feature "Address selection during checkout" do
   include_context "store products"
 
-  describe "as guest user" do
+  context 'as guest user', js: true do
     include_context "checkout with product"
+
+    let(:address1) { build(:address, zipcode: 'INVALID ZIP CODE HEY') }
+    let(:address2) { build(:address, zipcode: 'HEY SOME BROKEN ZIP CODE') }
+
     before(:each) do
       restart_checkout
       fill_in "order_email", :with => "guest@example.com"
@@ -22,6 +26,101 @@ feature "Address selection during checkout" do
       within("#shipping") do
         should_have_address_fields
         expect(page).to_not have_selector(".select_address")
+      end
+    end
+
+    scenario 'shows address selection if address step is revisited' do
+      within('#billing') do
+        should_have_address_fields
+        expect(page).to have_no_css('.select_address')
+        fill_in_address(address1)
+      end
+      within('#shipping') do
+        should_have_address_fields
+        expect(page).to have_no_css('.select_address')
+        fill_in_address(address2)
+      end
+
+      click_button 'Continue'
+
+      visit spree.checkout_state_path(state: :address)
+      expect_list_addresses([address1, address2])
+      expect_order_addresses(Spree::Order.last)
+
+      complete_checkout
+
+      expect(Spree::Order.last.bill_address.comparison_attributes).to eq(address1.comparison_attributes)
+      expect(Spree::Order.last.ship_address.comparison_attributes).to eq(address2.comparison_attributes)
+    end
+
+    context 'with invalid addresses' do
+      force_address_zipcode_numeric
+
+      before(:each) do
+        expect(address1).not_to be_valid
+        expect(address2).not_to be_valid
+        expect(address1.id).to be_nil
+        expect(address2.id).to be_nil
+      end
+
+      scenario 'preserves form contents if an address is invalid, and allows correcting addresses' do
+        within '#billing' do
+          fill_in_address(address1)
+        end
+
+        within '#shipping' do
+          fill_in_address(address2)
+        end
+
+        expect(find_field('order_bill_address_attributes_zipcode').value).to eq(address1.zipcode)
+        expect(find_field('order_ship_address_attributes_zipcode').value).to eq(address2.zipcode)
+
+        click_button 'Continue'
+        expect(current_path).to eq('/checkout/update/address')
+
+        expect(find_field('order_bill_address_attributes_zipcode').value).to eq(address1.zipcode)
+        within '#billing' do
+          expect(page).to have_content("is not a number")
+        end
+
+        expect(find_field('order_ship_address_attributes_zipcode').value).to eq(address2.zipcode)
+        within '#shipping' do
+          expect(page).to have_content("is not a number")
+        end
+
+
+        # Test fixing one address
+        within '#billing' do
+          fill_in Spree.t(:zipcode), with: '1'
+        end
+
+        click_button 'Continue'
+        expect(current_path).to eq('/checkout/update/address')
+
+        expect(find_field('order_bill_address_attributes_zipcode').value).to eq('1')
+        expect(find_field('order_ship_address_attributes_zipcode').value).to eq(address2.zipcode)
+
+        within '#billing' do
+          expect(page).to have_no_content('is not a number')
+        end
+        within '#shipping' do
+          expect(page).to have_content('is not a number')
+        end
+
+
+        # Test fixing the other address
+        within '#shipping' do
+          fill_in Spree.t(:zipcode), with: '2'
+        end
+
+        expect {
+          complete_checkout
+        }.to change{ Spree::Address.count }.by(2)
+
+        expect(Spree::Order.last.reload.bill_address_id).not_to be_nil
+        expect(Spree::Order.last.ship_address_id).not_to be_nil
+        expect(Spree::Order.last.bill_address.zipcode).to eq('1')
+        expect(Spree::Order.last.ship_address.zipcode).to eq('2')
       end
     end
   end
@@ -113,7 +212,7 @@ feature "Address selection during checkout" do
 
           @a = create_list(:address, 5, user: user).first
           user.reload
-          visit '/checkout/address'
+          visit spree.checkout_state_path(:address)
         end
 
         it 'reloads form with errors for invalid addresses' do
@@ -325,7 +424,7 @@ feature "Address selection during checkout" do
 
         user.orders.last.update_attributes!(bill_address_id: nil, ship_address_id: nil)
 
-        visit '/checkout/addresses'
+        visit spree.checkout_state_path(:address)
 
         expect(user.orders.reload.last.bill_address_id).to be_nil
         expect(user.orders.last.ship_address_id).to be_nil
@@ -348,7 +447,7 @@ feature "Address selection during checkout" do
         ship = create(:address, user: user)
         user.orders.reload.last.update_attributes!(bill_address_id: bill.id, ship_address_id: ship.id)
 
-        visit '/checkout/addresses'
+        visit spree.checkout_state_path(:address)
         expect_selected(bill, :order, :bill)
         expect_selected(ship, :order, :ship)
       end
@@ -365,7 +464,7 @@ feature "Address selection during checkout" do
 
         l = Spree::AddressBookList.new(order, user.reload)
 
-        visit '/checkout/addresses'
+        visit spree.checkout_state_path(:address)
         expect_selected(l.first, :order, :bill)
         expect_selected(l.first, :order, :ship)
       end
@@ -378,13 +477,13 @@ feature "Address selection during checkout" do
         expect(user.addresses.count).to eq(10)
 
         # Expect 6 radio buttons (5 addresses, 1 'Other address')
-        visit '/checkout/address'
+        visit spree.checkout_state_path(:address)
         expect(page.all(:xpath, "//input[@type='radio' and @name='order[ship_address_id]']").count).to eq(6)
         expect(page.all(:xpath, "//input[@type='radio' and @name='order[bill_address_id]']").count).to eq(6)
       end
 
       it 'should not fill in the Other Address fields' do
-        visit '/checkout/address'
+        visit spree.checkout_state_path(:address)
 
         within '#billing' do
           choose I18n.t(:other_address, scope: :address_book)

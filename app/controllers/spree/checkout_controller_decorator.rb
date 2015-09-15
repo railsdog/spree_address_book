@@ -61,9 +61,9 @@ Spree::CheckoutController.class_eval do
       @ship_address = @addresses.first
     end
 
+    puts "Returning #{@bill_address.try(:id).inspect}/#{@bill_address.try(:firstname)}, #{@ship_address.try(:id).inspect}/#{@ship_address.try(:firstname)}" # XXX
     puts '!' * 72 # XXX
 
-    puts "Returning #{@bill_address.try(:id).inspect}, #{@ship_address.try(:id).inspect}"
     return @bill_address, @ship_address
   end
 
