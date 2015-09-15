@@ -90,9 +90,11 @@ Spree::CheckoutController.class_eval do
     end
 
     if params[:order][id_name].to_i > 0
+      # Using an existing address by ID
       params[:order].delete(attr_name)
-      find_address(params[:order][id_name])
+      find_address(params[:order][id_name].to_i)
     else
+      # Using the address form to enter a new address
       params[:order].delete(id_name)
 
       # Check for an existing matching address, replace form data with its id if found
@@ -115,9 +117,12 @@ Spree::CheckoutController.class_eval do
     end
   end
 
-  # Finds the given address and makes sure it's owned by the current user.
+  # Finds the given address and makes sure it's owned by the current user or
+  # attached to the current guest order.
   def find_address(id)
-    raise 'Guests should not be able to choose checkout addresses by ID' unless spree_current_user
+    unless spree_current_user || @order.bill_address_id == id || @order.ship_address_id == id
+      raise 'Guests should not be able to choose checkout addresses by ID'
+    end
 
     addr = Spree::Address.find(id)
 
