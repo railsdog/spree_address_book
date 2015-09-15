@@ -31,6 +31,7 @@
 
           <td class="actions">
             <% if spree_current_user.can_update_addresses? %>
+              <%# Always allow editing here, as the controller will just clone the address if it's not #editable? %>
               <%= link_to Spree.t(:edit), edit_address_path(a), id: "edit_address_#{a.id}" %>&nbsp;
               <%= link_to Spree.t(:remove), address_path(a), { :method => :delete, id: "remove_address_#{a.id}", data: {:confirm => Spree.t(:are_you_sure)} } %>
             <% end %>

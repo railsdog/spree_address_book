@@ -370,6 +370,42 @@ RSpec.configure do |c|
     end
   end
 
+  # Sets up before and after blocks that make all addresses deletable
+  # (including complete orders) during each test in the current context.
+  def make_addresses_deletable
+    before(:each) do
+      # Allow editing of completed order addresses
+      Spree::Address.class_eval do
+        alias_method :orig_can_be_deleted?, :can_be_deleted?
+        def can_be_deleted?
+          true
+        end
+      end
+
+      [Spree::Order, Spree::User].each do |c|
+        c.class_eval do
+          alias_method :orig_del_can_update_addresses?, :can_update_addresses?
+          def can_update_addresses?
+            true
+          end
+        end
+      end
+    end
+
+    after(:each) do
+      # Restore original #can_be_deleted? method
+      Spree::Address.class_eval do
+        alias_method :can_be_deleted?, :orig_can_be_deleted?
+      end
+
+      [Spree::Order, Spree::User].each do |c|
+        c.class_eval do
+          alias_method :can_update_addresses?, :orig_del_can_update_addresses?
+        end
+      end
+    end
+  end
+
   # Sets up before and after blocks that enable or disable address assignment
   # for users if +enabled+ is true or false, respectively.
   def force_user_address_updates(enabled)

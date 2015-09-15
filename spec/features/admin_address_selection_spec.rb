@@ -625,14 +625,28 @@ feature 'Admin UI address selection' do
               submit_addresses(false)
             end
 
-            scenario 'order addresses do not have an edit or delete link' do
+            scenario 'addresses do not have an edit or delete link' do
               a = create(:address, user: order.user)
               visit_addresses(order)
 
+              expect(page).to have_no_css("#edit-address-#{a.id}")
+              expect(page).to have_no_css("#delete-address-#{a.id}")
               expect(page).to have_no_css("#edit-address-#{order.bill_address_id}")
               expect(page).to have_no_css("#delete-address-#{order.ship_address_id}")
               expect(page).to have_no_css("#edit-address-#{order.bill_address_id}")
               expect(page).to have_no_css("#delete-address-#{order.ship_address_id}")
+            end
+          end
+
+          context 'with deletable addresses' do
+            make_addresses_deletable
+
+            scenario 'delete buttons are visible' do
+              visit_addresses(order)
+              expect(page).to have_no_css("#edit-address-#{order.bill_address_id}")
+              expect(page).to have_css("#delete-address-#{order.ship_address_id}")
+              expect(page).to have_no_css("#edit-address-#{order.bill_address_id}")
+              expect(page).to have_css("#delete-address-#{order.ship_address_id}")
             end
           end
 
@@ -659,6 +673,14 @@ feature 'Admin UI address selection' do
 
               expect(user.reload.bill_address_id).to eq(a.id)
               expect(user.ship_address_id).to eq(a.id)
+            end
+
+            scenario 'edit buttons are visible' do
+              visit_order_addresses(order)
+              expect(page).to have_css("#edit-address-#{order.bill_address_id}")
+              expect(page).to have_no_css("#delete-address-#{order.ship_address_id}")
+              expect(page).to have_css("#edit-address-#{order.bill_address_id}")
+              expect(page).to have_no_css("#delete-address-#{order.ship_address_id}")
             end
           end
         end
