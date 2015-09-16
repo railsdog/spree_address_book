@@ -187,8 +187,8 @@ module Spree
             raise "User ID does not match order's user ID!"
           end
 
-          authorize! action, @user if @user
-          authorize! action, @order if @order
+          authorize! :update, @user if @user
+          authorize! :update, @order if @order
 
           if @order.nil? && @user.nil?
             flash[:error] = Spree.t(:no_resource_found, resource: 'order or user')
