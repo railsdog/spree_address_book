@@ -13,6 +13,8 @@ div.inner {
 }
 
 #checkout_form_address {
+  text-align: left;
+
   .field {
     margin-bottom: 10px;
     padding-top: 0;
@@ -78,7 +80,7 @@ div.inner {
 
   .address {
     display: inline-block;
-    min-width: 60%;
+    max-width: 80%;
   }
   .address_edit_link {
     display: inline-block;
