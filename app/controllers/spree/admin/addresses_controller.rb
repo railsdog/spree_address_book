@@ -132,6 +132,20 @@ module Spree
         uaddrcount(@user, "AAC:ua:aft(#{flash.to_hash})", order: @order) # XXX
       end
 
+      # Override #unauthorized from spree_auth_devise to prevent XHR responses
+      # from including layout HTML if authorization fails.
+      if method_defined?(:unauthorized)
+        def unauthorized_with_address_xhr
+          if request.xhr?
+            response.status = 401
+            render html: Spree.t(:authorization_failure), status: 401
+          else
+            unauthorized_without_address_xhr
+          end
+        end
+        alias_method_chain :unauthorized, :address_xhr
+      end
+
       protected
         # Override Spree::Admin::ResourceController#collection_url to include user_id and order_id.
         def collection_url(options={})
