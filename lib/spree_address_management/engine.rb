@@ -1,12 +1,16 @@
 module Spree
+  # Preserve compatibility with Spree::AddressBook::Config
   module AddressBook
+  end
+
+  module AddressManagement
     class Engine < Rails::Engine
       require 'spree/core'
       isolate_namespace Spree
-      engine_name 'spree_address_book'
+      engine_name 'spree_address_management'
 
-      initializer "spree.address_book.environment", :before => :load_config_initializers do |app|
-        Spree::AddressBook::Config = Spree::AddressBookConfiguration.new
+      initializer "spree.address_management.environment", :before => :load_config_initializers do |app|
+        Spree::AddressBook::Config = Spree::AddressManagementConfiguration.new
       end
 
       config.autoload_paths += %W(#{config.root}/lib)

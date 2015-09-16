@@ -1,15 +1,15 @@
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = 'spree_address_book'
+  s.name        = 'spree_address_management'
   s.version     = '2.3.0'
-  s.summary     = "Adds an Address Book for Spree Users"
-  s.description = "A gem for that adds a managable Address Book of Shipping and Billing Addresses for each Spree User"
+  s.summary     = "Allows users and admins to save and manage multiple addresses"
+  s.description = "A fork of spree_address_book (https://github.com/romul/spree_address_book).  This gem allows Spree users to save multiple addresses for use during checkout, and provides robust tools for admins to assign, edit, and delete addresses."
   s.required_ruby_version = '>= 1.9.3'
-  s.date        = '2014-06-19'
+  s.date        = '2015-09-16'
 
-  s.authors            = ["Roman Smirnov"]
-  s.email             = 'roman@railsdog.com'
-  s.homepage          = 'http://github.com/romul/spree_address_book'
+  s.authors            = ["Deseret Book"]
+  s.email             = 'webdev@deseretbook.com'
+  s.homepage          = 'https://github.com/deseretbook/spree_address_management'
 
   s.files        = `git ls-files`.split("\n")
   s.test_files   = `git ls-files -- spec/*`.split("\n")

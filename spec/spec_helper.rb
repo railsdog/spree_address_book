@@ -79,7 +79,7 @@ RSpec.configure do |config|
 
   config.before(:each) do
 
-    @routes = Spree::AddressBook::Engine.routes
+    @routes = Spree::AddressManagement::Engine.routes
 
     if RSpec.current_example.metadata[:js]
       DatabaseCleaner.strategy = :truncation, {
