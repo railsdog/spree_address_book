@@ -3,8 +3,6 @@
     <div class="field address-row">
       <%= f.label :address_type, Spree.t(:address_type) %>
       <%
-        puts "\n\n\n\tAddr: #{@address.id}\n\tBill: #{@order.bill_address_id}\n\tShip: #{@order.ship_address_id}\n\n\n" # XXX
-
         selected_type = case @address.id
           when @order.bill_address_id
             "bill_address"
@@ -16,8 +14,6 @@
             nil
         end
 
-        puts "Seltype for O#{@order.try(:id).inspect}/U#{@user.try(:id).inspect}: #{selected_type.inspect}\n\n\n" # XXX
-
         opts = options_for_select(
           [
             (@user ? [ Spree.t(:user), nil ] : nil),
@@ -28,8 +24,6 @@
         )
 
         disable = !@order.can_update_addresses?
-
-        puts "Disable is #{disable}\n\n\n" # XXX
       %>
       <%= f.select :address_type, opts, {}, :class => 'select2 fullwidth', disabled: disable, readonly: disable %>
     </div>

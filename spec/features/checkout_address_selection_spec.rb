@@ -256,13 +256,7 @@ feature "Address selection during checkout" do
           choose "order_bill_address_id_#{@a.id}"
 
           within '#shipping' do
-            begin # XXX
-              choose I18n.t(:other_address, scope: :address_book)
-            rescue => e
-              whereami(e)
-              puts page.html
-              raise
-            end
+            choose I18n.t(:other_address, scope: :address_book)
             fill_in_address(address1)
             fill_in Spree.t(:zipcode), with: 'notnumber'
           end
@@ -271,27 +265,17 @@ feature "Address selection during checkout" do
           expect(find_field('order_ship_address_attributes_firstname').value).to eq(address1.firstname)
           expect(find_field('order_ship_address_attributes_zipcode').value).to eq('notnumber')
 
-          begin # XXX
-            click_button Spree.t(:save_and_continue)
+          click_button Spree.t(:save_and_continue)
 
-            # Making sure address is still there after reloading
-            expect(find_field('order_ship_address_attributes_firstname').value).to eq(address1.firstname)
-            expect(find_field('order_ship_address_attributes_zipcode').value).to eq('notnumber')
+          # Making sure address is still there after reloading
+          expect(find_field('order_ship_address_attributes_firstname').value).to eq(address1.firstname)
+          expect(find_field('order_ship_address_attributes_zipcode').value).to eq('notnumber')
 
-            expect(page).to have_text('is not a number')
-            expect(current_path).to eq('/checkout/update/address')
-          rescue => e
-            whereami(e) # XXX
-            puts page.html # XXX
-
-            byebug # XXX
-
-            raise
-          end
+          expect(page).to have_text('is not a number')
+          expect(current_path).to eq('/checkout/update/address')
 
           expect_selected(@a, :order, :bill)
           expect_selected(0, :order, :ship)
-
         end
       end
     end
@@ -552,7 +536,6 @@ feature "Address selection during checkout" do
         end
       end
 
-      # TODO not passing because inline JS validation not working
       it "should see form when new billing address invalid" do
         address = user.addresses.first
         billing = FactoryGirl.build(:address, :address1 => nil, :state => state)
@@ -572,7 +555,6 @@ feature "Address selection during checkout" do
       end
     end
 
-    #TODO: This spec is failing because the same address can be saved multiple times
     describe "entering address that is already saved" do
       it "should not save address for user" do
         expect{
@@ -583,7 +565,6 @@ feature "Address selection during checkout" do
             fill_in_address(address)
           end
           check "Use Billing Address"
-          uaddrcount(user, 'RSPEC b4 checkout') # XXX
           complete_checkout
         }.not_to change { user.addresses.count }
       end

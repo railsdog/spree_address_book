@@ -10,6 +10,5 @@ gem 'therubyracer', platforms: :ruby, groups: [:test, :development]
 gem 'libv8', '<= 3.16.14.3', platforms: :ruby, groups: [:test, :development]
 
 gem 'byebug', groups: [:test, :development], platforms: [:ruby_20, :ruby_21]
-gem 'awesome_print', groups: [:test, :development]
 
 gemspec

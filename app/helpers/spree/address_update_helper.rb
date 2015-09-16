@@ -2,7 +2,6 @@ module Spree::AddressUpdateHelper
   # Saves request.referrer into session['spree_user_return_to'] for use by
   # Spree's #redirect_back_or_default method.
   def save_referrer
-    whereami("SET BACK: #{request.referrer}") # XXX
     session['spree_user_return_to'] = request.referrer
   end
 
@@ -20,7 +19,7 @@ module Spree::AddressUpdateHelper
   # Example:
   #   address, new_match, old_match = update_and_merge(@address, @addresses)
   def update_and_merge(address, addresses)
-    if !address.editable? # FIXME: Should not happen via UI unless order has detached address not on user
+    if !address.editable? # Should not happen via UI unless order has detached address not on user
       address.errors.add(:base, I18n.t(:address_not_editable, scope: [:address_book]))
       return address
     end
@@ -34,8 +33,6 @@ module Spree::AddressUpdateHelper
     attrs = address_params
 
     if new_match && new_match != old_match
-      puts "  \e[33mNew match: id=#{address.id.inspect} new=#{new_match.try(:id).inspect} old=#{old_match.try(:id).inspect}\e[0m" # XXX
-
       # The new address data matches a group, the existing data potentially
       # matches a different group.  Need to destroy the old group, deduplicate
       # and modify the new group, and reassign default addresses as needed.
@@ -49,8 +46,6 @@ module Spree::AddressUpdateHelper
       old_match.update_all_attributes(attrs) if old_match
       new_match.update_all_attributes(attrs)
     elsif old_match
-      puts "  \e[33mOld match: id=#{address.id.inspect} new=#{new_match.try(:id).inspect} old=#{old_match.try(:id).inspect}\e[0m" # XXX
-
       # The old address data matches a group, the new data is identical or does
       # not match a group.  Need to update the existing addresses with the new
       # data and deduplicate.
@@ -60,8 +55,6 @@ module Spree::AddressUpdateHelper
       old_match.destroy_duplicates
       old_match.update_all_attributes(attrs)
     else
-      puts "  \e[1;32mNO match: id=#{address.id}\e[0m" # XXX
-
       # No matching group; just update the address and rely on order and user
       # callbacks to synchronize addresses.
       address.update_attributes(attrs)
@@ -84,9 +77,6 @@ module Spree::AddressUpdateHelper
   # params[:order] is set.  Returns true on success, false on error, and sets
   # the error and success flashes appropriately.
   def update_address_selection
-    uaddrcount(@user, "AUH:uas(u=#{params[:user].try(:to_hash)},o=#{params[:order].try(:to_hash)})", order: @order) # XXX
-    whereami('update_address_selection')
-
     errors = []
 
     if @user
@@ -121,8 +111,6 @@ module Spree::AddressUpdateHelper
 
       bill_id = attrs[:bill_address_id]
       ship_id = attrs[:ship_address_id]
-
-      # byebug # XXX
 
       # Do nothing except save the object if the IDs are unchanged.
       if bill_id == object.bill_address_id && ship_id == object.ship_address_id

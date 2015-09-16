@@ -53,8 +53,6 @@ describe Spree::Address do
     end
 
     it 'is removed from user defaults when destroyed' do
-      puts "\e[1muser: #{user.id} address1 user: #{address.user_id} address2 user: #{address2.user_id}\e[0m" # XXX
-
       address2.update_attributes!(user: nil)
       user.update_attributes!(bill_address_id: address.id, ship_address_id: address2.id)
 

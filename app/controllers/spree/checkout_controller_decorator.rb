@@ -29,47 +29,33 @@ Spree::CheckoutController.class_eval do
   #
   # TODO: Figure out a better way, perhaps by moving logic into the order model
   def get_selected_addresses
-    puts ' get_selected_addresses '.center(72, '!') # XXX
-
     get_address_list # Update @addresses in case addresses were set by #update
 
     if @order.bill_address.present? && @order.bill_address_id.nil?
-      puts "\nSELECTING UN-saved order bill" # XXX
       @bill_address = @order.bill_address
     elsif @addresses.order_bill
-      puts "\nSELECTING saved order bill #{@addresses.order_bill.id}" # XXX
       @bill_address = @addresses.order_bill
     elsif @addresses.user_bill
-      puts "\nSELECTING saved user bill #{@addresses.user_bill.try(:id).inspect}" # XXX
       @bill_address = @addresses.user_bill
     else
-      puts "\nSELECTING first bill" # XXX
       @bill_address = @addresses.first
     end
 
     if @order.ship_address.present? && @order.ship_address_id.nil?
-      puts "SELECTING UN-saved order ship\n\n" # XXX
       @ship_address = @order.ship_address
     elsif @addresses.order_ship
-      puts "SELECTING saved order ship #{@addresses.order_ship.id}\n\n" # XXX
       @ship_address = @addresses.order_ship
     elsif @addresses.user_ship
-      puts "SELECTING saved user ship #{@addresses.user_ship.try(:id).inspect}\n\n" # XXX
       @ship_address = @addresses.user_ship
     else
-      puts "SELECTING first ship\n\n" # XXX
       @ship_address = @addresses.first
     end
-
-    puts "Returning #{@bill_address.try(:id).inspect}/#{@bill_address.try(:firstname)}, #{@ship_address.try(:id).inspect}/#{@ship_address.try(:firstname)}" # XXX
-    puts '!' * 72 # XXX
 
     return @bill_address, @ship_address
   end
 
   # Changes address parameters to prevent duplicate addresses.
   def set_address_params
-    whereami("SCC:sa:#{params}") # XXX
     return unless params[:order] && params[:state] == "address"
 
     check_address(:ship)

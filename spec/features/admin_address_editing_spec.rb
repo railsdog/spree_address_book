@@ -336,17 +336,11 @@ feature 'Admin UI address editing' do
             end
 
             scenario 'editing the address links it to the user, leaving one object' do
-              uaddrcount(user, "RSpec:edit1a:b4", order: order) # XXX
-
               visit_order_addresses(order)
               expect_address_count(1)
 
-              uaddrcount(user, "RSpec:edit1a:mid", order: order) # XXX
-
               edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'NewFirst')
               expect_address_count(1)
-
-              uaddrcount(user, "RSpec:edit1a:aft", order: order) # XXX
 
               expect(order.reload.bill_address_id).to eq(order.ship_address_id)
               expect(order.bill_address_id).to be_present
@@ -382,20 +376,12 @@ feature 'Admin UI address editing' do
 
           context 'with two different addresses' do
             scenario 'editing one address does not affect the other, links both to the user' do
-              uaddrcount(user, 'RSpec:eoadnatolbttu:b4', order: order) # XXX
-
               visit_order_addresses(order)
               expect_address_count(2)
-
-              uaddrcount(user, 'RSpec:eoadnatolbttu:mid', order: order) # XXX
 
               edit_address(order, order.bill_address_id, true, Spree.t(:first_name) => 'BillFirst')
               edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'ShipFirst')
               expect_address_count(2)
-
-              uaddrcount(user, 'RSpec:eoadnatolbttu:aft', order: order) # XXX
-
-              # byebug # XXX
 
               expect(order.reload.bill_address).not_to be_same_as(order.ship_address)
               expect(order.bill_address_id).to be_present
@@ -420,17 +406,11 @@ feature 'Admin UI address editing' do
             end
 
             scenario 'editing the address creates two identical addresses without linking to user' do
-              uaddrcount(user, "RSpec:edit1a:b4", order: order) # XXX
-
               visit_order_addresses(order)
               expect_address_count(1)
 
-              uaddrcount(user, "RSpec:edit1a:mid", order: order) # XXX
-
               edit_address(order, order.ship_address_id, true, Spree.t(:first_name) => 'NewFirst')
               expect_address_count(1)
-
-              uaddrcount(user, "RSpec:edit1a:aft", order: order) # XXX
 
               expect(order.reload.bill_address_id).not_to eq(order.reload.ship_address_id)
               expect(order.bill_address_id).to be_present

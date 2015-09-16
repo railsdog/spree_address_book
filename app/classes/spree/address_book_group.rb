@@ -21,7 +21,7 @@ class Spree::AddressBookGroup
   # parameter should be an Array containing addresses.  All addresses passed
   # here should have an ID in the database.
   def initialize(addresses, assignments=nil)
-    raise 'Addresses must be an Array' unless addresses.is_a?(Array) # TODO: Accept ActiveRecord query?  Use multiple params?
+    raise 'Addresses must be an Array' unless addresses.is_a?(Array)
 
     @user_addresses = addresses.select{|a| a.id && a.address1 && a.user.present? }
     @order_addresses = addresses.select{|a| a.id && a.address1 && a.user.nil? }
@@ -90,16 +90,10 @@ class Spree::AddressBookGroup
   # Updates the attributes of every editable address in the group.  Returns
   # true on success or if there were no editable addresses, false on error.
   def update_all_attributes(attrs)
-    puts "Calling all attributes: #{@addresses.map(&:id)}" # XXX
-
     result = true
     @addresses.each do |a|
-      # XXX
       if a.editable?
-        puts "Updating address #{a.try(:id).inspect}" # XXX
         result &= a.update_attributes(attrs) if a.editable?
-      else
-        puts "Skipping update of address #{a.try(:id).inspect}" # XXX
       end
     end
     result
@@ -130,14 +124,9 @@ class Spree::AddressBookGroup
   def destroy_duplicates
     result = true
 
-    puts "Before dedup: All=#{@addresses.map(&:id)} user=#{@user_addresses.map(&:id)} order=#{@order_addresses.map(&:id)}" # XXX
-
     primary_id = @primary_address.id
     @user_addresses.each do |a|
       next unless a.editable? && a.id != primary_id
-
-      puts "\e[35mDestroying address \e[1m#{a.id}\e[0;35m from \e[1m#{@user_addresses.map(&:id)}\e[0;35m against primary \e[1m#{primary_id}\e[0m" # XXX
-      puts "\t\e[31mUser: \e[1m#{a.user_id.inspect}/#{@primary_address.user_id.inspect}\e[0;31m Editable: \e[1m#{a.editable?}/#{@primary_address.editable?}\e[0m" # XXX
 
       Spree::Order.incomplete.with_address(a).each do |o|
         o.bill_address_id = primary_id if o.bill_address_id == a.id
@@ -152,11 +141,8 @@ class Spree::AddressBookGroup
 
       result &= a.destroy
       @addresses.reject!{|addr| addr.id == a.id}
-      puts "------------------ Removed address #{a.id} from @addresses" # XXX
     end
     @user_addresses.reject!{|a| a.editable? && a.id != @primary_address.id }
-
-    puts "AFTER dedup: All=#{@addresses.map(&:id)} user=#{@user_addresses.map(&:id)} order=#{@order_addresses.map(&:id)}" # XXX
 
     result
   end

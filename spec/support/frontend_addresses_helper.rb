@@ -38,7 +38,6 @@ module FrontendAddresses
       expect_frontend_addresses(user)
     else
       expect(page).to have_no_content(Spree.t(:successfully_created, :resource => Spree.t(:address1)))
-      # TODO: More?
     end
   end
 
@@ -76,7 +75,6 @@ module FrontendAddresses
       expect_frontend_addresses(user)
     else
       expect(page).to have_no_content(Spree.t(:successfully_updated, :resource => Spree.t(:address1)))
-      # TODO: More?
     end
   end
 
@@ -103,17 +101,14 @@ module FrontendAddresses
     expect_list_addresses(user.reload.addresses)
 
     l = Spree::AddressBookList.new(user)
-    whereami("RSpec:efa(#{l.count}) b=#{l.user_bill.try(:id)} s=#{l.user_ship.try(:id)} rb=#{user.bill_address_id} rs=#{user.ship_address_id}")
     if l.user_bill
       within(%Q{tr.address[data-address="#{l.user_bill.id}"]}) do
-        puts "\n\n\n\n\t\tUSER BILL: #{l.user_bill.id}\n\n\n\n" # XXX
         expect(page).to have_content(Spree.t(:default_billing_address))
       end
     end
 
     if l.user_ship
       within(%Q{tr.address[data-address="#{l.user_ship.id}"]}) do
-        puts "\n\n\n\n\t\tUSER SHIP: #{l.user_ship.id}\n\n\n\n" # XXX
         expect(page).to have_content(Spree.t(:default_shipping_address))
       end
     end

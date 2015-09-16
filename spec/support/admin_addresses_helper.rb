@@ -316,12 +316,7 @@ module AdminAddresses
 
     visit_addresses(order_or_user)
 
-    begin
-      click_link "delete-address-#{address_id}"
-    rescue => e # XXX
-      puts hl_bt(e, "Click link delete #{address_id}") # XXX
-      raise
-    end
+    click_link "delete-address-#{address_id}"
 
     if expect_success
       expect(page).to have_content(Spree.t(:successfully_removed, resource: Spree::Address.model_name.human))
@@ -447,7 +442,6 @@ RSpec.configure do |c|
       # http://stackoverflow.com/a/11268726/737303 was useful
       Spree::Address._validators[:zipcode].reject!{|z| z.is_a?(ActiveModel::Validations::NumericalityValidator) }
       cb = Spree::Address._validate_callbacks.find{|z|
-        # TODO: is this right?
         z.raw_filter.is_a?(ActiveModel::Validations::NumericalityValidator) && z.raw_filter.attributes.include?(:zipcode)
       }
       Spree::Address._validate_callbacks.delete(cb)

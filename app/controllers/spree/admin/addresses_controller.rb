@@ -69,27 +69,7 @@ module Spree
       end
 
       def update
-        whereami("AAC:u(ref=#{request.referrer} back=#{session['spree_user_return_to']})") # XXX
-        uaddrcount(@user, "AAC:u:b4(aid=#{@address.try(:id).inspect})", order: @order) # XXX
-
         @address, new_match, old_match = update_and_merge(@address, @addresses)
-
-        uaddrcount(@user, "AAC:u:mid(aid=#{@address.try(:id).inspect})", order: @order) # XXX
-
-
-        if new_match && old_match
-          addrmatrix(new_match.addresses, old_match.addresses) # XXX
-        end
-
-
-        # XXX
-        puts "    \e[35mAddress count: #{@addresses.try(:count).inspect}  New IDs: #{new_match.try(:addresses).try(:map, &:id).inspect}  Old IDs: #{old_match.try(:addresses).try(:map, &:id).inspect}\e[0m"
-        #ap @new_match.try(:addresses)
-        #ap @old_match.try(:addresses)
-        #ap @addresses.try(:addresses).try(:map, &:addresses)
-        ap @address unless Rails.env.production? || Rails.env.stage?
-        ap params unless Rails.env.production? || Rails.env.stage?
-        # XXX
 
         assign_order_address if @order && @address.errors.empty?
 
@@ -98,18 +78,12 @@ module Spree
           render :edit
         else
           flash[:success] = Spree.t(:successfully_updated, resource: @address.class.model_name.human)
-
-          whereami("AAC:u:redir(#{collection_url} OR saved: #{session['spree_user_return_to']}") # XXX
           redirect_back_or_default(collection_url)
         end
-
-        uaddrcount(@user, "AAC:u:aft(#{flash.to_hash})", order: @order) # XXX
       end
 
       def destroy
         a = @addresses.find(@address) || @address
-
-        whereami("AAC:destroy:start(#{a.class}/#{a.id})") # XXX
 
         if a.destroy
           flash[:success] = Spree.t(:successfully_removed, resource: @address.class.model_name.human)
@@ -117,19 +91,12 @@ module Spree
           flash[:error] = @address.errors.full_messages.to_sentence
         end
 
-        whereami("AAC:destroy:end(#{flash.to_hash})") # XXX
-        uaddrcount(@user, "AAC:destroy:aft(#{flash.to_hash})", order: @order)
-
         redirect_back_or_default(collection_url) unless request.xhr?
       end
 
       def update_addresses
-        uaddrcount(@user, "AAC:ua:b4", order: @order) # XXX
-
         update_address_selection
         redirect_to :back unless request.xhr?
-
-        uaddrcount(@user, "AAC:ua:aft(#{flash.to_hash})", order: @order) # XXX
       end
 
       # Override #unauthorized from spree_auth_devise to prevent XHR responses
@@ -191,8 +158,6 @@ module Spree
         end
 
         def set_user_or_order
-          whereami("AAC:suoo(#{params.to_hash}) U=#{@user.try(:id)} O=#{@order.try(:id)} ref=#{request.referrer}") # XXX
-
           @user ||= Spree::User.find(params[:user_id]) if params[:user_id]
           @order ||= Spree::Order.find(params[:order_id]) if params[:order_id]
           @user ||= @order.user if @order

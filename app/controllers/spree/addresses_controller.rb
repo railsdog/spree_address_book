@@ -90,8 +90,6 @@ class Spree::AddressesController < Spree::StoreController
   # any errors from the user to @address.errors.
   def set_default_address
     if spree_current_user.can_update_addresses?
-      whereami("FAC:sda:#{params.permit(:default_bill, :default_ship).to_hash}") if params[:default_bill] || params[:default_ship] # XXX
-
       spree_current_user.bill_address = @address if params[:default_bill]
       spree_current_user.ship_address = @address if params[:default_ship]
 

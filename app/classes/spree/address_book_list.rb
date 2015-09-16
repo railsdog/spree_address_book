@@ -84,7 +84,6 @@ class Spree::AddressBookList
 
     if addr && addr.user_id && addr.user_id != user.id
       Rails.logger.warn "BUG!!!  User #{user.id} does not own their #{type} #{addr.id}."
-      whereami("SABL:cua:addr=#{addr.id}:user=#{user.id}")
     end
 
     addr
