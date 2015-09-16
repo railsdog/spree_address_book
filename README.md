@@ -21,4 +21,4 @@ Installation
       Run `rails g spree_address_book:install`
 
 
-Copyright (c) 2011-2015 Roman Smirnov and contributors, released under the New BSD License
+Copyright (c) 2011-2015 Roman Smirnov, Deseret Book, and contributors, released under the New BSD License
