@@ -2,20 +2,6 @@ require 'spec_helper'
 
 describe Spree::CheckoutHelper do
 
-  describe 'address_is_checked' do
-    let(:order) { create :order }
-    let(:address) { order.bill_address }
-    let(:invalid_address) { create :address }
-
-    it 'is checked if matching' do
-      expect( helper.address_is_checked order, address, 'bill_address' ).to be true
-    end
-
-    it 'is not checked if not matching' do
-      expect( helper.address_is_checked order, invalid_address, 'bill_address' ).to be false
-    end
-  end
-
   describe 'save_default_address_check_box' do
 
     it 'is ignored if invalid model' do

@@ -1,4 +1,34 @@
 <div id="address" data-hook="address_fields">
+  <% if @order && @order.can_update_addresses? %>
+    <div class="field address-row">
+      <%= f.label :address_type, Spree.t(:address_type) %>
+      <%
+        selected_type = case @address.id
+          when @order.bill_address_id
+            "bill_address"
+
+          when @order.ship_address_id
+            "ship_address"
+
+          else
+            nil
+        end
+
+        opts = options_for_select(
+          [
+            (@user ? [ Spree.t(:user), nil ] : nil),
+            [ "#{Spree.t(:order)}: #{Spree.t(:billing_address)}", 'bill_address' ],
+            [ "#{Spree.t(:order)}: #{Spree.t(:shipping_address)}", 'ship_address' ],
+          ].compact,
+          selected: selected_type
+        )
+
+        disable = !@order.can_update_addresses?
+      %>
+      <%= f.select :address_type, opts, {}, :class => 'select2 fullwidth', disabled: disable, readonly: disable %>
+    </div>
+  <% end %>
+  
   <div class="field address-row">
     <%= f.label :firstname, Spree.t(:first_name) %>
     <%= f.text_field :firstname, :class => 'fullwidth' %>
@@ -17,12 +47,12 @@
   <% end %>
 
   <div class="field address-row">
-    <%= f.label :address1, Spree.t(:street_address) %>
+    <%= f.label :address1, Spree.t(:address1) %>
     <%= f.text_field :address1, :class => 'fullwidth' %>
   </div>
 
   <div class="field address-row">
-    <%= f.label :address2, Spree.t(:street_address_2) %>
+    <%= f.label :address2, Spree.t(:address2) %>
     <%= f.text_field :address2, :class => 'fullwidth' %>
   </div>
 
@@ -32,7 +62,7 @@
   </div>
 
   <div class="field address-row">
-    <%= f.label :zipcode, Spree.t(:zip) %>
+    <%= f.label :zipcode, Spree.t(:zipcode) %>
     <%= f.text_field :zipcode, :class => 'fullwidth' %>
   </div>
 
@@ -57,6 +87,13 @@
     <%= f.label :phone, Spree.t(:phone) %>
     <%= f.phone_field :phone, :class => 'fullwidth' %>
   </div>
+
+  <% if Spree::Config[:alternative_shipping_phone] %>
+    <div class="field address-row">
+      <%= f.label :alternative_phone, Spree.t(:alternative_phone) %>
+      <%= f.phone_field :alternative_phone, class: 'fullwidth' %>
+    </div>
+  <% end %>
 </div>
 
 <% content_for :head do %>

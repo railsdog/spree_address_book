@@ -1,0 +1,226 @@
+// based on Spree's $border-color
+$border-color: #d9d9db;
+
+// based on $color-tbl-even from Spree 2.3
+$default-bill-color: desaturate(darken(#5498da, 10), 3);
+$default-ship-color: lighten(#5498da, 8);
+
+
+div.inner {
+  input[type="text"], input[type="tel"], input[type="number"], input[type="email"], textarea, select {
+    width: 100%;
+  }
+}
+
+#checkout_form_address {
+  text-align: left;
+
+  .field {
+    margin-bottom: 10px;
+    padding-top: 0;
+    padding-bottom: 0;
+
+    &.radio > div {
+      box-sizing: border-box;
+    }
+  }
+
+
+  label {
+    float: none;
+    vertical-align: top;
+    padding: 5px;
+
+    &:after {
+      clear: both;
+    }
+
+    &.error {
+      margin-top: 0;
+      padding-top: 0;
+    }
+  }
+
+  input[type="radio"], input[type="checkbox"] {
+    float: left;
+    width: auto;
+    vertical-align: top;
+    display: block;
+    margin: 8px 6px;
+    position: static;
+
+    & + label {
+      display: block;
+      box-sizing: border-box;
+    }
+  }
+
+  [data-use="address_wrapper"] {
+    // Inactive address styles
+    input[type="radio"], input[type="checkbox"] {
+      & + label {
+        border: solid 1px #f2f2f2;
+        border-radius: 3px;
+
+        &:hover {
+          border: solid 1px #ccc;
+        }
+      }
+
+    }
+
+    // Active address styles
+    input[type="radio"], input[type="checkbox"] {
+      &:checked + label {
+        border: solid 1px $default-ship-color;
+        background: lighten($default-ship-color, 31);
+      }
+    }
+  }
+
+  .address {
+    display: inline-block;
+    max-width: 80%;
+  }
+  .address_edit_link {
+    display: inline-block;
+    float: right;
+    vertical-align: top;
+  }
+
+  #default_address_checkbox_wrapper {
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  // Improve inline address error message formatting
+  #errorExplanation {
+    h2 {
+      display: none;
+    }
+
+    p {
+      margin-top: 0;
+    }
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+#save_user_address { margin: 0 0.5em 0 2em }
+
+table#addresses {
+  width: 100%;
+  border-collapse: separate;
+
+  tr {
+    border: none;
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: solid 1px $border-color;
+  }
+
+  td.actions {
+    width: 6em;
+    padding-right: 9px;
+    white-space: nowrap;
+  }
+
+  tr.default_ship_address, tr.default_bill_address {
+    & > td:first-child {
+      position: relative;
+
+      &:before {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        box-sizing: border-box;
+        font-size: 0px;
+        padding: 0;
+        margin: 0;
+      }
+    }
+  }
+
+  tr.default_bill_address {
+    background: lighten($default-bill-color, 43);
+
+    & > td {
+      background: lighten($default-bill-color, 43);
+
+      &:first-child:before {
+        border-left: solid 2px $default-bill-color;
+      }
+    }
+  }
+
+  tr.default_ship_address {
+    background: saturate(saturate(lighten($default-ship-color, 29), 99), 99);
+
+    & > td {
+      background: saturate(saturate(lighten($default-ship-color, 29), 99), 99);
+
+      &:first-child:before {
+        border-left: solid 2px $default-ship-color;
+      }
+    }
+  }
+
+  tr.default_ship_address.default_bill_address > td:first-child:before {
+    border-left: solid 2px $default-ship-color;
+    border-right: solid 2px $default-bill-color;
+    padding-left: 1px;
+  }
+
+  address {
+    font-style: normal;
+    display: block;
+    float: left;
+    margin: 0 10px 0 0;
+    min-width: 7.8em;
+    line-height: 160%;
+  }
+
+  .default_address {
+    float: left;
+    font-size: 10px;
+    padding: 1px 0 0;
+    line-height: 13px;
+    margin: 0;
+
+    .default_bill_address {
+      color: darken($default-bill-color, 10);
+    }
+
+    .default_ship_address {
+      color: desaturate(darken($default-ship-color, 17), 5);
+    }
+  }
+}
+
+#user_address_list_empty {
+  opacity: 0.5;
+  font-style: italic;
+  font-size: 150%;
+  padding: 125px 10px;
+  text-align: center;
+}
+
+.new_address_link {
+  text-align: right;
+  padding: 0 8px;
+  line-height: 32px;
+  height: 32px;
+
+  &.top {
+    margin-top: -29px;
+    border-bottom: solid 1px $border-color;
+  }
+}

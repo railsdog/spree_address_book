@@ -20,6 +20,7 @@ require 'shoulda-matchers'
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
 Dir[File.join(File.dirname(__FILE__), "support/**/*.rb")].each {|f| require f }
+Dir[File.join(File.dirname(__FILE__), "factories/**/*.rb")].each {|f| require f }
 
 
 # Requires factories defined in spree_core
@@ -44,6 +45,9 @@ Capybara.javascript_driver = :poltergeist
 # Capybara.default_wait_time = 20
 
 RSpec.configure do |config|
+  # Hide RSpec 3 deprecation warning
+  config.infer_spec_type_from_file_location!
+
   config.color = true
   config.mock_with :rspec
 
@@ -75,7 +79,7 @@ RSpec.configure do |config|
 
   config.before(:each) do
 
-    @routes = Spree::AddressBook::Engine.routes
+    @routes = Spree::AddressManagement::Engine.routes
 
     if RSpec.current_example.metadata[:js]
       DatabaseCleaner.strategy = :truncation, {
@@ -100,8 +104,17 @@ RSpec.configure do |config|
     DatabaseCleaner.start
     reset_spree_preferences
 
-    # not sure exactly what is happening here, but i think it takes an iteration for the country data to load
-    # Spree::Config[:default_country_id] = Spree::Country.find_by_iso3('USA').id if Spree::Country.count > 0
+    Spree::Config[:company] = true # Test with the company field visible
+  end
+
+  # TODO: Use Capybara's built-in AJAX waiting
+  def wait_longer_for_ajax
+    counter = 0
+    while page.evaluate_script("typeof($) === 'undefined' || $.active > 0")
+      counter += 1
+      sleep(0.1)
+      raise "AJAX request took longer than 20 seconds." if counter >= 200
+    end
   end
 
   config.after(:each) do
@@ -110,7 +123,7 @@ RSpec.configure do |config|
     DatabaseCleaner.clean
   end
 
-  config.after(:each, :type => :feature) do
+  config.after(:each, :type => :feature) do |example|
     missing_translations = page.body.scan(/translation missing: #{I18n.locale}\.(.*?)[\s<\"&]/)
     if missing_translations.any?
       #binding.pry

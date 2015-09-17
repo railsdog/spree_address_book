@@ -1,13 +1,12 @@
 Spree::Core::Engine.add_routes do
   namespace :admin do
-    resources :orders do
-      resources :addresses
+    resources :addresses do
+      collection do
+        put '/update_addresses', to: 'addresses#update_addresses', as: :update_addresses
+        get '/redirect_back', to: 'addresses#redirect_back', as: :redirect_back
+      end
     end
-    resources :users do
-      get 'addresses/:address_id/edit', to: 'users#edit_address', as: :edit_address
-      put 'addresses/:address_id/edit', to: 'users#edit_address', as: :edit_address_put
-      put 'addresses/update_addresses', to: 'users#update_addresses', as: :update_addresses
-    end
+    resources :users
   end
 
   resources :addresses

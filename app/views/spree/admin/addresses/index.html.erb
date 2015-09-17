@@ -1,46 +1,17 @@
-<%= render :partial => 'spree/admin/shared/order_tabs', :locals => { :current => 'Addresses' } %>
-
 <% content_for :page_title do %>
-  <i class="fa fa-arrow-right"></i> <%= I18n.t(:addresses, scope: :address_book) %>
+  <% if @user && !@order %>
+    <%= link_to "#{Spree.t(:editing_user)} #{@user.try(:email)}", edit_admin_user_url(@user) %>
+  <% end %>
 <% end %>
 
 <% content_for :page_actions do %>
-  <li><%= button_link_to Spree.t(:new_address), new_admin_order_address_url(@order), :icon => 'plus' %></li>
-  <li><%= button_link_to Spree.t(:back_to_orders_list), admin_orders_path, :icon => 'arrow-left' %></li>
+  <%# Link back to order or user address list %>
+  <% return_link_text = (Spree.t(:back_to_order) if @order) || (Spree.t(:back_to_user) if @user) %>
+  <li><%= button_link_to return_link_text, redirect_back_admin_addresses_url(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'arrow-left' %></li>
 <% end %>
 
-<fieldset class="no-border-bottom">
-  <legend><%= I18n.t(:user_addresses, scope: :address_book) %></legend>
-  <% unless @user_addresses.blank? %>
-    <table id="user_addresses">
-      <thead>
-        <tr class="<%= cycle('even', 'odd') %>">
-          <th><%= I18n.t(:address, scope: :address_book) %></th>
-          <th class="align-center"><%= I18n.t(:type, scope: :address_book) %></th>
-          <th class="align-center"><%= I18n.t(:def_bill, scope: :address_book) %></th>
-          <th class="align-center"><%= I18n.t(:def_ship, scope: :address_book) %></th>
-          <th class="align-center"><%= I18n.t(:order_bill, scope: :address_book) %></th>
-          <th class="align-center"><%= I18n.t(:order_ship, scope: :address_book) %></th>
-          <th class="actions"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @user_addresses.each do |type, addresses| %>
-          <% addresses.each do |address| %>
-            <tr class="<%= cycle('even', 'odd') %>">
-              <td><%= address %></td>
-              <td class="align-center"><%= type %></td>
-              <td class="align-center"><i class="fa fa-circle<%= '-o' unless address == @user.bill_address %>"></i></td>
-              <td class="align-center"><i class="fa fa-circle<%= '-o' unless address == @user.ship_address %>"></i></td>
-              <td class="align-center"><i class="fa fa-circle<%= '-o' unless address == @order.bill_address %>"></i></td>
-              <td class="align-center"><i class="fa fa-circle<%= '-o' unless address == @order.ship_address %>"></i></td>
-              <td class="actions">
-                <%= link_to_edit_url edit_admin_order_address_url(@order, address), :no_text => true %>
-              </td>
-            </tr>
-          <% end %>
-        <% end %>
-      </tbody>
-    </table>
-  <% end %>
-</fieldset>
+<% if @order %>
+  <%= render :partial => 'spree/admin/shared/order_tabs', :locals => { :current => 'Addresses' } %>
+<% end %>
+
+<%= render partial: 'spree/admin/addresses/list' %>

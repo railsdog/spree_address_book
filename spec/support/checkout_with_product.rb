@@ -52,29 +52,23 @@ shared_context "checkout with product" do
     expect(page).to have_field(Spree.t(:address1))
     expect(page).to have_field("City")
     expect(page).to have_field("Country")
-    expect(page).to have_field(Spree.t(:zip))
+    expect(page).to have_field(Spree.t(:zipcode))
     expect(page).to have_field(Spree.t(:phone))
   end
 
+  # Completes checkout if currently on the address step.
   def complete_checkout
-    click_button Spree.t(:save_and_continue)
-    choose "UPS Ground"
-    click_button Spree.t(:save_and_continue)
-    choose "Check"
-    click_button Spree.t(:save_and_continue)
-  end
-
-  def fill_in_address(address, type = :bill)
-    fill_in Spree.t(:first_name), :with => address.firstname
-    fill_in "Last Name", :with => address.lastname
-    fill_in "Company", :with => address.company if Spree::Config[:company]
-    fill_in Spree.t(:address1), :with => address.address1
-    fill_in Spree.t(:address2), :with => address.address2
-    select address.state.name, :from => "order_#{type}_address_attributes_state_id"
-    fill_in Spree.t(:city), :with => address.city
-    fill_in Spree.t(:zip), :with => address.zipcode
-    fill_in Spree.t(:phone), :with => address.phone
-    fill_in Spree.t(:alternative_phone), :with => address.alternative_phone if (Spree::Config[:alternative_shipping_phone] && type == :ship)
+    begin
+      click_button Spree.t(:save_and_continue)
+      choose "UPS Ground"
+      click_button Spree.t(:save_and_continue)
+      choose "Check"
+      click_button Spree.t(:save_and_continue)
+    rescue => e
+      puts "Error checking out: #{e}; current path: #{current_path}"
+      puts page.html
+      raise
+    end
   end
 
   def expected_address_format(address)

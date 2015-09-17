@@ -1,42 +1,43 @@
+# Adds @addresses to the users controller so the address list can be embedded
+# on the user's account details page.
 Spree::Admin::UsersController.class_eval do
-  before_filter :build_user_addresses_hash, only: [:addresses, :edit_address]
+  include Spree::AddressUpdateHelper
 
-  def addresses
-    # if request.put?
-    #   if @user.update_attributes(user_params)
-    #     flash.now[:success] = Spree.t(:account_updated)
-    #   end
+  before_filter :load_address_list
 
-    #   render :addresses
-    # end
-  end
+  # UPDATE WITH SPREE
+  # Changed `render :edit` to `redirect_to edit_admin_user_path(@user)`
+  # Changed flash translation
+  # Removed bill address params if the main params are blank
+  def create
+    if params[:user]
+      roles = params[:user].delete("spree_role_ids")
 
-  # Update with Spree 2-3-stable
-  def edit_address
-    @address = @user.addresses.find(params[:address_id])
-    redirect_to admin_users_addresses_path unless @address
-    if request.put?
-      params[:user].permit!
-      if @user.addresses.find(params[:user][:address][:id]).update_attributes(params[:user][:address])
-        flash.now[:success] = Spree.t(:account_updated)
+      # Don't try to create a billing address if it was left blank
+      addr = params[:user][:bill_address_attributes]
+      if addr
+        if addr[:firstname].blank? && addr[:lastname].blank? && addr[:address1].blank?
+          params[:user].delete(:bill_address_attributes)
+        end
+      end
+    end
+
+    @user = Spree.user_class.new(user_params)
+    if @user.save
+
+      if roles
+        @user.spree_roles = roles.reject(&:blank?).collect{|r| Spree::Role.find(r)}
       end
 
-      redirect_to addresses_admin_user_path(@user)
+      flash[:success] = Spree.t(:successfully_created, resource: @user.class.model_name.human)
+      redirect_to edit_admin_user_path(@user)
+    else
+      render :new
     end
-  end
-
-  def update_addresses
-    @user = model_class.find(params[:user_id])
-    @user.update_attributes(params[:user].permit(:bill_address_id, :ship_address_id))
-    flash[:success] = Spree.t(:default_addresses_updated)
-    redirect_to addresses_admin_user_path(@user)
   end
 
   private
-    def build_user_addresses_hash
-      @user ||= model_class.find(params[:user_id])
-      @order = @user.orders.last
-
-      @user_addresses = @user.addresses.order('created_at DESC')
-    end
+  def load_address_list
+    @addresses = get_address_list(nil, @user)
+  end
 end
