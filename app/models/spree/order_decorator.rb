@@ -191,7 +191,7 @@ Spree::Order.class_eval do
 
         if self.bill_address.user_id.nil?
           self.bill_address.user = self.user
-          # self.bill_address.save
+          self.bill_address.save
         end
       end
 
@@ -210,12 +210,12 @@ Spree::Order.class_eval do
 
           if self.ship_address.user_id.nil?
             self.ship_address.user = self.user
-            # self.ship_address.save
+            self.ship_address.save
           end
         end
       end
 
-      # user.addresses.reload
+      user.addresses.reload
     end
   end
 
