@@ -1,0 +1,10 @@
+<%# Warnings about disabled address updates; pass last_column as a local to control formatting (alpha vs. omega) %>
+<% [ @order, @user ].compact.each do |o| %>
+  <% unless o.can_update_addresses? %>
+    <div class="<%= last_column ? 'omega seven' : cycle('alpha six', 'omega six') %> columns">
+      <div class="alert address_error">
+        <%= Spree.t(:addresses_not_editable, resource: o.class.model_name.human) %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
