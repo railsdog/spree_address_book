@@ -5,7 +5,7 @@ Spree::Order.class_eval do
 
   state_machine.after_transition to: :complete, do: :delink_addresses
   before_validation :delink_addresses_validation, if: :complete?
-  # before_validation :merge_user_addresses, unless: :complete?
+  before_validation :merge_user_addresses, unless: :complete?
 
   after_save :touch_addresses
 
@@ -191,7 +191,7 @@ Spree::Order.class_eval do
 
         if self.bill_address.user_id.nil?
           self.bill_address.user = self.user
-          self.bill_address.save
+          self.bill_address.save unless self.bill_address.new_record? || !self.bill_address.valid?
         end
       end
 
@@ -210,7 +210,7 @@ Spree::Order.class_eval do
 
           if self.ship_address.user_id.nil?
             self.ship_address.user = self.user
-            self.ship_address.save
+            self.ship_address.save unless self.ship_address.new_record? || !self.ship_address.valid?
           end
         end
       end
