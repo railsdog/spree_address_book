@@ -213,6 +213,7 @@ feature "Address selection during checkout" do
         end
 
         within '#shipping' do
+          uncheck 'order_use_billing'
           fill_in_address(address2)
         end
 
