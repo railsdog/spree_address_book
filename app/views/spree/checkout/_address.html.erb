@@ -27,6 +27,9 @@
             <% @addresses.each_with_index do |address, idx| %>
               <div class="field radio">
                 <% a = address.primary_address %>
+
+                <%= render partial: 'spree/shared/suggested_address', locals: { address: a, checkout: true } %>
+
                 <div id="<%= "#{address_type}_#{dom_id(a)}" %>">
                   <%= form.radio_button addr_with_id, a.id, checked: a.id == default_addr.try(:id), autocomplete: 'off' %>
                   <label for="<%= "order_#{address_name}_id_#{a.id}" %>">
