@@ -181,6 +181,12 @@ feature "Address selection during checkout" do
 
     context 'with invalid null addresses in the database' do
       let(:nil_address) {
+        a = Spree::Address.new
+        a.save(validate: false)
+        a
+      }
+
+      let(:nil_user_address) {
         a = nil
         5.times do
           a = Spree::Address.new(user: user)
@@ -198,6 +204,7 @@ feature "Address selection during checkout" do
 
       scenario 'a user can still check out' do
         user.addresses.where.not(address1: nil).delete_all
+        user.orders.last.update_columns(bill_address_id: nil_user_address.id, ship_address_id: nil_address.id)
         restart_checkout
         expect(current_path).to eq('/checkout/address')
 
