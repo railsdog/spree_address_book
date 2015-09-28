@@ -197,16 +197,15 @@ feature "Address selection during checkout" do
       end
 
       scenario 'a user can still check out' do
+        user.addresses.where.not(address1: nil).delete_all
         restart_checkout
         expect(current_path).to eq('/checkout/address')
 
         within '#billing' do
-          choose I18n.t(:other_address, scope: :address_book)
           fill_in_address(address1)
         end
 
         within '#shipping' do
-          choose I18n.t(:other_address, scope: :address_book)
           fill_in_address(address2)
         end
 
