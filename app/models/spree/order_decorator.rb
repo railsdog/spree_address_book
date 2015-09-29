@@ -150,10 +150,10 @@ Spree::Order.class_eval do
   def discard_blank_addresses
     return unless self.state == 'address' || self.state == 'cart'
 
-    if bill_address && bill_address.invalid? && bill_address.address1.blank?
+    if bill_address && bill_address.invalid? && bill_address.blank?
       self.bill_address = nil
     end
-    if ship_address && ship_address.invalid? && ship_address.address1.blank?
+    if ship_address && ship_address.invalid? && ship_address.blank?
       self.ship_address = nil
     end
   end

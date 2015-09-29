@@ -50,6 +50,12 @@ Spree::Address.class_eval do
     a
   end
 
+  # Copied from Spree, modified to ignore user_id when checking for a blank
+  # address.
+  def empty?
+    attributes.except('id', 'created_at', 'updated_at', 'order_id', 'country_id', 'user_id').all? { |_, v| v.nil? }
+  end
+
   # can modify an address if it's not been used in an completed order
   # Users of the gem can override this method to provide different rules.
   # See also Spree::Order#can_update_addresses? and Spree::User#can_update_addresses?
