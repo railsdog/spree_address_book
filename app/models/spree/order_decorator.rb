@@ -5,6 +5,7 @@ Spree::Order.class_eval do
 
   state_machine.after_transition to: :complete, do: :delink_addresses
   before_validation :delink_addresses_validation, if: :complete?
+  before_validation :discard_blank_addresses # Function itself limits to address and cart states
   before_validation :merge_user_addresses, unless: :complete?
 
   after_save :touch_addresses
@@ -142,6 +143,20 @@ Spree::Order.class_eval do
 
 
   private
+
+  # Removes blank addresses from the order before leaving the :cart state,
+  # ensuring that invalid addresses assigned to an order do not prevent a user
+  # from checking out.
+  def discard_blank_addresses
+    return unless self.state == 'address' || self.state == 'cart'
+
+    if bill_address && bill_address.invalid? && bill_address.address1.blank?
+      self.bill_address = nil
+    end
+    if ship_address && ship_address.invalid? && ship_address.address1.blank?
+      self.ship_address = nil
+    end
+  end
 
   # While an order is in progress it refers to the same object as is in the
   # address book (i.e. it is a reference). This makes the UI code easier. Once a
