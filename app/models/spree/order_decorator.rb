@@ -194,7 +194,7 @@ Spree::Order.class_eval do
     if user
       l = Spree::AddressBookList.new(user)
 
-      if self.bill_address
+      if self.bill_address && self.bill_address.valid?
         bill = l.find(self.bill_address)
         if bill
           if self.bill_address_id != bill.id
@@ -210,7 +210,7 @@ Spree::Order.class_eval do
         end
       end
 
-      if self.ship_address
+      if self.ship_address && self.ship_address.valid?
         if self.ship_address.same_as?(self.bill_address)
           self.ship_address = self.bill_address
         else
