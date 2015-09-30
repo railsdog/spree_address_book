@@ -44,7 +44,7 @@ Spree.user_class.class_eval do
           self.bill_address = self.bill_address.clone
         end
         self.bill_address.user = self
-        self.bill_address.save unless self.bill_address.new_record?
+        self.bill_address.save unless self.bill_address.new_record? || !self.bill_address.valid?
       end
     end
 
@@ -62,7 +62,7 @@ Spree.user_class.class_eval do
           self.ship_address = self.ship_address.clone
         end
         self.ship_address.user = self
-        self.ship_address.save unless self.ship_address.new_record?
+        self.ship_address.save unless self.ship_address.new_record? || !self.ship_address.valid?
       end
     end
   end

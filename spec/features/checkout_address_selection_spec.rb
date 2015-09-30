@@ -179,6 +179,49 @@ feature "Address selection during checkout" do
       end.to change { user.addresses.count }.by(1)
     end
 
+    context 'with invalid null addresses in the database' do
+      let(:nil_address) {
+        a = Spree::Address.new
+        a.save(validate: false)
+        a
+      }
+
+      let(:nil_user_address) {
+        a = nil
+        5.times do
+          a = Spree::Address.new(user: user)
+          a.save(validate: false)
+        end
+        a
+      }
+
+      let(:address1) { build(:fake_address) }
+      let(:address2) { build(:fake_address) }
+
+      before(:each) do
+        expect(nil_address.id).to be > 0
+      end
+
+      scenario 'a user can still check out' do
+        user.addresses.where.not(address1: nil).delete_all
+        user.orders.last.update_columns(bill_address_id: nil_user_address.id, ship_address_id: nil_address.id)
+        restart_checkout
+        expect(current_path).to eq('/checkout/address')
+
+        within '#billing' do
+          fill_in_address(address1)
+        end
+
+        within '#shipping' do
+          uncheck 'order_use_billing'
+          fill_in_address(address2)
+        end
+
+        complete_checkout
+        expect(page).to have_content("processed successfully")
+      end
+    end
+
     describe "when invalid address is entered" do
       let(:address) do
         Spree::Address.new(:firstname => nil, :state => state)
@@ -383,7 +426,7 @@ feature "Address selection during checkout" do
         end.to_not change{ user.addresses.count }
       end
 
-      it 'should assign the the user default addresses to the order' do
+      it 'should assign the user default addresses to the order' do
         user.update_attributes!(
           bill_address_id: user.addresses.first.id,
           ship_address_id: create(:address, user: user).id

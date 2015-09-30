@@ -5,7 +5,8 @@ Spree::Order.class_eval do
 
   state_machine.after_transition to: :complete, do: :delink_addresses
   before_validation :delink_addresses_validation, if: :complete?
-  # before_validation :merge_user_addresses, unless: :complete?
+  before_validation :discard_blank_addresses # Function itself limits to address and cart states
+  before_validation :merge_user_addresses, unless: :complete?
 
   after_save :touch_addresses
 
@@ -143,6 +144,20 @@ Spree::Order.class_eval do
 
   private
 
+  # Removes blank addresses from the order before leaving the :cart state,
+  # ensuring that invalid addresses assigned to an order do not prevent a user
+  # from checking out.
+  def discard_blank_addresses
+    return unless self.state == 'address' || self.state == 'cart'
+
+    if bill_address && bill_address.invalid? && bill_address.blank?
+      self.bill_address = nil
+    end
+    if ship_address && ship_address.invalid? && ship_address.blank?
+      self.ship_address = nil
+    end
+  end
+
   # While an order is in progress it refers to the same object as is in the
   # address book (i.e. it is a reference). This makes the UI code easier. Once a
   # order is complete we want to copy clone the address so the order/shipments
@@ -179,7 +194,7 @@ Spree::Order.class_eval do
     if user
       l = Spree::AddressBookList.new(user)
 
-      if self.bill_address
+      if self.bill_address && self.bill_address.valid?
         bill = l.find(self.bill_address)
         if bill
           if self.bill_address_id != bill.id
@@ -191,11 +206,11 @@ Spree::Order.class_eval do
 
         if self.bill_address.user_id.nil?
           self.bill_address.user = self.user
-          self.bill_address.save
+          self.bill_address.save unless self.bill_address.new_record? || !self.bill_address.valid?
         end
       end
 
-      if self.ship_address
+      if self.ship_address && self.ship_address.valid?
         if self.ship_address.same_as?(self.bill_address)
           self.ship_address = self.bill_address
         else
@@ -210,7 +225,7 @@ Spree::Order.class_eval do
 
           if self.ship_address.user_id.nil?
             self.ship_address.user = self.user
-            self.ship_address.save
+            self.ship_address.save unless self.ship_address.new_record? || !self.ship_address.valid?
           end
         end
       end

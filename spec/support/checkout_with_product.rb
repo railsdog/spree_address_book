@@ -45,6 +45,12 @@ shared_context "checkout with product" do
     Capybara.ignore_hidden_elements = true
   end
 
+  def add_mug_to_cart
+    visit spree.root_path
+    click_link mug.name
+    click_button "add-to-cart-button"
+  end
+
   private
   def should_have_address_fields
     expect(page).to have_field("First Name")
@@ -73,12 +79,6 @@ shared_context "checkout with product" do
 
   def expected_address_format(address)
     Nokogiri::HTML(address.to_s).text
-  end
-
-  def add_mug_to_cart
-    visit spree.root_path
-    click_link mug.name
-    click_button "add-to-cart-button"
   end
 
 end
