@@ -121,9 +121,9 @@ module Spree
 
           # TODO: Use more "resourceful" routing under Order and/or User
           if order_id
-            admin_order_customer_path(Spree::Order.find(params[:order_id]))
+            admin_order_customer_path(Spree::Order.find(order_id))
           elsif user_id
-            edit_admin_user_path(Spree.user_class.find(params[:user_id]))
+            edit_admin_user_path(Spree.user_class.find(user_id))
           else
             admin_path
           end
