@@ -8,9 +8,7 @@ module Spree
       before_filter :load_address_list
       before_filter :find_address, only: [:edit, :update, :destroy]
 
-      before_action :save_referrer, only: [:new, :edit, :destroy] # TODO: use redirect_to :back instead?
-
-      # TODO: Get rid of this action, since the generic addresses list is no longer used.
+      # Note: this is also an obsolete action used by the old unintegrated addresses list
       def redirect_back
         redirect_to collection_url
       end
@@ -18,7 +16,7 @@ module Spree
       def new
         unless @order.try(:can_update_addresses?) || @user.try(:can_update_addresses?)
           flash[:error] = Spree.t(:addresses_not_editable, resource: (@user || @order).try(:class).try(:model_name).try(:human))
-          redirect_back_or_default(collection_url)
+          redirect_back
           return
         end
 
@@ -56,14 +54,14 @@ module Spree
           render :new
         else
           flash[:success] = Spree.t(:successfully_created, resource: @address.class.model_name.human)
-          redirect_back_or_default(collection_url)
+          redirect_back unless request.xhr?
         end
       end
 
       def edit
         if !@address.editable?
           flash[:error] = I18n.t(:address_not_editable, scope: [:address_book])
-          redirect_back_or_default(collection_url)
+          redirect_back
           return
         end
       end
@@ -78,7 +76,7 @@ module Spree
           render :edit
         else
           flash[:success] = Spree.t(:successfully_updated, resource: @address.class.model_name.human)
-          redirect_back_or_default(collection_url)
+          redirect_back unless request.xhr?
         end
       end
 
@@ -91,7 +89,7 @@ module Spree
           flash[:error] = @address.errors.full_messages.to_sentence
         end
 
-        redirect_back_or_default(collection_url) unless request.xhr?
+        redirect_back unless request.xhr?
       end
 
       def update_addresses
