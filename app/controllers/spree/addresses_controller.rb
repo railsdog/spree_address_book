@@ -3,7 +3,8 @@ class Spree::AddressesController < Spree::StoreController
   include Spree::AddressUpdateHelper
 
   rescue_from ActiveRecord::RecordNotFound, :with => :render_404
-  load_and_authorize_resource :class => Spree::Address
+  #load_and_authorize_resource :class => Spree::Address 
+  load_resource :class => Spree::Address 
 
   before_filter :reject_unowned_addresses
   before_filter :load_addresses, only: [:index, :create, :update]
@@ -46,7 +47,9 @@ class Spree::AddressesController < Spree::StoreController
     # See app/helpers/spree/addresses_helper.rb
     @address, *_ = update_and_merge @address, @addresses
 
-    set_default_address unless @address.errors.any?
+    if spree_current_user
+        set_default_address unless @address.errors.any?
+    end
 
     if @address.errors.any?
       flash[:error] = @address.errors.full_messages.to_sentence
@@ -73,14 +76,17 @@ class Spree::AddressesController < Spree::StoreController
 
   # Loads a deduplicated address list (Spree::AddressBookList) into @addresses.
   def load_addresses
-    @addresses = Spree::AddressBookList.new(spree_current_user)
+    @addresses = Spree::AddressBookList.new(spree_current_user || current_order)
   end
 
   # Raises ActiveRecord::NotFound if the address has no user or a different
   # user from the current user.
   def reject_unowned_addresses
-    if @address && !@address.new_record? && (@address.user_id.nil? || @address.user_id != spree_current_user.try(:id))
-      raise ActiveRecord::RecordNotFound, Spree.t(:no_resource_found, resource: Spree::Address.model_name.human)
+    if @address && !@address.new_record?
+      if (spree_current_user && @address.user_id != spree_current_user.id) ||
+        (!spree_current_user && current_order.bill_address_id != @address.id && current_order.ship_address_id != @address.id)
+        raise ActiveRecord::RecordNotFound, Spree.t(:no_resource_found, resource: Spree::Address.model_name.human)
+      end
     end
   end
 

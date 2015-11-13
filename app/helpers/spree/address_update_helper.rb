@@ -2,7 +2,7 @@ module Spree::AddressUpdateHelper
   # Saves request.referrer into session['spree_user_return_to'] for use by
   # Spree's #redirect_back_or_default method.
   def save_referrer
-    session['spree_user_return_to'] = request.referrer
+    session['spree_user_return_to'] = request.referrer 
   end
 
   # Returns params, requiring/permitting address-related parameters.
