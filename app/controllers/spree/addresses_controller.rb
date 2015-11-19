@@ -3,7 +3,6 @@ class Spree::AddressesController < Spree::StoreController
   include Spree::AddressUpdateHelper
 
   rescue_from ActiveRecord::RecordNotFound, :with => :render_404
-  #load_and_authorize_resource :class => Spree::Address 
   load_resource :class => Spree::Address 
 
   before_filter :reject_unowned_addresses
@@ -47,9 +46,7 @@ class Spree::AddressesController < Spree::StoreController
     # See app/helpers/spree/addresses_helper.rb
     @address, *_ = update_and_merge @address, @addresses
 
-    if spree_current_user
-        set_default_address unless @address.errors.any?
-    end
+    set_default_address unless @address.errors.any?
 
     if @address.errors.any?
       flash[:error] = @address.errors.full_messages.to_sentence
@@ -95,7 +92,7 @@ class Spree::AddressesController < Spree::StoreController
   # the current user's Spree::User#can_update_addresses? returns truthy.  Adds
   # any errors from the user to @address.errors.
   def set_default_address
-    if spree_current_user.can_update_addresses?
+    if spree_current_user && spree_current_user.can_update_addresses?
       spree_current_user.bill_address = @address if params[:default_bill]
       spree_current_user.ship_address = @address if params[:default_ship]
 
