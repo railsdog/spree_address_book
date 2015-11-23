@@ -3,7 +3,7 @@
 # prevent a customer from checking out.
 require 'spec_helper'
 
-feature 'Aborted guest checkout', js: true do
+feature 'Guest order address editing', js: true do
   include_context 'checkout with product'
 
   let(:user) { create(:user) }
