@@ -27,7 +27,7 @@
   <% end %>
 </div>
 
-<% if show_make_default %>
+<% if spree_current_user && show_make_default %>
   <p class="field" id="<%= "#{address_id}default_bill" %>">
     <%= check_box_tag 'default_bill', '1', address.id && spree_current_user.bill_address_id == address.id %>
     <%= label_tag 'default_bill', Spree.t(:make_default_billing_address) %>
