@@ -1,0 +1,3 @@
+<% if flash[:success].present? && !flash[:error].present? %>
+  show_flash('success', <%== flash[:success].to_s.inspect %>);
+<% end %>

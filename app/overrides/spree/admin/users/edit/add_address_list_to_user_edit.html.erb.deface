@@ -1,0 +1,4 @@
+<!-- insert_after "[data-hook='admin_user_edit_general_settings']" enabled -->
+<%# Adds an address selection list to the user editing page %>
+
+<%= render partial: 'spree/admin/addresses/list' %>

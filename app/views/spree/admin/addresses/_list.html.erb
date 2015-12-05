@@ -1,0 +1,141 @@
+<%# Renders an order/user address selection form; uses @user, @order, @addresses %>
+
+<% allow_create = @user.try(:can_update_addresses?) || @order.try(:can_update_addresses?) %>
+<% allow_all_create = @order.try(:can_update_addresses?) != false && @user.try(:can_update_addresses?) != false %>
+
+<fieldset data-hook="admin_addresses" id="admin_user_edit_addresses" class="alpha omega twelve columns">
+  <legend align="center"><%= Spree.t('addresses', :scope => 'admin.user') %></legend>
+
+  <% if @addresses.blank? %>
+    <div class="alpha omega twelve columns no-objects-found">
+      <div class="alpha five columns">
+        <% msg = Spree.t(:no_resource_found, resource: Spree::Address.model_name.human.pluralize) %>
+        <% if allow_create %>
+          <%= msg %>,
+          <%= link_to "Add one", new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), id: 'new_address_link' %>!
+        <% else %>
+          <%= msg %>
+        <% end %>
+      </div>
+
+      <%= render partial: 'spree/admin/addresses/address_warning', locals: { last_column: false } %>
+    </div>
+  <% else %>
+    <%= form_for @user || @order, url: update_addresses_admin_addresses_path(user_id: @user.try(:id), order_id: @order.try(:id)), method: :put do |f| %>
+      <div class="row">
+        <%# Form submission button %>
+        <% if allow_create %>
+          <div class="alpha five columns">
+            <%= f.submit I18n.t(:save_address_selection, scope: :address_book) %>
+          </div>
+        <% end %>
+
+        <%= render partial: 'spree/admin/addresses/address_warning', locals: { last_column: allow_create } %>
+
+        <%# Address creation button %>
+        <% if allow_all_create %>
+          <div class="omega seven columns align-right">
+            <%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), icon: 'plus', id: 'new_address_link' %>
+          </div>
+        <% end %>
+      </div>
+
+      <table id="addresses">
+        <thead>
+          <tr class="<%= cycle('even', 'odd') %>">
+            <th><%= I18n.t(:address, scope: :address_book) %></th>
+            <% if @user %>
+              <th class="align-center"><%= I18n.t(:user_default_bill, scope: :address_book) %></th>
+              <th class="align-center"><%= I18n.t(:user_default_ship, scope: :address_book) %></th>
+            <% end %>
+            <% if @order %>
+              <th class="align-center"><%= I18n.t(:order_bill, scope: :address_book) %></th>
+              <th class="align-center"><%= I18n.t(:order_ship, scope: :address_book) %></th>
+            <% end %>
+            <th class="actions"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% @addresses.each do |address| %>
+            <tr class="address <%= cycle('even', 'odd') %>" id="address-<%= address.id %>" data-address="<%= address.id %>">
+              <td><%= address %></td>
+              <% if @user %>
+                <% disable_user = !@user.can_update_addresses? %>
+
+                <td class="align-center">
+                  <%=
+                    radio_button_tag 'user[bill_address_id]',
+                      address.user_bill.try(:id) || address.id,
+                      address.user_bill.present?,
+                      disabled: disable_user
+                    %>
+                  <%= label_tag "user_bill_address_id_#{address.id}", '' %>
+                </td>
+                <td class="align-center">
+                  <%=
+                    radio_button_tag 'user[ship_address_id]',
+                      address.user_ship.try(:id) || address.id,
+                      address.user_ship.present?,
+                      disabled: disable_user
+                    %>
+                  <%= label_tag "user_ship_address_id_#{address.id}", '' %>
+                </td>
+              <% end %>
+              <% if @order %>
+                <% disable_order = !@order.can_update_addresses? %>
+
+                <td class="align-center">
+                  <%=
+                    radio_button_tag 'order[bill_address_id]',
+                      address.order_bill.try(:id) || address.id,
+                      address.order_bill.present?,
+                      disabled: disable_order
+                    %>
+                  <%= label_tag "order_bill_address_id_#{address.id}", '' %>
+                </td>
+                <td class="align-center">
+                  <%=
+                    radio_button_tag 'order[ship_address_id]',
+                      address.order_ship.try(:id) || address.id,
+                      address.order_ship.present?,
+                      disabled: disable_order
+                    %>
+                  <%= label_tag "order_ship_address_id_#{address.id}", '' %>
+                </td>
+              <% end %>
+              <td class="actions">
+                <% unless disable_user || disable_order %>
+                  <% if address.primary_address.editable? %>
+                    <%= link_to_edit_url edit_admin_address_url(address.primary_address, user_id: @user.try(:id), order_id: @order.try(:id)), no_text: true, id: "edit-address-#{address.id}" %>
+                  <% end %>
+
+                  <% if address.primary_address.can_be_deleted? %>
+                    <%= link_to_delete address.primary_address, no_text: true, method: :delete, id: "delete-address-#{address.id}", url: admin_address_path(address.primary_address, user_id: @user.try(:id), order_id: @order.try(:id)) %>
+                  <% end %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <div class="row">
+        <%# Form submission button %>
+        <% if allow_create %>
+          <div class="alpha six columns">
+            <%= f.submit I18n.t(:save_address_selection, scope: :address_book) %>
+          </div>
+        <% end %>
+
+        <%# Address creation button %>
+        <% if allow_all_create %>
+          <div class="omega six columns align-right">
+            <%= button_link_to I18n.t(:new_address, scope: :address_book), new_admin_address_path(user_id: @user.try(:id), order_id: @order.try(:id)), icon: 'plus', id: 'new_address_link_bottom' %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+
+</fieldset>

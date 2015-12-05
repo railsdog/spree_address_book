@@ -1,0 +1,4 @@
+<!-- insert_before "[data-hook='admin_user_new_form_buttons']" -->
+<%# Allows creating a billing address when creating a new user. %>
+
+<%= render partial: 'spree/admin/users/new_user_bill', locals: { f: f } %>
