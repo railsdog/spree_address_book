@@ -35,4 +35,24 @@ Spree::CheckoutHelper.module_eval do
 
     (input + label).html_safe
   end
+
+  def use_billing_should_be_checked?
+    same_address_id? || shipping_and_billing_blank? || shipping_present_and_billing_blank? || same_address_text? 
+  end
+
+  def same_address_id?
+     @order.bill_address_id == @order.ship_address_id
+  end
+
+  def same_address_text?
+     @order.bill_address.same_as?(@order.ship_address)
+  end
+
+  def shipping_present_and_billing_blank?
+    @order.bill_address.present? && @order.ship_address.blank?
+  end
+
+  def shipping_and_billing_blank?
+    @order.bill_address.blank? && @order.ship_address.blank?
+  end
 end

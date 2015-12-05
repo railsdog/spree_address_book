@@ -10,5 +10,7 @@ gem 'therubyracer', platforms: :ruby, groups: [:test, :development]
 gem 'libv8', '<= 3.16.14.3', platforms: :ruby, groups: [:test, :development]
 
 gem 'byebug', groups: [:test, :development], platforms: [:ruby_20, :ruby_21]
+gem 'launchy', groups: [:test, :development] # for save_and_open_page in capybara
+
 
 gemspec

@@ -15,7 +15,7 @@
 
         <% if address_type == 'shipping' && !Spree::AddressBook::Config[:disable_bill_address] %>
           <div class="field checkbox"  data-hook="use_billing">
-            <%= check_box_tag 'order[use_billing]', '1', (!(@order.bill_address.blank? && @order.ship_address.blank?) && @order.bill_address.same_as?(@order.ship_address)) %>
+            <%= check_box_tag 'order[use_billing]', '1', use_billing_should_be_checked? %>
             <%= label_tag :order_use_billing, Spree.t(:use_billing_address), :id => 'use_billing' %>
           </div>
         <% end %>
