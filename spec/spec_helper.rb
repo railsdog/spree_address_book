@@ -35,6 +35,7 @@ require "spree/testing_support/i18n"
 require 'spree/testing_support/flash'
 require 'spree/testing_support/order_walkthrough'
 require 'spree/testing_support/caching'
+require 'spree_address_management/testing_support/address_helpers'
 require 'paperclip/matchers'
 
 Capybara.register_driver :poltergeist do |app|
