@@ -2,14 +2,64 @@ module SpreeAddressManagement
   module TestingSupport
     module AddressHelpers
       # Fill in an already loaded address form with the given +values+ (either a
-      # Spree::Address, or a Hash mapping field names to field values).  If +type+
-      # is :user, :bill, or :ship, then the address type field (for order
-      # addresses) will be set to User, Billing, or Shipping, respectively (see
-      # #assign_order_address in Spree::Admin::AddressesController).  The +type+
-      # parameter only works for admin UI address forms, not frontend.
+      # Spree::Address, or a Hash mapping field names to field values).
+      #
+      # For frontend forms, +type+ can optionally be :bill to fill in the
+      # billing address, or :ship to fill in the shipping address.  The Other
+      # Address radio button and Use Billing Address checkbox will be set
+      # appropriately, if needed.  For admin forms, if +type+ is :user, :bill,
+      # or :ship, then the address type field (for order addresses) will be set
+      # to User, Billing, or Shipping, respectively (see #assign_order_address
+      # in Spree::Admin::AddressesController).
       #
       # Note that JavaScript is required to fill in the state field.
       def fill_in_address(values, type=nil)
+        if type
+          if current_path.start_with?(spree.admin_path)
+            # Admin forms
+            expect(page).to have_css('#address_address_type')
+
+            if type == :user
+              select Spree.t(:user), from: Spree.t(:address_type)
+            elsif type == :bill
+              select Spree.t(:billing_address), from: Spree.t(:address_type)
+            elsif type == :ship
+              select Spree.t(:shipping_address), from: Spree.t(:address_type)
+            else
+              raise "Invalid type #{type.inspect}"
+            end
+          elsif current_path.start_with?(spree.checkout_path)
+            # Checkout forms
+            if type == :bill
+              container = '#billing'
+            elsif type == :ship
+              container = '#shipping'
+            end
+          else
+            # TODO: Frontend account forms, if needed
+          end
+        end
+
+        if container
+          within(container) do
+            fill_in_address_fields(values)
+          end
+        else
+          fill_in_address_fields(values)
+        end
+      end
+
+      private
+
+      # Fills in an address form as does #fill_in_address, but does not choose
+      # "Other address", limit scope using #within, etc.
+      def fill_in_address_fields(values)
+        uncheck 'order_use_billing' if page.has_css?('#order_use_billing')
+
+        if page.has_css?('#order_bill_address_id_0, #order_ship_address_id_0')
+          choose I18n.t(:other_address, scope: :address_book)
+        end
+
         if values.is_a?(Spree::Address)
           fill_in Spree.t(:first_name), with: values.firstname
           fill_in Spree.t(:last_name), with: values.lastname
@@ -38,16 +88,7 @@ module SpreeAddressManagement
             end
           end
         else
-          raise "Invalid type #{values.class.name} for values"
-        end
-
-        expect(page).to have_css('#address_address_type') if type
-        if type == :user
-          select Spree.t(:user), from: Spree.t(:address_type)
-        elsif type == :bill
-          select Spree.t(:billing_address), from: Spree.t(:address_type)
-        elsif type == :ship
-          select Spree.t(:shipping_address), from: Spree.t(:address_type)
+          raise "Invalid class #{values.class.name} for values"
         end
       end
     end

@@ -64,13 +64,8 @@ feature "Address selection during checkout" do
       end
 
       scenario 'preserves form contents if an address is invalid, and allows correcting addresses' do
-        within '#billing' do
-          fill_in_address(address1)
-        end
-
-        within '#shipping' do
-          fill_in_address(address2)
-        end
+        fill_in_address(address1, :bill)
+        fill_in_address(address2, :ship)
 
         expect(find_field('order_bill_address_attributes_zipcode').value).to eq(address1.zipcode)
         expect(find_field('order_ship_address_attributes_zipcode').value).to eq(address2.zipcode)
@@ -153,28 +148,16 @@ feature "Address selection during checkout" do
 
     it "should save 2 addresses for user if they are different" do
       expect do
-        within("#billing") do
-          choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(billing)
-        end
-        within("#shipping") do
-          choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(shipping)
-        end
+        fill_in_address(billing, :bill)
+        fill_in_address(shipping, :ship)
         complete_checkout
       end.to change { user.addresses.count }.by(2)
     end
 
     it "should save 1 address for user if they are the same" do
       expect do
-        within("#billing") do
-          choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(billing)
-        end
-        within("#shipping") do
-          choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(billing)
-        end
+        fill_in_address(billing, :bill)
+        fill_in_address(billing, :ship)
         complete_checkout
       end.to change { user.addresses.count }.by(1)
     end
@@ -208,14 +191,8 @@ feature "Address selection during checkout" do
         restart_checkout
         expect(current_path).to eq('/checkout/address')
 
-        within '#billing' do
-          fill_in_address(address1)
-        end
-
-        within '#shipping' do
-          uncheck 'order_use_billing'
-          fill_in_address(address2)
-        end
+        fill_in_address(address1, :bill)
+        fill_in_address(address2, :ship)
 
         complete_checkout
         expect(page).to have_content("processed successfully")
@@ -228,12 +205,8 @@ feature "Address selection during checkout" do
       end
 
       it "should show address form with error" do
-        within("#billing") do
-          fill_in_address(address)
-        end
-        within("#shipping") do
-          fill_in_address(address)
-        end
+        fill_in_address(address, :bill)
+        fill_in_address(address, :ship)
         click_button "Save and Continue"
         within("#bfirstname") do
           expect(page).to have_content("field is required")
@@ -262,15 +235,8 @@ feature "Address selection during checkout" do
           expect(address1.id).to be_nil
           expect(address2.id).to be_nil
 
-          within '#billing' do
-            choose I18n.t(:other_address, scope: :address_book)
-            fill_in_address(address1)
-          end
-
-          within '#shipping' do
-            choose I18n.t(:other_address, scope: :address_book)
-            fill_in_address(address2)
-          end
+          fill_in_address(address1, :bill)
+          fill_in_address(address2, :ship)
 
           expect(find_field('order_bill_address_attributes_zipcode').value).to eq(address1.zipcode)
           expect(find_field('order_ship_address_attributes_zipcode').value).to eq(address2.zipcode)
@@ -325,14 +291,8 @@ feature "Address selection during checkout" do
 
     describe "entering 2 new addresses" do
       it "should assign 2 new addresses to order" do
-        within("#billing") do
-          choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(billing)
-        end
-        within("#shipping") do
-          choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(shipping)
-        end
+        fill_in_address(billing, :bill)
+        fill_in_address(shipping, :ship)
         complete_checkout
         expect(page).to have_content("processed successfully")
         within("#order > div.row.steps-data > div:nth-child(1)") do
@@ -356,10 +316,7 @@ feature "Address selection during checkout" do
         expect do
           address = user.addresses.first
           choose "order_bill_address_id_#{address.id}"
-          within("#shipping") do
-            choose I18n.t(:other_address, :scope => :address_book)
-            fill_in_address(shipping)
-          end
+          fill_in_address(shipping, :ship)
           complete_checkout
         end.to change{ user.addresses.count }.by(1)
       end
@@ -367,10 +324,7 @@ feature "Address selection during checkout" do
       it "should assign addresses to orders" do
         address = user.addresses.first
         choose "order_bill_address_id_#{address.id}"
-        within("#shipping") do
-          choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(shipping)
-        end
+        fill_in_address(shipping, :ship)
         complete_checkout
         expect(page).to have_content("processed successfully")
         within("#order > div.row.steps-data > div:nth-child(1)") do
@@ -387,10 +341,7 @@ feature "Address selection during checkout" do
         address = user.addresses.first
         shipping = FactoryGirl.build(:address, :address1 => nil, :state => state)
         choose "order_bill_address_id_#{address.id}"
-        within("#shipping") do
-          choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(shipping)
-        end
+        fill_in_address(shipping, :ship)
         click_button "Save and Continue"
         within("#saddress1") do
           expect(page).to have_content("field is required")
@@ -534,10 +485,7 @@ feature "Address selection during checkout" do
         expect do
           address = user.addresses.first
           choose "order_ship_address_id_#{address.id}"
-          within("#billing") do
-            choose I18n.t(:other_address, :scope => :address_book)
-            fill_in_address(billing)
-          end
+          fill_in_address(billing, :bill)
           check "Use Billing Address"
           complete_checkout
         end.to change{ user.addresses.count }.by(1)
@@ -550,10 +498,7 @@ feature "Address selection during checkout" do
           expect {
             address = user.addresses.first
             choose "order_ship_address_id_#{address.id}"
-            within("#billing") do
-              choose I18n.t(:other_address, :scope => :address_book)
-              fill_in_address(billing)
-            end
+            fill_in_address(billing, :bill)
             check "Use Billing Address"
             complete_checkout
           }.not_to change{ [user.bill_address_id, user.ship_address_id] }
@@ -562,10 +507,7 @@ feature "Address selection during checkout" do
 
       it "should assign addresses to orders" do
         choose "order_ship_address_id_#{address.id}"
-        within("#billing") do
-          choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(billing)
-        end
+        fill_in_address(billing, :bill)
         check "Use Billing Address"
         complete_checkout
         expect(page).to have_content("processed successfully")
@@ -583,10 +525,7 @@ feature "Address selection during checkout" do
         address = user.addresses.first
         billing = FactoryGirl.build(:address, :address1 => nil, :state => state)
         choose "order_ship_address_id_#{address.id}"
-        within("#billing") do
-          choose I18n.t(:other_address, :scope => :address_book)
-          fill_in_address(billing)
-        end
+        fill_in_address(billing, :bill)
 
         click_button "Save and Continue"
         within("#baddress1") do
@@ -603,10 +542,7 @@ feature "Address selection during checkout" do
         expect{
           address = user.addresses.first
           choose "order_ship_address_id_#{address.id}"
-          within("#billing") do
-            choose I18n.t(:other_address, :scope => :address_book)
-            fill_in_address(address)
-          end
+          fill_in_address(address, :bill)
           check "Use Billing Address"
           complete_checkout
         }.not_to change { user.addresses.count }
