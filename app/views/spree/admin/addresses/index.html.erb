@@ -1,0 +1,17 @@
+<% content_for :page_title do %>
+  <% if @user && !@order %>
+    <%= link_to "#{Spree.t(:editing_user)} #{@user.try(:email)}", edit_admin_user_url(@user) %>
+  <% end %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <%# Link back to order or user address list %>
+  <% return_link_text = (Spree.t(:back_to_order) if @order) || (Spree.t(:back_to_user) if @user) %>
+  <li><%= button_link_to return_link_text, redirect_back_admin_addresses_url(user_id: @user.try(:id), order_id: @order.try(:id)), :icon => 'arrow-left' %></li>
+<% end %>
+
+<% if @order %>
+  <%= render :partial => 'spree/admin/shared/order_tabs', :locals => { :current => 'Addresses' } %>
+<% end %>
+
+<%= render partial: 'spree/admin/addresses/list' %>

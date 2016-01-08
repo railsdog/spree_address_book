@@ -1,0 +1,11 @@
+language: ruby
+cache:
+  bundler: true
+  directories:
+    - spec/dummy
+rvm:
+  - "1.9.3"
+  - "2.1"
+
+before_script:
+  - sh -c '[ -r spec/dummy/config/database.yml ] || yes | bundle exec rake test_app'

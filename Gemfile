@@ -1,16 +1,15 @@
-source "http://rubygems.org"
+source 'https://rubygems.org'
+
+spree_branch = '2-3-stable'
+gem 'spree', github: 'spree/spree', :branch => spree_branch
+gem 'spree_auth_devise', :git => 'git://github.com/spree/spree_auth_devise', :branch => spree_branch
+gem 'coffee-rails', '~> 4.0.0'
+gem 'pry-rails', group: :development
+
+gem 'therubyracer', platforms: :ruby, groups: [:test, :development]
+gem 'libv8', '<= 3.16.14.3', platforms: :ruby, groups: [:test, :development]
+
+gem 'byebug', groups: [:test, :development], platforms: [:ruby_20, :ruby_21]
+gem 'pry-byebug', group: :development, platforms: [:ruby_20, :ruby_21]
+
 gemspec
-
-group :test do
-  gem 'sass-rails',   '~> 3.2.5'
-  gem 'coffee-rails', '~> 3.2.1'
-
-  if RUBY_PLATFORM.downcase.include? "darwin"
-    gem 'rb-fsevent'
-    gem 'growl'
-    gem 'guard-rspec'
-  end
-end
-
-gem 'spree_auth_devise', :git => 'git://github.com/spree/spree_auth_devise', :branch => '1-3-stable'
-gem 'spree', '~> 1.3.5'

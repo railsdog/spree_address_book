@@ -1,23 +1,51 @@
-<h3><%= t(:shipping_addresses, :scope => :address_book) %></h3>
+<h3 id="user_address_list_title"><%= I18n.t(:saved_addresses, :scope => :address_book) %></h3>
+
 <% if spree_current_user.addresses.present? %>
-<table id="user_addresses">
-  <tbody>
-    <% spree_current_user.addresses.each do |address| %>
-    <tr class="<%= cycle('even', 'odd') %>">
-      <td><%= address %></td>
-      <td>
-        <%= link_to t(:edit), edit_address_path(address) %>&nbsp;
-        <%= link_to t(:remove), address_path(address), :method => :delete, :confirm => t(:are_you_sure) %>
-      </td>
-    </tr>
-    <% end %>
-  </tbody>
-</table>
+  <div class="new_address_link top">
+    <%= link_to I18n.t(:add_new_address, :scope => :address_book), :controller => :addresses, :action => :new %>
+  </div>
+
+  <table id="addresses">
+    <tbody>
+      <% Spree::AddressBookList.new(spree_current_user).each do |address| %>
+        <% a = address.primary_address %>
+        <% ubill = address.user_bill %>
+        <% uship = address.user_ship %>
+
+        <tr class="address <%= ubill && 'default_bill_address' %> <%= uship && 'default_ship_address' %> <%= cycle('even', 'odd') %>" data-address="<%= a.id %>">
+          <td>
+            <address><%= a %></address>
+
+            <% if ubill || uship %>
+              <div class="default_address">
+                <% if ubill %>
+                  <div class="default_bill_address"><%= Spree.t(:default_billing_address) %></div>
+                <% end %>
+
+                <% if uship %>
+                  <div class="default_ship_address"><%= Spree.t(:default_shipping_address) %></div>
+                <% end %>
+              </div>
+            <% end %>
+          </td>
+
+          <td class="actions">
+            <% if spree_current_user.can_update_addresses? %>
+              <%# Always allow editing here, as the controller will just clone the address if it's not #editable? %>
+              <%= link_to Spree.t(:edit), edit_address_path(a), id: "edit_address_#{a.id}" %>&nbsp;
+              <%= link_to Spree.t(:remove), address_path(a), { :method => :delete, id: "remove_address_#{a.id}", data: {:confirm => Spree.t(:are_you_sure)} } %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
 <% else %>
-<div id="users-address-list-empty">
-  <%= t(:no_shipping_addresses_on_file, :scope => :address_book) %>
-</div>
+  <div id="user_address_list_empty">
+    <%= I18n.t(:no_addresses_on_file, :scope => :address_book) %>
+  </div>
 <% end %>
-<div id="new_address_link">
-  <%= link_to t(:add_new_shipping_address, :scope => :address_book), :controller => :addresses, :action => :new %>
+
+<div class="new_address_link bottom">
+  <%= link_to I18n.t(:add_new_address, :scope => :address_book), :controller => :addresses, :action => :new %>
 </div>

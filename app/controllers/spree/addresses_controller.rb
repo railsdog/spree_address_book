@@ -1,18 +1,35 @@
 class Spree::AddressesController < Spree::StoreController
   helper Spree::AddressesHelper
-  rescue_from ActiveRecord::RecordNotFound, :with => :render_404
-  load_and_authorize_resource :class => Spree::Address
+  include Spree::AddressUpdateHelper
 
-  def index
-    redirect_to account_path
-  end
-  
-  def show
-    redirect_to account_path
+  rescue_from ActiveRecord::RecordNotFound, :with => :render_404
+  load_resource :class => Spree::Address 
+
+  before_filter :reject_unowned_addresses
+  before_filter :load_addresses, only: [:index, :create, :update]
+
+  def create
+    @address = spree_current_user.addresses.build(address_params)
+    @address.user = spree_current_user
+
+    # Only save the address if it doesn't match an existing address, but set
+    # the defaults regardless.
+    if @address.valid? && ((a = @addresses.find(@address)) || @address.save)
+      @address = a.primary_address if a
+      set_default_address
+    end
+
+    unless @address.errors.any?
+      flash[:notice] = Spree.t(:successfully_created, :resource => Spree.t(:address1))
+      redirect_to account_path
+    else
+      flash[:error] = @address.errors.full_messages.to_sentence
+      render :action => "new"
+    end
   end
 
   def edit
-    session["spree_user_return_to"] = request.env['HTTP_REFERER']
+    save_referrer
   end
 
   def new
@@ -20,41 +37,68 @@ class Spree::AddressesController < Spree::StoreController
   end
 
   def update
-    if @address.editable?
-      if @address.update_attributes(params[:address])
-        flash[:notice] = I18n.t(:successfully_updated, :resource => I18n.t(:address))
-        redirect_back_or_default(account_path)
-      else
-        render :action => "edit"
-      end
-    else
-      new_address = @address.clone
-      new_address.attributes = params[:address]
-      @address.update_attribute(:deleted_at, Time.now)
-      if new_address.save
-        flash[:notice] = I18n.t(:successfully_updated, :resource => I18n.t(:address))
-        redirect_back_or_default(account_path)
-      else
-        render :action => "edit"
-      end
+    if !@address.editable?
+      a = @address.clone
+      @address.update_attributes(user_id: nil)
+      @address = a
     end
-  end
 
-  def create
-    @address = Spree::Address.new(params[:address])
-    @address.user = spree_current_user
-    if @address.save
-      flash[:notice] = I18n.t(:successfully_created, :resource => I18n.t(:address))
-      redirect_to account_path
+    # See app/helpers/spree/addresses_helper.rb
+    @address, *_ = update_and_merge @address, @addresses
+
+    set_default_address unless @address.errors.any?
+
+    if @address.errors.any?
+      flash[:error] = @address.errors.full_messages.to_sentence
+      render action: 'edit'
     else
-      render :action => "new"
+      flash[:notice] = Spree.t(:successfully_updated, :resource => Spree.t(:address1))
+      redirect_back_or_default(account_path)
     end
   end
 
   def destroy
-    @address.destroy
+    a = @addresses.try(:find, @address) || @address
 
-    flash[:notice] = I18n.t(:successfully_removed, :resource => t(:address))
+    if a.destroy
+      flash[:notice] = Spree.t(:successfully_removed, :resource => Spree.t(:address1))
+    else
+      flash[:error] = a.errors.full_messages.to_sentence
+    end
+
     redirect_to(request.env['HTTP_REFERER'] || account_path) unless request.xhr?
+  end
+
+  private
+
+  # Loads a deduplicated address list (Spree::AddressBookList) into @addresses.
+  def load_addresses
+    @addresses = Spree::AddressBookList.new(spree_current_user || current_order)
+  end
+
+  # Raises ActiveRecord::NotFound if the address has no user or a different
+  # user from the current user.
+  def reject_unowned_addresses
+    if @address && !@address.new_record?
+      if (spree_current_user && @address.user_id != spree_current_user.id) ||
+        (!spree_current_user && current_order.bill_address_id != @address.id && current_order.ship_address_id != @address.id)
+        raise ActiveRecord::RecordNotFound, Spree.t(:no_resource_found, resource: Spree::Address.model_name.human)
+      end
+    end
+  end
+
+  # Sets @address as the current user's default billing and/or shipping
+  # address, if params[:default_bill] and/or params[:default_ship] are true and
+  # the current user's Spree::User#can_update_addresses? returns truthy.  Adds
+  # any errors from the user to @address.errors.
+  def set_default_address
+    if spree_current_user && spree_current_user.can_update_addresses?
+      spree_current_user.bill_address = @address if params[:default_bill]
+      spree_current_user.ship_address = @address if params[:default_ship]
+
+      if spree_current_user.changed? && !spree_current_user.save
+        @address.errors.add(:user, spree_current_user.errors.full_messages.to_sentence)
+      end
+    end
   end
 end
