@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'spree_address_management'
-  s.version     = '2.3.5'
+  s.version     = '2.3.6'
   s.summary     = "Allows users and admins to save and manage multiple addresses"
   s.description = "A fork of spree_address_book (https://github.com/romul/spree_address_book).  This gem allows Spree users to save multiple addresses for use during checkout, and provides robust tools for admins to assign, edit, and delete addresses."
   s.required_ruby_version = '>= 1.9.3'
